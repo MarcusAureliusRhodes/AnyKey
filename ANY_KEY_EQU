@@ -1,0 +1,535 @@
+! INCLUDE ANY_KEY_EQU
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 05/13/2020 12:41:00 by Marcus
+
+! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
+
+! Function: Defines ANY_KEY's replacement key-codes, with which  you  can
+!           grant your programs the ability to react to  any/all  special
+!           keys offered by the terminal currently  being  emulated,  and
+!           that without impacting  any  other  existing  programs.  (And
+!           wouldn't your users really prefer software that behaves  like
+!           all the rest of the more modern software extant,  using,  for
+!           example, the page-down key to see that  next  page  of  data,
+!           instead of having to press N and Enter?)  (Or was that N2 and
+!           then Enter?)  You can even eliminate that wasted line of text
+!           reminding users just which archaic,  non-intuitive  keys  are
+!           expected on that particular screen.
+
+!           Regular keys are returned  individually,  and  unaltered,  so
+!           they are not defined here or anywhere else in this suite.
+
+!           All equates adhere to the following naming-convention:
+!           K - all key equates begin with K for Key.
+!           P - indicates a keypad-key was pressed.
+!           M - indicates that a mouse-key was pressed.
+!           S - indicates that the key is modified by Shift.
+!           C - indicates that the key is modified by Control/Ctrl.
+!           A - indicates that the key is modified by Alt(ernate).
+!           _ - separates the modifiers from the key cap/name.
+!           Keyname - A, B, C, HOME, END, TAB, etc.
+
+!           Thus Ctrl+A equates to KC_A, and Shift+Ctrl+Home  equates  to
+!           KSC_HOME.
+
+!           Symbol keys, like ! & *, which cannot be used in variable  or
+!           equate names are assigned long names, such as BANG and  STAR.
+!           Thus Alt+! equates to KA_BANG, and Alt+* equates to KA_STAR.
+
+!           The aim here is not only to give new programs features  users
+!           have come  to  expect  from  modern  software,  but  also  to
+!           simplify the task of updating older programs, and to do  both
+!           without disrupting any existing,  unmodified  programs,  and,
+!           furthermore, to work the same on all flavors, in  all  flavor
+!           and terminal emulations; truly Write Once Run Anywhere.
+
+!           Works with ANY_KEY_TBL and ANY_KEY to translate  most  termi-
+!           nals'/emulators'  special  keys  into  the  two-char  strings
+!           defined below.
+
+!           ANY_KEY_TST is also part of the  suite.  Using  it,  you  can
+!           test your specific terminal/emulator, and identify any as yet
+!           undefined keys to be added  to  ANY_KEY_TBL,  or  perhaps  to
+!           correct any that I've got wrong.
+
+!           ANY_KEY_NUM automatically  resequences/renumbers  ANY_KEY_EQU
+!           and ANY_KEY_TBL for you, in case you need to  add  or  remove
+!           any definitions to/from either of them.
+
+!           Any emulator can, by the way, be distinguished by ANY_KEY via
+!           SYSTEM(7) without resorting  to  trying  a  series  of  self-
+!           identification codes (which can disrupt the  display)  simply
+!           by copying an existing driver to a  new  name.  For  example,
+!           where CMD.EXE is desired for connecting to a linux  host,  it
+!           would be beneficial to copy the host's linux terminal  driver
+!           to a new name, say, ntc or dosbox, and, then, configure  that
+!           port/user to specify that new terminal definition upon login.
+!           This allows you to add  an  entire  CMD.EXE-specific  set  of
+!           codes to ANY_KEY_TBL.  (Actually, I've already done that.)
+
+!           Key code sequences are stored in ANY_KEY_TBL instead of in  a
+!           file for simplicity's sake when installing, but it  would  be
+!           easy to write the list(s) to a file, and then read it in from
+!           that file, bypassing the subroutine call, should such  behav-
+!           ior become desirable.
+
+!           A word on emulators ...
+
+!           AccuTerm is the gold standard.  Full stop.  There are others,
+!           like PassPort, which are nearly  as  configurable,  but  only
+!           nearly, and nowhere near as powerful, lacking AccuTerm's  VBA
+!           scripting, dialog-boxes, a full GUI, its host  reprogrammable
+!           keyboard, and, a feature I really love  and  use,  capture-to
+!           and paste-from.  Conversely, PuTTY is less configurable.  But
+!           like Windows' CMD.EXE, it has the advantage of having most of
+!           its keys enabled.  This means that, where AccuTerm faithfully
+!           emulates the terminals in its palette, limiting the  keys  to
+!           their  unmodified  forms  (no  Ctrl+Home  or  Alt+F),  PuTTY,
+!           CMD.EXE, gnome-terminal, xterm, etc.,  while  all  ostensibly
+!           VTxxx compatible, also allow every combination of special key
+!           and modifiers (i.e.: Ctrl+Shift+F1).  This  alone  makes them
+!           powerful alternatives to AccuTerm, in a pinch, such as  where
+!           AccuTerm can't be  installed  (Linux/Apple),  but  AccuTerm's
+!           still greater configurability allows all the 'dead'  keys  to
+!           be enabled, no matter which emulation  is  used.  To  exploit
+!           this feature more fully, I've  additionally  created  a  text
+!           file of key definitions that can be inserted into an AccuTerm
+!           .atcf file to bestow upon any terminal emulation all the keys
+!           and modifiers expected of software today.  Moreover, this  is
+!           accomplished by simply  using  the  code-sequences  of  other
+!           emulators/terminals.  For example, using my  preferred  vt320
+!           emulation, the navigation and function keys are very  limited
+!           compared to say xterm.  But, using AccuTerm's key-programming
+!           screen, I mapped all those key-combinations absent from vt320
+!           to those generated by xterm, making the full spectrum of key-
+!           strokes available  to  my  programs,  all  while  maintaining
+!           complete compatibility with TCL and the  shell,  as  well  as
+!           with any existing programs on  the  system  containing  hard-
+!           coded VT key-sequences.
+
+!           If, however, AccuTerm, or anything else with  a  programmable
+!           keyboard, is not an option, and the only  emulator  available
+!           to you, like CMD.EXE, lacks some key you really want/need (on
+!           CMD.EXE tab and shift-tab both generate CHAR(9), so shift-tab
+!           is unavailable), then just use ANY_KEY_TST to identify a key-
+!           combination that is available to you, but which might not  be
+!           needed, and  can  then  be  pressed  into  service  elsewhere
+!           instead.  For example, to compensate for the lack of  shift+-
+!           tab on CMD.EXE, you could employ, say  ctrl+backspace,  which
+!           is available.
+
+!           Just include this in any program, CALL ANY_KEY, and  use  the
+!           following equate names to detect  and  react  to  the  user's
+!           input as shown in the example below.
+
+!           Omit any unnecessary/undesirable keys.
+
+! Examples: INCLUDE ANY_KEY_EQU
+
+!           LOOP
+
+!              CALL ANY_KEY( TEXT_KEY, META_KEY )
+
+!              BEGIN CASE
+
+!                 CASE META_KEY EQ KC_HOME     ; GOSUB JUMP.TO.TOP
+!                 CASE META_KEY EQ KC_END      ; GOSUB JUMP.TO.END
+!                 CASE META_KEY EQ K_PAGE_UP   ; GOSUB PAGE.UP
+!                 CASE META_KEY EQ K_PAGE_DOWN ; GOSUB PAGE.DOWN
+!                 CASE META_KEY EQ K_UP        ; GOSUB LINE.UP
+!                 CASE META_KEY EQ K_DOWN      ; GOSUB LINE.DOWN
+!                 CASE META_KEY EQ K_HOME      ; GOSUB LINE.BEG
+!                 CASE META_KEY EQ K_END       ; GOSUB LINE.END
+!                 CASE META_KEY EQ K_BACKSPACE ; GOSUB DELETE.LFT
+!                 CASE META_KEY EQ K_DELETE    ; GOSUB DELETE.RGT
+!                 CASE META_KEY EQ K_INSERT    ; GOSUB TOGGLE.INSERT
+!                 CASE META_KEY EQ K_ESC       ; EXIT
+!                 CASE TEXT_KEY NE ''          ; GOSUB ADD.TO.TEXT
+
+!              END CASE
+
+!           REPEAT
+
+! Upcoming: Program AccuTerm's dead keys.
+
+! Old name: EMV_KEY_EQU
+
+! New name: ANY_KEY_EQU
+
+! Catalog : N/A  (DO NOT CATALOG!  DO NOT COMPILE!)
+
+   COM /ANY_KEY/ ANY_KEYS( 13 ) ;! UD rejects common names over 7 chars
+
+   PROMPT ''
+
+   ! Why these characters?  (!", !$, !%, etc.)  Because it would be  next
+   ! to impossible for a user to enter any of these pairs fast enough  to
+   ! fool the system into thinking that a special key had  been  pressed.
+   ! Also, these 21 characters  allow  enough  permutations  to  uniquely
+   ! identify almost 400 key-combinations with only 2  characters.  More-
+   ! over, using regular chars (ASCII 33-126) in simple strings sidesteps
+   ! any problems with EQU TO  things like  CHAR( 27 ) : CHAR( 127 ),  as
+   ! is the case with D3.  (Or at least it was last time I used it.)
+
+   EQU K_BACKSPACE    TO '!"' ;! Backspace
+   EQU K_DELETE       TO '!#' ;! Del
+   EQU K_DOWN         TO '!$' ;! Down arrow-key
+   EQU K_END          TO '!%' ;! End
+   EQU K_ENTER        TO '!&' ;! Enter
+   EQU K_ESCAPE       TO '!(' ;! Esc
+   EQU K_F01          TO '!)' ;! F1
+   EQU K_F02          TO '!*' ;! F2
+   EQU K_F03          TO '!+' ;! F3
+   EQU K_F04          TO '!:' ;! F4
+   EQU K_F05          TO '!<' ;! F5
+   EQU K_F06          TO '!>' ;! F6
+   EQU K_F07          TO '!?' ;! F7
+   EQU K_F08          TO '!@' ;! F8
+   EQU K_F09          TO '!^' ;! F9
+   EQU K_F10          TO '!_' ;! F10
+   EQU K_F11          TO '!{' ;! F11
+   EQU K_F12          TO '!|' ;! F12
+   EQU K_HOME         TO '!}' ;! Home
+   EQU K_INSERT       TO '!~' ;! Ins
+   EQU K_LEFT         TO '"!' ;! Left arrow-key
+   EQU K_MENU         TO '"#' ;! Context menu-key
+   EQU K_PAGE_DOWN    TO '"$' ;! Page Down
+   EQU K_PAGE_UP      TO '"%' ;! Page Up
+   EQU K_RIGHT        TO '"&' ;! Right arrow-key
+   EQU K_TAB          TO '"(' ;! Tab
+   EQU K_UP           TO '")' ;! Up arrow-key
+   EQU KA_0           TO '"*' ;! Alt+0
+   EQU KA_1           TO '"+' ;! Alt+1
+   EQU KA_2           TO '":' ;! Alt+2
+   EQU KA_3           TO '"<' ;! Alt+3
+   EQU KA_4           TO '">' ;! Alt+4
+   EQU KA_5           TO '"?' ;! Alt+5
+   EQU KA_6           TO '"@' ;! Alt+6
+   EQU KA_7           TO '"^' ;! Alt+7
+   EQU KA_8           TO '"_' ;! Alt+8
+   EQU KA_9           TO '"{' ;! Alt+9
+   EQU KA_A           TO '"|' ;! Alt+A
+   EQU KA_ACCENT      TO '"}' ;! Alt+`
+   EQU KA_AMPERSAND   TO '"~' ;! Alt+&
+   EQU KA_AT          TO '#!' ;! Alt+@
+   EQU KA_B           TO '#"' ;! Alt+B
+   EQU KA_BACKSLASH   TO '#$' ;! Alt+\
+   EQU KA_BACKSPACE   TO '#%' ;! Alt+Backspace
+   EQU KA_BACKTICK    TO '#&' ;! Alt+`
+   EQU KA_BANG        TO '#(' ;! Alt+!
+   EQU KA_BREAK       TO '#)' ;! Alt+Break
+   EQU KA_C           TO '#*' ;! Alt+C
+   EQU KA_CARET       TO '#+' ;! Alt+^
+   EQU KA_COLON       TO '#:' ;! Alt+:
+   EQU KA_COMMA       TO '#<' ;! Alt+,
+   EQU KA_D           TO '#>' ;! Alt+D
+   EQU KA_DASH        TO '#?' ;! Alt+-
+   EQU KA_DELETE      TO '#@' ;! Alt+Del
+   EQU KA_DOLLAR      TO '#^' ;! Alt+$
+   EQU KA_DOWN        TO '#_' ;! Alt+Down-arrow
+   EQU KA_DQUOTE      TO '#{' ;! Alt+"
+   EQU KA_E           TO '#|' ;! Alt+E
+   EQU KA_END         TO '#}' ;! Alt+End
+   EQU KA_ENTER       TO '#~' ;! Alt+Enter
+   EQU KA_EQUAL       TO '$!' ;! Alt+=
+   EQU KA_ESCAPE      TO '$"' ;! Alt+Esc
+   EQU KA_F           TO '$#' ;! Alt+F
+   EQU KA_F01         TO '$%' ;! Alt+F1
+   EQU KA_F02         TO '$&' ;! Alt+F2
+   EQU KA_F03         TO '$(' ;! Alt+F3
+   EQU KA_F04         TO '$)' ;! Alt+F4
+   EQU KA_F05         TO '$*' ;! Alt+F5
+   EQU KA_F06         TO '$+' ;! Alt+F6
+   EQU KA_F07         TO '$:' ;! Alt+F7
+   EQU KA_F08         TO '$<' ;! Alt+F8
+   EQU KA_F09         TO '$>' ;! Alt+F9
+   EQU KA_F10         TO '$?' ;! Alt+F10
+   EQU KA_F11         TO '$@' ;! Alt+F11
+   EQU KA_F12         TO '$^' ;! Alt+F12
+   EQU KA_G           TO '$_' ;! Alt+G
+   EQU KA_H           TO '${' ;! Alt+H
+   EQU KA_HOME        TO '$|' ;! Alt+Home
+   EQU KA_I           TO '$}' ;! Alt+I
+   EQU KA_INSERT      TO '$~' ;! Alt+Ins
+   EQU KA_J           TO '%!' ;! Alt+J
+   EQU KA_K           TO '%"' ;! Alt+K
+   EQU KA_L           TO '%#' ;! Alt+L
+   EQU KA_LANGLE      TO '%$' ;! Alt+<
+   EQU KA_LBRACE      TO '%&' ;! Alt+{
+   EQU KA_LBRACKET    TO '%(' ;! Alt+[
+   EQU KA_LEFT        TO '%)' ;! Alt+Left-arrow
+   EQU KA_LPAREN      TO '%*' ;! Alt+(
+   EQU KA_M           TO '%+' ;! Alt+M
+   EQU KA_N           TO '%:' ;! Alt+N
+   EQU KA_O           TO '%<' ;! Alt+O
+   EQU KA_P           TO '%>' ;! Alt+P
+   EQU KA_PAGE_DOWN   TO '%?' ;! Alt+Page Down
+   EQU KA_PAGE_UP     TO '%@' ;! Alt+Page Up
+   EQU KA_PERCENT     TO '%^' ;! Alt+%
+   EQU KA_PERIOD      TO '%_' ;! Alt+.
+   EQU KA_PIPE        TO '%{' ;! Alt+|
+   EQU KA_PLUS        TO '%|' ;! Alt++
+   EQU KA_POUND       TO '%}' ;! Alt+#
+   EQU KA_Q           TO '%~' ;! Alt+Q
+   EQU KA_QUERY       TO '&!' ;! Alt+?
+   EQU KA_R           TO '&"' ;! Alt+R
+   EQU KA_RANGLE      TO '&#' ;! Alt+>
+   EQU KA_RBRACE      TO '&$' ;! Alt+}
+   EQU KA_RBRACKET    TO '&%' ;! Alt+]
+   EQU KA_RIGHT       TO '&(' ;! Alt+Right-arrow
+   EQU KA_RPAREN      TO '&)' ;! Alt+)
+   EQU KA_S           TO '&*' ;! Alt+S
+   EQU KA_SCOLON      TO '&+' ;! Alt+;
+   EQU KA_SEMICOLON   TO '&:' ;! Alt+;
+   EQU KA_SLASH       TO '&<' ;! Alt+/
+   EQU KA_SPACE       TO '&>' ;! Alt+Space
+   EQU KA_SQUOTE      TO '&?' ;! Alt+
+   EQU KA_STAR        TO '&@' ;! Alt+*
+   EQU KA_T           TO '&^' ;! Alt+T
+   EQU KA_TAB         TO '&_' ;! Alt+Tab
+   EQU KA_TILDE       TO '&{' ;! Alt+~
+   EQU KA_U           TO '&|' ;! Alt+U
+   EQU KA_UNDERSCORE  TO '&}' ;! Alt+_
+   EQU KA_UP          TO '&~' ;! Alt+Up-arrow
+   EQU KA_V           TO '(!' ;! Alt+V
+   EQU KA_W           TO '("' ;! Alt+W
+   EQU KA_X           TO '(#' ;! Alt+X
+   EQU KA_Y           TO '($' ;! Alt+Y
+   EQU KA_Z           TO '(%' ;! Alt+Z
+   EQU KC_A           TO '(&' ;! Ctrl+A
+   EQU KC_AT          TO '()' ;! Ctrl+@
+   EQU KC_B           TO '(*' ;! Ctrl+B
+   EQU KC_BACKSLASH   TO '(+' ;! Ctrl+\
+   EQU KC_BACKSPACE   TO '(:' ;! Ctrl+Backspace
+   EQU KC_C           TO '(<' ;! Ctrl+C
+   EQU KC_CARET       TO '(>' ;! Ctrl+^
+   EQU KC_D           TO '(?' ;! Ctrl+D
+   EQU KC_DELETE      TO '(@' ;! Ctrl+Del
+   EQU KC_DOWN        TO '(^' ;! Ctrl+Down-arrow
+   EQU KC_E           TO '(_' ;! Ctrl+E
+   EQU KC_END         TO '({' ;! Ctrl+End
+   EQU KC_ENTER       TO '(|' ;! Ctrl+Enter
+   EQU KC_ESCAPE      TO '(}' ;! Ctrl+Esc
+   EQU KC_F           TO '(~' ;! Ctrl+F
+   EQU KC_F01         TO ')!' ;! Ctrl+F1
+   EQU KC_F02         TO ')"' ;! Ctrl+F2
+   EQU KC_F03         TO ')#' ;! Ctrl+F3
+   EQU KC_F04         TO ')$' ;! Ctrl+F4
+   EQU KC_F05         TO ')%' ;! Ctrl+F5
+   EQU KC_F06         TO ')&' ;! Ctrl+F6
+   EQU KC_F07         TO ')(' ;! Ctrl+F7
+   EQU KC_F08         TO ')*' ;! Ctrl+F8
+   EQU KC_F09         TO ')+' ;! Ctrl+F9
+   EQU KC_F10         TO '):' ;! Ctrl+F10
+   EQU KC_F11         TO ')<' ;! Ctrl+F11
+   EQU KC_F12         TO ')>' ;! Ctrl+F12
+   EQU KC_G           TO ')?' ;! Ctrl+G
+   EQU KC_H           TO ')@' ;! Ctrl+H
+   EQU KC_HOME        TO ')^' ;! Ctrl+Home
+   EQU KC_I           TO ')_' ;! Ctrl+I
+   EQU KC_INSERT      TO '){' ;! Ctrl+Ins
+   EQU KC_J           TO ')|' ;! Ctrl+J
+   EQU KC_K           TO ')}' ;! Ctrl+K
+   EQU KC_L           TO ')~' ;! Ctrl+L
+   EQU KC_LBRACKET    TO '*!' ;! Ctrl+[
+   EQU KC_LEFT        TO '*"' ;! Ctrl+Left-arrow
+   EQU KC_M           TO '*#' ;! Ctrl+M
+   EQU KC_N           TO '*$' ;! Ctrl+N
+   EQU KC_O           TO '*%' ;! Ctrl+O
+   EQU KC_P           TO '*&' ;! Ctrl+P
+   EQU KC_PAGE_DOWN   TO '*(' ;! Ctrl+Page Down
+   EQU KC_PAGE_UP     TO '*)' ;! Ctrl+Page Up
+   EQU KC_Q           TO '*+' ;! Ctrl+Q
+   EQU KC_R           TO '*:' ;! Ctrl+R
+   EQU KC_RBRACKET    TO '*<' ;! Ctrl+]
+   EQU KC_RIGHT       TO '*>' ;! Ctrl+Right-arrow
+   EQU KC_S           TO '*?' ;! Ctrl+S
+   EQU KC_SLASH       TO '*@' ;! Ctrl+/
+   EQU KC_SPACE       TO '*^' ;! Ctrl+Space
+   EQU KC_T           TO '*_' ;! Ctrl+T
+   EQU KC_TAB         TO '*{' ;! Ctrl+Tab
+   EQU KC_TILDE       TO '*|' ;! Ctrl+~
+   EQU KC_U           TO '*}' ;! Ctrl+U
+   EQU KC_UNDERSCORE  TO '*~' ;! Ctrl+_
+   EQU KC_UP          TO '+!' ;! Ctrl+Up-arrow
+   EQU KC_V           TO '+"' ;! Ctrl+V
+   EQU KC_W           TO '+#' ;! Ctrl+W
+   EQU KC_X           TO '+$' ;! Ctrl+X
+   EQU KC_Y           TO '+%' ;! Ctrl+Y
+   EQU KC_Z           TO '+&' ;! Ctrl+Z
+   EQU KP_ENTER       TO '+(' ;! Key-pad Enter
+   EQU KP_SLASH       TO '+)' ;! Key-pad /
+   EQU KPA_ENTER      TO '+*' ;! Key-pad Alt+Enter
+   EQU KPC_0          TO '+:' ;! Key-pad Ctrl+0
+   EQU KPC_1          TO '+<' ;! Key-pad Ctrl+1
+   EQU KPC_2          TO '+>' ;! Key-pad Ctrl+2
+   EQU KPC_3          TO '+?' ;! Key-pad Ctrl+3
+   EQU KPC_4          TO '+@' ;! Key-pad Ctrl+4
+   EQU KPC_5          TO '+^' ;! Key-pad Ctrl+5
+   EQU KPC_6          TO '+_' ;! Key-pad Ctrl+6
+   EQU KPC_7          TO '+{' ;! Key-pad Ctrl+7
+   EQU KPC_8          TO '+|' ;! Key-pad Ctrl+8
+   EQU KPC_9          TO '+}' ;! Key-pad Ctrl+9
+   EQU KPC_DASH       TO '+~' ;! Key-pad Ctrl+-
+   EQU KPC_ENTER      TO ':!' ;! Key-pad Ctrl+Enter
+   EQU KPC_PERIOD     TO ':"' ;! Key-pad Ctrl+.
+   EQU KPC_PLUS       TO ':#' ;! Key-pad Ctrl++
+   EQU KPC_SLASH      TO ':$' ;! Key-pad Ctrl+/
+   EQU KPC_STAR       TO ':%' ;! Key-pad Ctrl+*
+   EQU KPCA_5         TO ':&' ;! Key-pad Ctrl+Alt+5
+   EQU KPS_0          TO ':(' ;! Key-pad Shift+0
+   EQU KPS_1          TO ':)' ;! Key-pad Shift+1
+   EQU KPS_2          TO ':*' ;! Key-pad Shift+2
+   EQU KPS_3          TO ':+' ;! Key-pad Shift+3
+   EQU KPS_4          TO ':<' ;! Key-pad Shift+4
+   EQU KPS_5          TO ':>' ;! Key-pad Shift+5
+   EQU KPS_6          TO ':?' ;! Key-pad Shift+6
+   EQU KPS_7          TO ':@' ;! Key-pad Shift+7
+   EQU KPS_8          TO ':^' ;! Key-pad Shift+8
+   EQU KPS_9          TO ':_' ;! Key-pad Shift+9
+   EQU KPS_DASH       TO ':{' ;! Key-pad Shift+-
+   EQU KPS_ENTER      TO ':|' ;! Key-pad Shift+Enter
+   EQU KPS_PERIOD     TO ':}' ;! Key-pad Shift+.
+   EQU KPS_PLUS       TO ':~' ;! Key-pad Shift++
+   EQU KPS_STAR       TO '<!' ;! Key-pad Shift+*
+   EQU KPSC_5         TO '<"' ;! Key-pad Shift+Ctrl+5
+   EQU KS_BACKSPACE   TO '<#' ;! Shift+Backspace
+   EQU KS_DELETE      TO '<$' ;! Shift+Del
+   EQU KS_DOWN        TO '<%' ;! Shift+Down-arrow
+   EQU KS_END         TO '<&' ;! Shift+End
+   EQU KS_ENTER       TO '<(' ;! Shift+Enter
+   EQU KS_ESCAPE      TO '<)' ;! Shift+Esc
+   EQU KS_F01         TO '<*' ;! Shift+F1
+   EQU KS_F02         TO '<+' ;! Shift+F2
+   EQU KS_F03         TO '<:' ;! Shift+F3
+   EQU KS_F04         TO '<>' ;! Shift+F4
+   EQU KS_F05         TO '<?' ;! Shift+F5
+   EQU KS_F06         TO '<@' ;! Shift+F6
+   EQU KS_F07         TO '<^' ;! Shift+F7
+   EQU KS_F08         TO '<_' ;! Shift+F8
+   EQU KS_F09         TO '<{' ;! Shift+F9
+   EQU KS_F10         TO '<|' ;! Shift+F10
+   EQU KS_F11         TO '<}' ;! Shift+F11
+   EQU KS_F12         TO '<~' ;! Shift+F12
+   EQU KS_HOME        TO '>!' ;! Shift+Home
+   EQU KS_INSERT      TO '>"' ;! Shift+Ins
+   EQU KS_LEFT        TO '>#' ;! Shift+Left-arrow
+   EQU KS_PAGE_DOWN   TO '>$' ;! Shift+Page Down
+   EQU KS_PAGE_UP     TO '>%' ;! Shift+Page Up
+   EQU KS_RIGHT       TO '>&' ;! Shift+Right-arrow
+   EQU KS_SPACE       TO '>(' ;! Shift+Space
+   EQU KS_TAB         TO '>)' ;! Shift+Tab
+   EQU KS_UP          TO '>*' ;! Shift+Up-arrow
+   EQU KSA_A          TO '>+' ;! Shift+Alt+A
+   EQU KSA_B          TO '>:' ;! Shift+Alt+B
+   EQU KSA_BACKSPACE  TO '><' ;! Shift+Alt+Backspace
+   EQU KSA_C          TO '>?' ;! Shift+Alt+C
+   EQU KSA_D          TO '>@' ;! Shift+Alt+D
+   EQU KSA_DELETE     TO '>^' ;! Shift+Alt+Del
+   EQU KSA_DOWN       TO '>_' ;! Shift+Alt+Down-arrow
+   EQU KSA_E          TO '>{' ;! Shift+Alt+E
+   EQU KSA_END        TO '>|' ;! Shift+Alt+End
+   EQU KSA_ENTER      TO '>}' ;! Shift+Alt+Enter
+   EQU KSA_ESCAPE     TO '>~' ;! Shift+Alt+Esc
+   EQU KSA_F          TO '?!' ;! Shift+Alt+F
+   EQU KSA_F01        TO '?"' ;! Shift+Alt+F1
+   EQU KSA_F02        TO '?#' ;! Shift+Alt+F2
+   EQU KSA_F03        TO '?$' ;! Shift+Alt+F3
+   EQU KSA_F04        TO '?%' ;! Shift+Alt+F4
+   EQU KSA_F05        TO '?&' ;! Shift+Alt+F5
+   EQU KSA_F06        TO '?(' ;! Shift+Alt+F6
+   EQU KSA_F07        TO '?)' ;! Shift+Alt+F7
+   EQU KSA_F08        TO '?*' ;! Shift+Alt+F8
+   EQU KSA_F09        TO '?+' ;! Shift+Alt+F9
+   EQU KSA_F10        TO '?:' ;! Shift+Alt+F10
+   EQU KSA_F11        TO '?<' ;! Shift+Alt+F11
+   EQU KSA_F12        TO '?>' ;! Shift+Alt+F12
+   EQU KSA_G          TO '?@' ;! Shift+Alt+G
+   EQU KSA_H          TO '?^' ;! Shift+Alt+H
+   EQU KSA_HOME       TO '?_' ;! Shift+Alt+Home
+   EQU KSA_I          TO '?{' ;! Shift+Alt+I
+   EQU KSA_INSERT     TO '?|' ;! Shift+Alt+Ins
+   EQU KSA_J          TO '?}' ;! Shift+Alt+J
+   EQU KSA_K          TO '?~' ;! Shift+Alt+K
+   EQU KSA_L          TO '@!' ;! Shift+Alt+L
+   EQU KSA_LEFT       TO '@"' ;! Shift+Alt+Left-arrow
+   EQU KSA_M          TO '@#' ;! Shift+Alt+M
+   EQU KSA_N          TO '@$' ;! Shift+Alt+N
+   EQU KSA_O          TO '@%' ;! Shift+Alt+O
+   EQU KSA_P          TO '@&' ;! Shift+Alt+P
+   EQU KSA_PAGE_DOWN  TO '@(' ;! Shift+Alt+Page Down
+   EQU KSA_PAGE_UP    TO '@)' ;! Shift+Alt+Page Up
+   EQU KSA_Q          TO '@*' ;! Shift+Alt+Q
+   EQU KSA_R          TO '@+' ;! Shift+Alt+R
+   EQU KSA_RIGHT      TO '@:' ;! Shift+Alt+Right-arrow
+   EQU KSA_S          TO '@<' ;! Shift+Alt+S
+   EQU KSA_SPACE      TO '@>' ;! Shift+Alt+Space
+   EQU KSA_T          TO '@?' ;! Shift+Alt+T
+   EQU KSA_TAB        TO '@^' ;! Shift+Alt+Tab
+   EQU KSA_U          TO '@_' ;! Shift+Alt+U
+   EQU KSA_UP         TO '@{' ;! Shift+Alt+Up-arrow
+   EQU KSA_V          TO '@|' ;! Shift+Alt+V
+   EQU KSA_W          TO '@}' ;! Shift+Alt+W
+   EQU KSA_X          TO '@~' ;! Shift+Alt+X
+   EQU KSA_Y          TO '^!' ;! Shift+Alt+Y
+   EQU KSA_Z          TO '^"' ;! Shift+Alt+Z
+   EQU KSC_BACKSPACE  TO '^#' ;! Shift+Ctrl+Backspace
+   EQU KSC_DELETE     TO '^$' ;! Shift+Ctrl+Del
+   EQU KSC_DOWN       TO '^%' ;! Shift+Ctrl+Down-arrow
+   EQU KSC_END        TO '^&' ;! Shift+Ctrl+End
+   EQU KSC_ENTER      TO '^(' ;! Shift+Ctrl+Enter
+   EQU KSC_ESCAPE     TO '^)' ;! Shift+Ctrl+Esc
+   EQU KSC_F01        TO '^*' ;! Shift+Ctrl+F1
+   EQU KSC_F02        TO '^+' ;! Shift+Ctrl+F2
+   EQU KSC_F03        TO '^:' ;! Shift+Ctrl+F3
+   EQU KSC_F04        TO '^<' ;! Shift+Ctrl+F4
+   EQU KSC_F05        TO '^>' ;! Shift+Ctrl+F5
+   EQU KSC_F06        TO '^?' ;! Shift+Ctrl+F6
+   EQU KSC_F07        TO '^@' ;! Shift+Ctrl+F7
+   EQU KSC_F08        TO '^_' ;! Shift+Ctrl+F8
+   EQU KSC_F09        TO '^{' ;! Shift+Ctrl+F9
+   EQU KSC_F10        TO '^|' ;! Shift+Ctrl+F10
+   EQU KSC_F11        TO '^}' ;! Shift+Ctrl+F11
+   EQU KSC_F12        TO '^~' ;! Shift+Ctrl+F12
+   EQU KSC_HOME       TO '_!' ;! Shift+Ctrl+Home
+   EQU KSC_INSERT     TO '_"' ;! Shift+Ctrl+Ins
+   EQU KSC_LEFT       TO '_#' ;! Shift+Ctrl+Left-arrow
+   EQU KSC_PAGE_DOWN  TO '_$' ;! Shift+Ctrl+Page Down
+   EQU KSC_PAGE_UP    TO '_%' ;! Shift+Ctrl+Page Up
+   EQU KSC_RIGHT      TO '_&' ;! Shift+Ctrl+Right-arrow
+   EQU KSC_SPACE      TO '_(' ;! Shift+Ctrl+Space
+   EQU KSC_UP         TO '_)' ;! Shift+Ctrl+Up-arrow
+
+   EQU KM_L1          TO '_*' ;! AccuTerm Mouse  Left-button Single-click
+   EQU KM_L2          TO '_+' ;! AccuTerm Mouse  Left-button Double-click
+   EQU KM_R1          TO '_:' ;! AccuTerm Mouse Right-button Single-click
+   EQU KM_R2          TO '_<' ;! AccuTerm Mouse Right-button Double-click
+
+   EQU KEYS_BLT       TO ANY_KEYS(  1 ) ;! whether ANY_KEY_TBL has run
+   EQU OLD_KEYS       TO ANY_KEYS(  2 ) ;! code-sequences from keyboard
+   EQU NEW_KEYS       TO ANY_KEYS(  3 ) ;! AnyKey's replacement sequences
+   EQU ANY_BFFR       TO ANY_KEYS(  4 ) ;! pending char codes
+   EQU BFFR_LEN       TO ANY_KEYS(  5 ) ;! num pending char codes
+   EQU LAST_OLD       TO ANY_KEYS(  6 ) ;! previous code-sequence
+   EQU LAST_NEW       TO ANY_KEYS(  7 ) ;! previous replacement sequence
+   EQU KEY_FLGS       TO ANY_KEYS(  8 ) ;! Flag-string for original home, backspace, shift_f3, f5
+   EQU KTBL_LEN       TO ANY_KEYS(  9 ) ;! # attributes in OLD_KEYS/NEW_KEYS
+   EQU KEYB_TYP       TO ANY_KEYS( 10 ) ;! current terminal's group
+   EQU KEYB_DBG       TO ANY_KEYS( 11 ) ;! Debugging flag
+   EQU CRT_CODE       TO ANY_KEYS( 12 ) ;! E.g.: 027091013
+   EQU EMU_TYPE       TO ANY_KEYS( 13 ) ;! E.g.: ATW, PTY, NTC, ...
+
+   IF KEYS_BLT ELSE
+
+      KEYS_BLT  = 1
+
+      CALL ANY_KEY_TBL
+
+   END
+

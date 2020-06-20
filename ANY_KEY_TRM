@@ -1,0 +1,529 @@
+SUBROUTINE ANY_KEY_TRM
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 06/09/2020 00:34:01 by Marcus
+
+! Platform: Any Pick; Any OS; Any emulator; Any emulation
+
+! Function: Detects the terminal/emulator and  emulation,  returning  the
+!           terminal and ANY keyboard type via ANY_KEYS().
+
+! Syntax  : CALL ANY_KEY_TRM
+
+! Vars____ IO Typ Description____________________________________________
+! N/A
+
+! Syntax  : CALL ANY_KEY_TRM
+
+! Examples: CALL ANY_KEY_TRM
+
+! Old name: EMV_TRM_GET
+
+! New name: ANY_KEY_TRM
+
+! Catalog : ANY_KEY_TRM
+
+   EQU IDENTITY TO 'ANY_KEY_TRM'
+
+   INCLUDE ANY_KEY_EQU
+
+   IF IDENTITY THEN GOSUB START.OUR.VARS.ETC
+   IF KEYB_TYP ELSE GOSUB CHECK.FOR.ACCUTERM
+   IF KEYB_TYP ELSE GOSUB CHECK.FOR.PUTTY
+   IF KEYB_TYP ELSE GOSUB CHECK.FOR.OTHERS
+   IF KEYB_TYP ELSE GOSUB FETCH.THE.DEFAULT
+
+RETURN
+
+START.OUR.VARS.ETC:
+
+   PROMPT ''
+
+   EMU_TYPE  = '???'
+   KEYB_TYP  = 0
+   KEY_FLGS  = 1 ;! Obviated by this subroutine.
+
+RETURN
+
+CHECK.FOR.ACCUTERM:
+
+   ! AccuTerm is a special case, so we test for it first, and separately.
+
+   QUESTION  = '{027}{002}I'
+
+   GOSUB QUERY.THE.TERMINAL
+
+   IF RESPONSE EQ '' ELSE
+
+      ! Only AccuTerm responds to that  command,  so  it  doesn't  really
+      ! matter what's in it.  (Unless you're using an older version!)
+
+      GOSUB SETUP.FOR.ACCUTERM
+
+   END
+
+RETURN
+
+SETUP.FOR.ACCUTERM:
+
+   EMU_TYPE  = 'ATW'
+   QUESTION  = '{027}{002}1' ;! Enable mouse reporting.
+
+   GOSUB QUERY.THE.TERMINAL
+
+   ! We could let Pick tell AccuTerm which terminal to  emulate,  but  it
+   ! works better the other way around, so let's find out  what  terminal
+   ! AccuTerm thinks we should be emulating.
+
+   QUESTION  = '{027}{002}P dim s as accutermclasses.session{025}set s=a'
+   QUESTION := 'ctivesession{025}accuterm.activate{025}s.activate{025}s.'
+   QUESTION := 'output cstr(s.termtype)&vbCr{013}'
+
+   GOSUB QUERY.THE.TERMINAL
+
+   IF RESPONSE EQ '' ELSE
+
+      GOSUB FETCH.TRM.LIST
+
+      RESPONSE += 1 ;! Because ATW returns 0-19
+
+      TERM_TYP  = TERM_TBL< 1, RESPONSE >
+      KEYB_TYP  = TERM_TBL< 2, RESPONSE >
+
+      EXECUTE 'TERM ' : TERM_TYP CAPTURING RESPONSE
+
+      IF RESPONSE EQ '' THEN
+
+         CALL ANY_KEY_TBL
+
+         GOSUB SETUP.UNX.TERM
+
+      END ELSE
+
+         ! The system doesn't recognize that terminal,  so  we'll  advise
+         ! the user, and work with what Pick already thinks it should be.
+
+         RESPONSE := '  (' : TERM_TYP : ').'
+         QUESTION  = '{027}{002}P dim s as accutermclasses.session{025}s'
+         QUESTION := 'et s=activesession{025}MsgBox "' : RESPONSE : '",0'
+         QUESTION := ',"ATTENTION!"{013}'
+
+         GOSUB NCODE.THE.QUESTION
+
+         CRT QUESTION :
+
+         ! Ok, now we take Pick's word for it.
+
+         GOSUB FETCH.THE.DEFAULT
+
+      END
+
+   END
+
+   CALL ANY_KEY_ATW
+
+RETURN
+
+FETCH.TRM.LIST:
+
+   ! Because OpenQM apparently uses a different list  of  terminals  than
+   ! other flavors.
+
+   HOST_LST       = 'AIX'
+   HOST_LST< -1 > = 'FREEBSD'
+   HOST_LST< -1 > = 'LINUX'
+   HOST_LST< -1 > = 'MAC'
+   HOST_LST< -1 > = 'PDA'
+   HOST_LST< -1 > = 'RPI'
+   HOST_LST< -1 > = 'SOLARIS'
+   HOST_LST< -1 > = 'WINDOWS'
+
+   OUR_HOST  = OCONV( SYSTEM( 1010 ), 'MCU' )
+
+   LOCATE OUR_HOST IN HOST_LST SETTING ANYTHING THEN
+
+      ! ... use the OpenQM list of terminals, ...
+
+      TERM_TBL          = 'dumb'           ; TERM_TBL< 2,  1 > = 'TTY' ;! TTY
+      TERM_TBL< 1,  2 > = 'viewpoint-at'   ; TERM_TBL< 2,  2 > = 'VPT' ;! ADDS Viewpoint A2
+      TERM_TBL< 1,  3 > = 'viewpoint60-at' ; TERM_TBL< 2,  3 > = 'VP6' ;! ADDS Viewpoint 60
+      TERM_TBL< 1,  4 > = 'viewpoint60-at' ; TERM_TBL< 2,  4 > = 'PV6' ;! Procomm Viewpoint 60
+      TERM_TBL< 1,  5 > = 'adds4000-at'    ; TERM_TBL< 2,  5 > = 'VPT' ;! ADDS Viewpoint A2 Enhanced
+      TERM_TBL< 1,  6 > = 'wyse50-at'      ; TERM_TBL< 2,  6 > = 'WYS' ;! Wyse 50
+      TERM_TBL< 1,  7 > = 'wyse60-at'      ; TERM_TBL< 2,  7 > = 'WYS' ;! Wyse 60
+      TERM_TBL< 1,  8 > = 'vt52'           ; TERM_TBL< 2,  8 > = 'VT0' ;! VT52
+      TERM_TBL< 1,  9 > = 'vt220-at'       ; TERM_TBL< 2,  9 > = 'VT2' ;! VT220
+      TERM_TBL< 1, 10 > = 'ansi'           ; TERM_TBL< 2, 10 > = 'BBS' ;! ANSI BBS
+      TERM_TBL< 1, 11 > = 'pcmon-at'       ; TERM_TBL< 2, 11 > = 'PCK' ;! Pick PC Monitor
+      TERM_TBL< 1, 12 > = 'tektronix4014'  ; TERM_TBL< 2, 12 > = 'TEX' ;! Tektronix 4014
+      TERM_TBL< 1, 13 > = 'vt100-at'       ; TERM_TBL< 2, 13 > = 'VT1' ;! VT100
+      TERM_TBL< 1, 14 > = 'vt320-at'       ; TERM_TBL< 2, 14 > = 'VT3' ;! VT320
+      TERM_TBL< 1, 15 > = 'vt420-at'       ; TERM_TBL< 2, 15 > = 'VT4' ;! VT420
+      TERM_TBL< 1, 16 > = 'ansi'           ; TERM_TBL< 2, 16 > = 'SCO' ;! SCO Console
+      TERM_TBL< 1, 17 > = 'linux'          ; TERM_TBL< 2, 17 > = 'LNX' ;! Linux Console
+      TERM_TBL< 1, 18 > = 'tektronix4100'  ; TERM_TBL< 2, 18 > = 'TEX' ;! Tektronix 4100
+      TERM_TBL< 1, 19 > = 'prism30'        ; TERM_TBL< 2, 19 > = 'MDS' ;! MDIS Prism P30
+      TERM_TBL< 1, 20 > = 'prism8'         ; TERM_TBL< 2, 20 > = 'MDS' ;! MDIS Prism P8
+
+   END ELSE
+
+      ! ... use the standard list of terminals.
+
+      TERM_TBL          = 'tty'            ; TERM_TBL< 2,  1 > = 'TTY' ;! TTY
+      TERM_TBL< 1,  2 > = 'viewpoint'      ; TERM_TBL< 2,  2 > = 'VPT' ;! ADDS Viewpoint A2
+      TERM_TBL< 1,  3 > = 'viewpoint60'    ; TERM_TBL< 2,  3 > = 'VP6' ;! ADDS Viewpoint 60
+      TERM_TBL< 1,  4 > = 'viewpoint60'    ; TERM_TBL< 2,  4 > = 'PV6' ;! Procomm Viewpoint 60
+      TERM_TBL< 1,  5 > = 'viewpoint'      ; TERM_TBL< 2,  5 > = 'VPT' ;! ADDS Viewpoint A2 Enhanced
+      TERM_TBL< 1,  6 > = 'wyse50'         ; TERM_TBL< 2,  6 > = 'WYS' ;! Wyse 50
+      TERM_TBL< 1,  7 > = 'wyse60'         ; TERM_TBL< 2,  7 > = 'WYS' ;! Wyse 60
+      TERM_TBL< 1,  8 > = 'vt52'           ; TERM_TBL< 2,  8 > = 'VT0' ;! VT52
+      TERM_TBL< 1,  9 > = 'vt220'          ; TERM_TBL< 2,  9 > = 'VT2' ;! VT220
+      TERM_TBL< 1, 10 > = 'ansi'           ; TERM_TBL< 2, 10 > = 'ANS' ;! ANSI BBS
+      TERM_TBL< 1, 11 > = 'pickmon'        ; TERM_TBL< 2, 11 > = 'PCK' ;! Pick PC Monitor
+      TERM_TBL< 1, 12 > = 'tektronix4014'  ; TERM_TBL< 2, 12 > = 'TEX' ;! Tektronix 4014
+      TERM_TBL< 1, 13 > = 'vt100'          ; TERM_TBL< 2, 13 > = 'VT1' ;! VT100
+      TERM_TBL< 1, 14 > = 'vt320'          ; TERM_TBL< 2, 14 > = 'VT3' ;! VT320
+      TERM_TBL< 1, 15 > = 'vt420'          ; TERM_TBL< 2, 15 > = 'VT4' ;! VT420
+      TERM_TBL< 1, 16 > = 'ansi'           ; TERM_TBL< 2, 16 > = 'SCO' ;! SCO Console
+      TERM_TBL< 1, 17 > = 'linux'          ; TERM_TBL< 2, 17 > = 'LNX' ;! Linux Console
+      TERM_TBL< 1, 18 > = 'tektronix4100'  ; TERM_TBL< 2, 18 > = 'TEX' ;! Tektronix 4100
+      TERM_TBL< 1, 19 > = 'prism30'        ; TERM_TBL< 2, 19 > = 'MDS' ;! MDIS Prism P30
+      TERM_TBL< 1, 20 > = 'prism8'         ; TERM_TBL< 2, 20 > = 'MDS' ;! MDIS Prism P8
+
+   END
+
+RETURN
+
+CHECK.FOR.PUTTY:
+
+   ! PuTTY is another special case because, by  default,  it's  installed
+   ! with an answerback string of PuTTY, which means that odds are pretty
+   ! good that it's still set to PuTTY, which means that, if  it  answers
+   ! PuTTY, then it is PuTTY.  (If it quacks like a duck, ...)
+
+   QUESTION  = '{005}'
+
+   GOSUB QUERY.THE.TERMINAL
+
+   IF RESPONSE EQ 'PuTTY' THEN
+
+      EMU_TYPE  = 'PTY'
+      TERM_TYP  = 'PTY'
+      KEYB_TYP  = 'PTY'
+
+      EXECUTE 'TERM VT220' CAPTURING RESPONSE
+
+      CALL ANY_KEY_TBL
+
+   END
+
+RETURN
+
+CHECK.FOR.OTHERS:
+
+   ! Things to ask the terminal:
+
+   QSTN_LST       = '{005}'
+   QSTN_LST< -1 > = '{027}{005}'
+   QSTN_LST< -1 > = '{027}{032}'
+   QSTN_LST< -1 > = '{027}Z'
+   QSTN_LST< -1 > = '{027}[0c'
+   QSTN_LST< -1 > = '{027}[>c'
+   QSTN_LST< -1 > = '{027}[c'
+   QSTN_LST< -1 > = '{027}{002}I'
+
+   QSTN_MAX  = DCOUNT( QSTN_LST, @AM )
+
+   ! This is one of those points where you,  too,  can  help.  How?  Test
+   ! your terminal/emulator.  Does it respond to some query that I  don't
+   ! have listed above?  Does it reply with something that I  don't  have
+   ! listed below?  If so, e-mail me the details at the  address  in  the
+   ! header at the top, and I'll add it to the list, send you the  latest
+   ! version, with an honorable mention as a contributor.
+
+   ! This (TERM_TBL<2,n>) is the terminal list on Debian  Linux.  It  may
+   ! differ on other distros/Unixes.  If yours differs, again, please  e-
+   ! mail me the particulars for an  updated  version  and  an  honorable
+   ! mention.
+
+   ! What the terminal replies, meaning ...                    TERM_TYP = ...                  , and ANY KEYB_TYP = ...
+
+   TERM_TBL          = '{027}>41;330;0c'                     ; TERM_TBL< 2,  1 > = 'linux'     ; TERM_TBL< 3,  1 > = 'VT2' ;! Win AccuTerm          linux
+   TERM_TBL< 1,  2 > = '{027}?64;1;2;6;9;15;18;21;22c'       ; TERM_TBL< 2,  2 > = 'xterm'     ; TERM_TBL< 3,  2 > = 'UXT' ;! *nx uxterm            linux
+   TERM_TBL< 1,  3 > = '{027}[{027}[>67;201102;0c'           ; TERM_TBL< 2,  3 > = 'linux'     ; TERM_TBL< 3,  3 > = 'NTC' ;! Win 7 CMD.EXE         linux               {027}[>c
+   TERM_TBL< 1,  4 > = '{027}[{027}[?6c'                     ; TERM_TBL< 2,  4 > = 'linux'     ; TERM_TBL< 3,  4 > = 'NTC' ;! Win ? CMD.EXE         linux
+   TERM_TBL< 1,  5 > = '{027}[>0;136;0c'                     ; TERM_TBL< 2,  5 > = 'vt220'     ; TERM_TBL< 3,  5 > = 'PTY' ;! Win PuTTY             vt220               {027}[>c
+   TERM_TBL< 1,  6 > = '{027}[>1;2802;0c'                    ; TERM_TBL< 2,  6 > = 'linux'     ; TERM_TBL< 3,  6 > = 'GTM' ;! *nx gnome-terminal    linux
+   TERM_TBL< 1,  7 > = '{027}[>1;3409;0c'                    ; TERM_TBL< 2,  7 > = 'linux'     ; TERM_TBL< 3,  7 > = 'GTM' ;! *nx gnome-terminal    linux
+   TERM_TBL< 1,  8 > = '{027}[>1;4205;0c'                    ; TERM_TBL< 2,  8 > = 'linux'     ; TERM_TBL< 3,  8 > = 'GTM' ;! *nx mate-terminal     linux
+   TERM_TBL< 1,  9 > = '{027}[>1;5202;0c'                    ; TERM_TBL< 2,  9 > = 'linux'     ; TERM_TBL< 3,  9 > = 'GTM' ;! *nx gnome-terminal    linux               {027}[>c
+   TERM_TBL< 1, 10 > = '{027}[>41;322;0c'                    ; TERM_TBL< 2, 10 > = 'linux'     ; TERM_TBL< 3, 10 > = 'XTM' ;! *nx xterm             linux
+   TERM_TBL< 1, 11 > = '{027}[>41;330;0c'                    ; TERM_TBL< 2, 11 > = 'linux'     ; TERM_TBL< 3, 11 > = 'XTM' ;! *nx xterm             linux
+   TERM_TBL< 1, 12 > = '{027}[>41;5;1c'                      ; TERM_TBL< 2, 12 > = 'vt220'     ; TERM_TBL< 3, 12 > = 'VT2' ;! *nx xterm             vt220
+   TERM_TBL< 1, 13 > = '{027}[>41;7;1c'                      ; TERM_TBL< 2, 13 > = 'vt220'     ; TERM_TBL< 3, 13 > = 'VT2' ;! Win AccuTerm          vt220 (7-bit)
+   TERM_TBL< 1, 14 > = '{027}[>67;201102;0c'                 ; TERM_TBL< 2, 14 > = 'linux'     ; TERM_TBL< 3, 14 > = 'NTC' ;! Win ? CMD.EXE         linux               {027}[>c
+   TERM_TBL< 1, 15 > = '{027}[?1;0c'                         ; TERM_TBL< 2, 15 > = 'linux'     ; TERM_TBL< 3, 15 > = 'NTC' ;! Win 10 CMD.EXE        linux
+   TERM_TBL< 1, 16 > = '{027}[?1;2c'                         ; TERM_TBL< 2, 16 > = 'vt220'     ; TERM_TBL< 3, 16 > = 'VT2' ;! *nx xterm             linux               {027}Z
+   TERM_TBL< 1, 17 > = '{027}[?62;1;2;6;8c'                  ; TERM_TBL< 2, 17 > = 'vt220'     ; TERM_TBL< 3, 17 > = 'VT2' ;! *nx xterm             vt220 (7-bit)       {027}[0c
+   TERM_TBL< 1, 18 > = '{027}[?62;9;c'                       ; TERM_TBL< 2, 18 > = 'linux'     ; TERM_TBL< 3, 18 > = 'GTM' ;! *nx gnome-terminal    linux
+   TERM_TBL< 1, 19 > = '{027}[?62;c'                         ; TERM_TBL< 2, 19 > = 'linux'     ; TERM_TBL< 3, 19 > = 'GTM' ;! *nx gnome-terminal    linux               {027}Z   , {027}[0c , {027}[c
+   TERM_TBL< 1, 20 > = '{027}[?63;1;2;6;8c'                  ; TERM_TBL< 2, 20 > = 'vt320'     ; TERM_TBL< 3, 20 > = 'VT3' ;! Win AccuTerm          vt320 (7-bit)       {027}[0c
+   TERM_TBL< 1, 21 > = '{027}[?64;1;2;6;8c'                  ; TERM_TBL< 2, 21 > = 'vt420'     ; TERM_TBL< 3, 21 > = 'VT4' ;! Win AccuTerm          vt420 (7-bit)       {027}[0c
+   TERM_TBL< 1, 22 > = '{027}[?64;1;2;6;9;15;18;21;22c'      ; TERM_TBL< 2, 22 > = 'linux'     ; TERM_TBL< 3, 22 > = 'XTM' ;! *nx xterm             linux
+   TERM_TBL< 1, 23 > = '{027}[?6c'                           ; TERM_TBL< 2, 23 > = 'linux'     ; TERM_TBL< 3, 23 > = 'LVT' ;! Win ? CMD.EXE/Putty/ATW linux               {027}[0c , {027}Z   , {027}[0c , {027}[>c , {027}[c
+   TERM_TBL< 1, 24 > = '{027}[VT105c'                        ; TERM_TBL< 2, 24 > = 'vt102'     ; TERM_TBL< 3, 24 > = 'W2K' ;! Win CU's Win2000      vt102
+   TERM_TBL< 1, 25 > = '{027}\Z'                             ; TERM_TBL< 2, 25 > = 'vt52'      ; TERM_TBL< 3, 25 > = 'VT0' ;! Win AccuTerm          vt52
+   TERM_TBL< 1, 26 > = '50{013}'                             ; TERM_TBL< 2, 26 > = 'viewpoint' ; TERM_TBL< 3, 26 > = 'VPT' ;! Win AccuTerm          Wyse50/Viewpoint (A2 Enhanced)
+   TERM_TBL< 1, 27 > = '60{013}'                             ; TERM_TBL< 2, 27 > = 'wyse60'    ; TERM_TBL< 3, 27 > = 'WYS' ;! Win AccuTerm          Wyse60
+   TERM_TBL< 1, 28 > = ';;;;c'                               ; TERM_TBL< 2, 28 > = 'vt220'     ; TERM_TBL< 3, 28 > = 'PPT' ;! Win PassPort          vt220               {027}[c  , {027}[0c
+   TERM_TBL< 1, 29 > = 'PuTTY'                               ; TERM_TBL< 2, 29 > = 'vt220'     ; TERM_TBL< 3, 29 > = 'PTY' ;! Win PuTTY             vt220               {005}
+   TERM_TBL< 1, 30 > = '[>6{027}[?6c'                        ; TERM_TBL< 2, 30 > = 'linux'     ; TERM_TBL< 3, 30 > = 'NTC' ;! Win ? CMD.EXE         linux               {027}[c
+   TERM_TBL< 1, 31 > = '[>67;{027}[?6c'                      ; TERM_TBL< 2, 31 > = 'linux'     ; TERM_TBL< 3, 31 > = 'NTC' ;! Win ? CMD.EXE         linux
+   TERM_TBL< 1, 32 > = '[>67;201102;0c'                      ; TERM_TBL< 2, 32 > = 'linux'     ; TERM_TBL< 3, 32 > = 'NTC' ;! Win ? CMD.EXE         linux
+   TERM_TBL< 1, 33 > = '[?6c'                                ; TERM_TBL< 2, 33 > = 'linux'     ; TERM_TBL< 3, 33 > = 'NTC' ;! Win ? CMD.EXE         linux               {027}[c
+   TERM_TBL< 1, 34 > = '[?6{027}[>67;201102;0c'              ; TERM_TBL< 2, 34 > = 'linux'     ; TERM_TBL< 3, 34 > = 'NTC' ;! Win ? CMD.EXE         linux               {027}[>c
+   TERM_TBL< 1, 35 > = '[?6{027}[?6c'                        ; TERM_TBL< 2, 35 > = 'linux'     ; TERM_TBL< 3, 35 > = 'NTC' ;! Win ? CMD.EXE         linux
+   TERM_TBL< 1, 36 > = '[?6c{027}[>67;201102;0c'             ; TERM_TBL< 2, 36 > = 'linux'     ; TERM_TBL< 3, 36 > = 'NTC' ;! Win ? CMD.EXE         linux               {027}[>c
+   TERM_TBL< 1, 37 > = '[?6c{027}[?6c'                       ; TERM_TBL< 2, 37 > = 'linux'     ; TERM_TBL< 3, 37 > = 'NTC' ;! Win ? CMD.EXE         linux
+   TERM_TBL< 1, 38 > = '[?6c{027}[?6c{013}'                  ; TERM_TBL< 2, 38 > = 'linux'     ; TERM_TBL< 3, 38 > = 'NTC' ;! Win ? CMD.EXE         linux
+   TERM_TBL< 1, 39 > = '{194}{155}>41;7;1c'                  ; TERM_TBL< 2, 39 > = 'vt220'     ; TERM_TBL< 3, 39 > = 'VT2' ;! Win AccuTerm          vtx20 (8-bit)       {027}[>c
+   TERM_TBL< 1, 40 > = '{194}{155}?62;1;2;6;8c'              ; TERM_TBL< 2, 40 > = 'vt220'     ; TERM_TBL< 3, 40 > = 'VT2' ;! Win AccuTerm          vt220 (8-bit)       {027}[c  , {027}[0c
+   TERM_TBL< 1, 41 > = '{194}{155}?63;1;2;6;8c'              ; TERM_TBL< 2, 41 > = 'vt320'     ; TERM_TBL< 3, 41 > = 'VT3' ;! Win AccuTerm          vt320 (8-bit)       {027}[0c , {027}[c
+   TERM_TBL< 1, 42 > = '{194}{155}?64;1;2;6;8c'              ; TERM_TBL< 2, 42 > = 'vt420'     ; TERM_TBL< 3, 42 > = 'VT4' ;! Win AccuTerm          vt420 (8-bit)       {027}[0c , {027}[c
+   TERM_TBL< 1, 43 > = '{194}{155}?64;1;2;6;9;15;18;21;22c'  ; TERM_TBL< 2, 43 > = 'vt420'     ; TERM_TBL< 3, 43 > = 'VT4' ;! Win AccuTerm          vt420 (8-bit)
+   TERM_TBL< 1, 44 > = '{194}{155}?6c'                       ; TERM_TBL< 2, 44 > = 'linux'     ; TERM_TBL< 3, 44 > = 'LNX' ;! Win AccuTerm          linux (8-bit)       {027}Z   , {027}[0c , {027}[c
+!  TERM_TBL< 1, 45 > = '{155}?63;1;2;6;8c{194}{155}>41;7;1c' ; TERM_TBL< 2, 45 > = 'vt320'     ; TERM_TBL< 3, 45 > = 'VT3' ;! Win AccuTerm          vt320 (8-bit)       {027}Z   , {027}[0c , {027}[c
+!  TERM_TBL< 1, 46 > = '{155}>41;7;1c{194}{155}?63;1;2;6;8c' ; TERM_TBL< 2, 46 > = 'vt320'     ; TERM_TBL< 3, 46 > = 'VT3' ;! Win AccuTerm          vt320 (8-bit)       {027}Z   , {027}[0c , {027}[c
+
+   FOR QSTN_NUM = 1 TO QSTN_MAX
+
+      QUESTION  = QSTN_LST< QSTN_NUM >
+
+      GOSUB QUERY.THE.TERMINAL
+
+      IF KEYB_DBG THEN
+
+         CRT @( 0 ) : IDENTITY : ' -> `' : QSTN_LST< QSTN_NUM > : '` -> `' : RESPONSE : '`' : ;! ' => ' : TERM_TYP : '/' : KEYB_TYP
+
+      END
+
+      IF RESPONSE EQ '' ELSE
+
+         LOCATE RESPONSE IN TERM_TBL< 1 > SETTING TERM_NUM THEN
+
+            TERM_TYP  = TERM_TBL< 2, TERM_NUM >
+            KEYB_TYP  = TERM_TBL< 3, TERM_NUM >
+            QSTN_NUM  = QSTN_MAX
+
+            IF KEYB_DBG THEN
+
+               CRT ' => `' : TERM_TYP : '`/`' : KEYB_TYP : '`'
+
+            END
+
+            EXECUTE 'TERM ' : TERM_TYP CAPTURING SUMPTHIN
+
+            CALL ANY_KEY_TBL
+
+         END ELSE
+
+            CRT @( 0 ) : IDENTITY : ' got an unknown answer (' : RESPONSE : ') to its question (' : QUESTION : ').'
+!           CRT
+!           CRT 'Press any key to continue.  ' :
+
+!           INPUT WHATEVER, 1
+
+         END
+
+      END
+
+      IF KEYB_DBG THEN
+
+         CRT @( 0 ) : IDENTITY : ' -> ' : QSTN_LST< QSTN_NUM > : ' -> ' : RESPONSE ;! : ' => ' : TERM_TYP : '/' : KEYB_TYP
+!        CRT
+!        CRT 'Press Enter to continue: ' :
+
+!        INPUT WHATEVER, 1
+
+      END
+
+   NEXT QSTN_NUM
+
+RETURN
+
+QUERY.THE.TERMINAL:
+
+   GOSUB NCODE.THE.QUESTION
+
+   RESPONSE  = ''
+
+   CRT QUESTION :
+
+   ECHO OFF
+
+   LOOP
+
+      IN CHAR_NUM FOR 1 THEN
+
+         RESPONSE := CHAR( CHAR_NUM )
+
+      END ELSE
+
+         EXIT
+
+      END
+
+   REPEAT
+
+   ECHO ON
+
+   GOSUB DCODE.THE.RESPONSE
+
+RETURN
+
+FETCH.THE.DEFAULT:
+
+   ! The terminal hasn't responded to anything we've asked it,  so,  now,
+   ! we'll take Pick's word for what it thinks its terminal should be.
+
+   TERM_TYP  = SYSTEM( 7 ) ;! Same on all flavors.
+   TERM_TMP  = OCONV( TERM_TYP, 'MCL' )
+
+   LOCATE TERM_TYP IN TERM_TBL< 2 > SETTING TERM_NUM THEN
+
+      EMU_TYPE  = '???'
+      KEYB_TYP  = TERM_TBL< 3, TERM_NUM >
+
+   END ELSE
+
+      ! Something not found in AccuTerm's lists?!
+
+      BEGIN CASE
+
+         CASE KEYB_TYP[ 1,  4 ] EQ 'adds'        ; KEYB_TYP = 'VPT' ;! ADDS Viewpoint A2 Enhanced
+         CASE KEYB_TYP[ 1,  4 ] EQ 'ansi'        ; KEYB_TYP = 'ANS' ;! ANSI BBS/SCO Console
+         CASE KEYB_TYP[ 1,  4 ] EQ 'dumb'        ; KEYB_TYP = 'TTY' ;! TTY
+         CASE KEYB_TYP[ 1,  5 ] EQ 'linux'       ; KEYB_TYP = 'LNX' ;! Linux Console
+         CASE KEYB_TYP[ 1,  5 ] EQ 'pcmon'       ; KEYB_TYP = 'PCK' ;! Pick PC Monitor
+         CASE KEYB_TYP[ 1,  7 ] EQ 'pickmon'     ; KEYB_TYP = 'PCK' ;! Pick PC Monitor
+         CASE KEYB_TYP[ 1,  5 ] EQ 'prism'       ; KEYB_TYP = 'MDS' ;! MDIS Prism P8/30
+         CASE KEYB_TYP[ 1,  9 ] EQ 'tektronix'   ; KEYB_TYP = 'TEX' ;! Tektronix 4014/4100
+         CASE KEYB_TYP[ 1,  3 ] EQ 'tty'         ; KEYB_TYP = 'TTY' ;! TTY
+         CASE KEYB_TYP[ 1, 11 ] EQ 'viewpoint60' ; KEYB_TYP = 'VP6' ;! ADDS Viewpoint 60/ProComm
+         CASE KEYB_TYP[ 1,  9 ] EQ 'viewpoint'   ; KEYB_TYP = 'VPT' ;! ADDS Viewpoint A2
+         CASE KEYB_TYP[ 1,  4 ] EQ 'vt52'        ; KEYB_TYP = 'VT0' ;! VT52
+         CASE KEYB_TYP[ 1,  3 ] EQ 'vt1'         ; KEYB_TYP = 'VT1' ;! VT100/102
+         CASE KEYB_TYP[ 1,  3 ] EQ 'vt2'         ; KEYB_TYP = 'VT2' ;! VT220
+         CASE KEYB_TYP[ 1,  3 ] EQ 'vt3'         ; KEYB_TYP = 'VT3' ;! VT320
+         CASE KEYB_TYP[ 1,  3 ] EQ 'vt4'         ; KEYB_TYP = 'VT4' ;! VT420
+         CASE KEYB_TYP[ 1,  4 ] EQ 'wyse'        ; KEYB_TYP = 'WYS' ;! Wyse 50/60
+         CASE KEYB_TYP[ 1,  5 ] EQ 'xterm'       ; KEYB_TYP = 'XTM' ;! XTerm
+         CASE 1                                  ; KEYB_TYP = 'ANS' ;! ANSI
+
+      END CASE
+
+   END
+
+   CALL ANY_KEY_TBL
+
+   GOSUB SETUP.UNX.TERM
+
+RETURN
+
+SETUP.UNX.TERM:
+
+!  EXECUTE 'TERM ' : TRM_TYPE
+
+   BEGIN CASE
+
+      CASE SYSTEM( 9010 )                     EQ 'UV'      ; OSCMDPFX  = \SH -c '\         ; OSCMDSFX  = \'\
+!     CASE SYSTEM( 9010 )                     EQ 'UD'      ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'AIX'     ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'FreeBSD' ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'Linux'   ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'Mac'     ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'PDA'     ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'Rpi'     ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'Solaris' ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM( 1010 )                     EQ 'Windows' ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM(  100 )[ 1, 2 ]             EQ 'D3'      ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM(   22 )< 13 >               EQ '3'       ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM(   44 )                     EQ '3'       ; OSCMDPFX  = '!'               ; OSCMDSFX  = '' ;! 0,1,2=proprietary Reality, 3=Reality on UNIX/Windows
+!     CASE SYSTEM(   44 )                     EQ '2'       ; OSCMDPFX  = '!'               ; OSCMDSFX  = '' ;! 0,1,2=proprietary Reality, 3=Reality on UNIX/Windows
+      CASE SYSTEM(   44 )                     EQ '99'      ; OSCMDPFX  = CHAR( 255 ) : 'k' ; OSCMDSFX  = ''
+!     CASE SYSTEM(   44 )                     EQ '1'       ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM(   44 )                     EQ '0'       ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE SYSTEM(  254 )[ 1, LEN( DATE() ) ] EQ DATE()    ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+!     CASE ???                                EQ ???       ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+      CASE 1                                               ; OSCMDPFX  = '!'               ; OSCMDSFX  = ''
+
+   END CASE
+
+   EXECUTE OSCMDPFX : 'set' : OSCMDSFX CAPTURING ENV_VARS
+
+   UNX_HOST  = NOT( INDEX( ENV_VARS, 'SystemDrive', 1 ) OR INDEX( 'SystemDrive', ENV_VARS, 1 ) )
+
+   IF UNX_HOST THEN
+
+      EXECUTE OSCMDPFX : 'export TERM=' : TERM_TYP : OSCMDSFX
+      EXECUTE OSCMDPFX : 'stty sane'               : OSCMDSFX
+
+   END
+
+RETURN
+
+NCODE.THE.QUESTION:
+
+   ! Replace any {###}s in QUESTION with CHAR(###)s.
+
+   QSTN_LEN  = LEN( QUESTION )
+
+   FOR QSTN_POS = QSTN_LEN TO 5 STEP -1
+
+      IF QUESTION[ QSTN_POS, 1 ] EQ '}' THEN
+
+         IF QUESTION[ QSTN_POS - 4, 1 ] EQ '{' THEN
+
+            THE_CHAR  = QUESTION[ QSTN_POS - 3, 3 ]
+
+            IF NUM( THE_CHAR ) THEN
+
+               QUESTION  = QUESTION[ 1, QSTN_POS - 5 ] : CHAR( THE_CHAR ) : QUESTION[ QSTN_POS + 1, QSTN_LEN ]
+               QSTN_POS -= 4
+
+            END
+
+         END
+
+      END
+
+   NEXT QSTN_POS
+
+RETURN
+
+DCODE.THE.RESPONSE:
+
+   ! Replace any 'special' characters in RESPONSE with {###}s.
+
+   RESPONSE  = TRIM( RESPONSE, CHAR( 13 ), 'T' )
+   RESP_LEN  = LEN( RESPONSE )
+
+   FOR RESP_IDX = RESP_LEN TO 1 STEP -1
+
+      CHAR_NUM  = SEQ( RESPONSE[ RESP_IDX, 1 ] )
+
+      IF CHAR_NUM LT 32 OR 126 LT CHAR_NUM THEN
+
+         RESP_LEN += 4
+         RESPONSE  = RESPONSE[ 1, RESP_IDX - 1 ] : '{' : CHAR_NUM 'R%3}' : RESPONSE[ RESP_IDX + 1, RESP_LEN ]
+
+      END
+
+   NEXT RESP_IDX
+
+RETURN

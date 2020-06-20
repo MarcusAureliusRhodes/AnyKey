@@ -1,0 +1,755 @@
+SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 06/19/2020 10:45:01 by Marcus
+
+! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
+
+! Function: Returns the next key from our input  buffer,  or,  if  empty,
+!           directly from the keyboard.
+
+!           See ANY_KEY_EQU for more.
+
+! Params__ IO Typ Description____________________________________________
+! TEXT_KEY  < Str If a regular key is pressed, its character is  returned
+!                 in this variable.
+! META_KEY  < Str If a special key (Page Up, Home, Tab, etc.)  or  mouse-
+!                 button is pressed, ANY_KEY's standard, replacement key-
+!                 code, as defined in ANY_KEY_EQU, is  returned  in  this
+!                 variable.
+
+! Syntax  : CALL ANY_KEY( TEXT_KEY, META_KEY )
+
+! Examples: INCLUDE ANY_KEY_EQU
+
+!                 CASE META_KEY EQ KC_HOME     ; GOSUB JUMP.TO.TOP
+!                 CASE META_KEY EQ KC_END      ; GOSUB JUMP.TO.END
+!                 CASE META_KEY EQ K_PAGE_UP   ; GOSUB PAGE.UP
+!                 CASE META_KEY EQ K_PAGE_DOWN ; GOSUB PAGE.DOWN
+!                 CASE META_KEY EQ K_UP        ; GOSUB LINE.UP
+!                 CASE META_KEY EQ K_DOWN      ; GOSUB LINE.DOWN
+!                 CASE META_KEY EQ K_HOME      ; GOSUB LINE.BEG
+!                 CASE META_KEY EQ K_END       ; GOSUB LINE.END
+!                 CASE META_KEY EQ K_BACKSPACE ; GOSUB DELETE.LFT
+!                 CASE META_KEY EQ K_DELETE    ; GOSUB DELETE.RGT
+!                 CASE META_KEY EQ K_INSERT    ; GOSUB TOGGLE.INSERT
+!                 CASE META_KEY EQ K_ESC       ; EXIT
+!                 CASE TEXT_KEY NE ''          ; GOSUB ADD.TO.TEXT
+
+!              END CASE
+
+!           REPEAT
+
+! Upcoming: This is an event-loop that only checks for a single event:  A
+!           key-press.  It can/should check  for  more than  that,  like,
+!           say, a message, but not too often, say every 3-30 seconds.
+
+!           Check for AccuTerm if/when ANY_KEY_TRM has not been executed,
+!           but a non-DEC terminal is specified by Pick (SYSTEM(7)) or an
+!           AccuTerm mouse code-string is received.  Aaaannd, if AccuTerm
+!           is, in fact, found to be in use, and it hasn't  already  been
+!           done, then program all the dead keys for that terminal so the
+!           user has a better experience.
+
+! Old name: ANY_KEY_GET
+
+! New name: ANY_KEY
+
+! Catalog : ANY_KEY
+
+   EQU IDENTITY TO 'ANY_KEY'
+   EQU CR       TO CHAR( 13 )
+   EQU ESC      TO CHAR( 27 )
+
+   INCLUDE ANY_KEY_EQU
+
+   ECHO OFF
+
+   ! Get the next key/code, first from our buffer,  then,  failing  that,
+   ! directly from the keyboard, waiting for it if necessary.
+
+   IF BFFR_LEN THEN
+
+      CHAR_NUM  = SEQ( ANY_BFFR[ 1, 1 ] )
+      BFFR_LEN -= 1
+      ANY_BFFR  = ANY_BFFR[ 2, BFFR_LEN ]
+
+   END ELSE
+
+      ! Beg Pick UD ============= Rocket Software's UniData =============
+
+      STARTING  = INT( TIME() )
+
+      ! End Pick UD ============= Rocket Software's UniData =============
+      ! Beg Pick UV ============ Rocket Software's UniVerse =============
+
+      STARTING  = INT( TIME() )
+
+      ! End Pick UV ============ Rocket Software's UniVerse =============
+
+      LOOP
+
+         ! Beg Pick AP ================== Generic Pick ==================
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick AP ================== Generic Pick ==================
+         ! Beg Pick D3 ============== Rocket Software's D3 ==============
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick D3 ============== Rocket Software's D3 ==============
+         ! Beg Pick IC ============== InsterSytems' Cache ===============
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick IC ============== InsterSytems' Cache ===============
+         ! Beg Pick JB ================= Zumasys' jBase =================
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick JB ================= Zumasys' jBase =================
+         ! Beg Pick NR ============== Northgate's Reality ===============
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick NR ============== Northgate's Reality ===============
+         ! Beg Pick ON ===== Onware Software Corporations's Onware ======
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick ON ===== Onware Software Corporations's Onware ======
+         ! Beg Pick QM ================ Zumasys' OpenQM =================
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick QM ================ Zumasys' OpenQM =================
+         ! Beg Pick UD =========== Rocket Software's UniData ============
+
+         INPUTIF THE_CHAR, 1 : THEN
+
+            IF THE_CHAR EQ '' THEN
+
+               CHAR_NUM  = 13
+               THE_CHAR  = CHAR( 13 )
+
+            END ELSE
+
+               CHAR_NUM  = SEQ( THE_CHAR )
+
+            END
+
+            ANY_BFFR := THE_CHAR
+
+            EXIT
+
+         END ELSE
+
+            IF ( INT( TIME() ) - STARTING ) GE 3 THEN
+
+!              CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+            END
+
+         END
+
+         ! End Pick UD =========== Rocket Software's UniData ============
+         ! Beg Pick UV =========== Rocket Software's UniVerse ===========
+
+         INPUTIF THE_CHAR, 1 : THEN
+
+            IF THE_CHAR EQ '' THEN
+
+               CHAR_NUM  = 13
+               THE_CHAR  = CHAR( 13 )
+
+            END ELSE
+
+               CHAR_NUM  = SEQ( THE_CHAR )
+
+            END
+
+            ANY_BFFR := THE_CHAR
+
+            EXIT
+
+         END ELSE
+
+            IF ( INT( TIME() ) - STARTING ) GE 3 THEN
+
+!              CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+            END
+
+         END
+
+         ! End Pick UV =========== Rocket Software's UniVerse ===========
+         ! Beg Pick VU ============= ViaSystems' UniVision ==============
+
+         IN CHAR_NUM FOR 30 THEN
+
+            EXIT
+
+         END
+
+!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         ! End Pick VU ============= ViaSystems' UniVision ==============
+
+      REPEAT
+
+   END
+
+   ! If that was a regular key, then return it as is,  otherwise,  append
+   ! up to 15 more key codes to the buffer.  (Because AccuTerm mouse keys
+   ! can generate code-strings as long as 16 chars.)
+
+   IF CHAR_NUM GT 31 AND CHAR_NUM LT 127 THEN
+
+      TEXT_KEY  = CHAR( CHAR_NUM )
+      META_KEY  = ''
+      CRT_CODE  = CHAR_NUM 'R%3'
+
+   END ELSE
+
+      ! First, prepend it back in the buffer, ...
+
+      ANY_BFFR  = CHAR( CHAR_NUM ) : ANY_BFFR
+      BFFR_LEN += 1
+      CRT_CODE  = CHAR_NUM 'R%3'
+
+      ! ... then add up to 15 more codes, if available.
+
+      ! Beg Pick JB ================== Zumasys' jBase ===================
+
+      LOOP WHILE BFFR_LEN LT 16 DO
+
+         IN CHAR_NUM FOR 1 THEN
+
+            ANY_BFFR := CHAR( CHAR_NUM )
+            BFFR_LEN += 1
+            CRT_CODE := CHAR_NUM 'R%3'
+
+         END ELSE
+
+            EXIT
+
+         END
+
+      REPEAT
+
+      ! End Pick JB ================== Zumasys' jBase ===================
+      ! Beg Pick QM ================== Zumasys' OpenQM ==================
+
+      LOOP
+
+         INPUT KEY_IN_Q, -1 :
+
+      WHILE KEY_IN_Q AND BFFR_LEN LT 16 DO
+
+         IN CHAR_NUM
+
+         ANY_BFFR := CHAR( CHAR_NUM )
+         BFFR_LEN += 1
+         CRT_CODE := CHAR_NUM 'R%3'
+
+      REPEAT
+
+      ! End Pick QM ================== Zumasys' OpenQM ==================
+      ! Beg Pick UD ============= Rocket Software's UniData =============
+
+      LOOP WHILE BFFR_LEN LT 16 DO
+
+         INPUTIF CHAR_NUM, 1 THEN
+
+            ANY_BFFR := CHAR( CHAR_NUM )
+            BFFR_LEN += 1
+            CRT_CODE := CHAR_NUM 'R%3'
+
+         END ELSE
+
+            EXIT
+
+         END
+
+      REPEAT
+
+      ! End Pick UD ============= Rocket Software's UniData =============
+      ! Beg Pick UV ============ Rocket Software's UniVerse =============
+
+      LOOP WHILE BFFR_LEN LT 16 DO
+
+         INPUTIF CHAR_NUM, 1 THEN
+
+            ANY_BFFR := CHAR( CHAR_NUM )
+            BFFR_LEN += 1
+            CRT_CODE := CHAR_NUM 'R%3'
+
+         END ELSE
+
+            EXIT
+
+         END
+
+      REPEAT
+
+      ! End Pick UV ============ Rocket Software's UniVerse =============
+
+      ! Search the array for this key,  starting  with  a  maximum  of  8
+      ! chars, working our way down to a single char, until  a  match  is
+      ! found.
+
+      TEXT_KEY  = ''
+      META_KEY  = ''
+      CODE_MAX  = LEN( ANY_BFFR[ 1, 8 ] )
+
+      FOR CODE_LEN = CODE_MAX TO 1 STEP -1 WHILE META_KEY EQ ''
+
+         THE_CODE  = ANY_BFFR[ 1,   CODE_LEN       ]
+         CRT_CODE  = CRT_CODE[ 1, ( CODE_LEN * 3 ) ]
+
+         LOCATE THE_CODE IN OLD_KEYS SETTING CODE_IDX THEN
+
+            META_KEY  = NEW_KEYS< CODE_IDX >
+            BFFR_LEN -= CODE_LEN
+            ANY_BFFR  = ANY_BFFR[ CODE_LEN + 1, BFFR_LEN ]
+
+!           GOSUB REMAP.THE.KEYS
+!           GOSUB ERASE.ANY.DUPES
+
+            ! Handle any mouse clicks.
+
+            BEGIN CASE
+
+               CASE META_KEY EQ KM_L1 ; GOSUB FETCH.1ST.CLICK
+               CASE META_KEY EQ KM_R1 ; GOSUB FETCH.1ST.CLICK
+!              CASE META_KEY EQ KM_L2 ; GOSUB FETCH.COORDINATES
+!              CASE META_KEY EQ KM_R2 ; GOSUB FETCH.COORDINATES
+               CASE META_KEY EQ KC_Q  ; CALL ANY_KEY_BLD ; DEBUG
+
+            END CASE
+
+         END
+
+      NEXT CODE_LEN
+
+      ! What do we do with an unrecognized code-sequence?  Confuse the
+      ! user with it, of course!  But at least reformat it first.
+
+      IF META_KEY EQ '' THEN
+
+         FOR CODE_IDX = 1 TO BFFR_LEN
+
+            THE_CHAR  = ANY_BFFR[ CODE_IDX, 1 ]
+            CHAR_NUM  = SEQ( THE_CHAR )
+
+            BEGIN CASE
+
+               CASE CHAR_NUM LT  32 ; META_KEY := '^' : CHAR( CHAR_NUM + 64 )
+               CASE CHAR_NUM GT 126 ; META_KEY := '{' : CHAR_NUM 'R%3}'
+               CASE 1               ; META_KEY := THE_CHAR
+
+            END CASE
+
+         NEXT CODE_IDX
+
+         BFFR_LEN  = 0
+         ANY_BFFR  = ''
+
+      END
+
+   END
+
+   ECHO ON
+
+RETURN
+
+REMAP.THE.KEYS:
+
+   ! This is where we make any necessary/possible adjustments to the old-
+   ! to-new key mapping.  What's that?  If, for example, a VTxxx terminal
+   ! returns code 027091051126, then that's unambiguously a  delete  key,
+   ! which, in turn, means that, if we later on see code 127, it can only
+   ! be the backspace key,  and  not  the  delete  key,  so  that  code's
+   ! replacement string can be switched from that for delete to that  for
+   ! backspace.
+
+   ! The user may see some confusing behavior  if  they  press,  in  this
+   ! case, the backspace key first, and it deletes, but they'll also  see
+   ! that behavior correct itself as soon as they press the  delete  key,
+   ! which they're likely to do, just to see if they've been swapped.
+
+   ! It's a pretty small price to pay to  avoid  having  to  disrupt  the
+   ! screen in order to detect the emulator and emulation settings, which
+   ! is why it would be a good idea to  add  ANY_KEY_INI  to  the  user's
+   ! login script.
+
+   ! The new, more specific keyboard designators my have obviated this.
+
+   BEGIN CASE
+
+      CASE KEY_FLGS[ 1, 1 ] ;! Do nothing!
+      CASE KEY_FLGS[ 2, 1 ] AND THE_CODE EQ ESC : '[4~' ;! 027091049126 must be Home instead of End.
+
+         OLD_CODE  = ESC : '[1~'
+         NEW_CODE  = K_HOME
+         FLAG_POS  = 2
+
+         GOSUB REMAP.THE.KEY
+
+      CASE KEY_FLGS[ 3, 1 ] AND THE_CODE EQ ESC : '[3~' ;! 127 must be Backspace instead of Delete.
+
+         OLD_CODE  = CHAR( 127 )
+         NEW_CODE  = K_BACKSPACE
+         FLAG_POS  = 3
+
+         GOSUB REMAP.THE.KEY
+
+! Disabled because it wreaks havoc with all the rest of the map.
+
+         ! If char(127) is backspace, then ^H must be Ctrl+Backspace.
+
+!        OLD_CODE  = CHAR( 8 )
+!        NEW_CODE  = KC_BACKSPACE
+
+!       GOSUB REMAP.THE.KEY
+
+      CASE KEY_FLGS[ 3, 1 ] AND THE_CODE EQ ESC : 'W' ;! 127 must be Ctrl+Backspace instead of Delete.
+
+         OLD_CODE  = CHAR( 127 )
+         NEW_CODE  = KC_BACKSPACE
+         FLAG_POS  = 3
+
+         GOSUB REMAP.THE.KEY
+
+      CASE KEY_FLGS[ 4, 1 ] AND THE_CODE EQ ESC : '[13^' ;! 027091050053126~ must be Shift+F3 instead of Ctrl+F3.
+
+         OLD_CODE  = ESC : '[25~'
+         NEW_CODE  = KS_F03
+         FLAG_POS  = 4
+
+         GOSUB REMAP.THE.KEY
+
+      CASE KEY_FLGS[ 5, 1 ] AND THE_CODE EQ CHAR( 21 ) ;! 008 must be Backspace instead of Left.
+
+         OLD_CODE  = CHAR( 8 )
+         NEW_CODE  = K_BACKSPACE
+         FLAG_POS  = 5
+
+         GOSUB REMAP.THE.KEY
+
+   END CASE
+
+RETURN
+
+REMAP.THE.KEY:
+
+   LOCATE OLD_CODE IN OLD_KEYS SETTING SWAP_IDX THEN
+
+      NEW_KEYS< SWAP_IDX >  = NEW_CODE
+
+      KEY_FLGS  = KEY_FLGS[ 1, FLAG_POS ] : '0' : KEY_FLGS[ ( 5 - FLAG_POS ) ]
+      KEY_FLGS  = ( KEY_FLGS[ 4 ] EQ '0000' ) : KEY_FLGS[ 4 ]
+
+      IF KEYB_DBG THEN
+
+         CRT 'KEY_FLGS = ' : KEY_FLGS : '  ' :
+
+      END
+
+   END
+
+RETURN
+
+ERASE.ANY.DUPES:
+
+   ! I need to get a little smarter about this.  The KEY_FLGS just  isn't
+   ! enough.  Perhaps counting  the  special  keys  used,  too?  Or  time
+   ! passed?
+
+   ! Our table compiles all known (to me at this time) code-sequences for
+   ! about 400, unique key(-combination)s.  This works out  to  about  3,
+   ! different, possible code-sequences  for  each  of  those  400  keys,
+   ! resulting in a table containing over 900 code-sequences,  and  their
+   ! corresponding 'new' sequences.  That's not too big, but  it  could/-
+   ! should be smaller/faster.  So, as long as the table  is  still  over
+   ! 400 keys (and who really needs that many?), we'll keep removing  any
+   ! duplicate keys.  There are, for example, currently a dozen different
+   ! code-sequences all equating to F1.  Once the user presses  their  F1
+   ! key, then we'll know which one of those dozen we need to  keep,  and
+   ! which we can remove, shrinking the table,  and  accelerating  future
+   ! searches.
+
+   IF KTBL_LEN GT 400 THEN
+
+      ! First, get the current key out of the way.
+
+      DEL OLD_KEYS< CODE_IDX >
+      DEL NEW_KEYS< CODE_IDX >
+
+      ! Now, find and remove any other instances of the current key.
+
+      LOOP
+
+         LOCATE META_KEY IN NEW_KEYS SETTING CODE_IDX THEN
+
+            DEL OLD_KEYS< CODE_IDX >
+            DEL NEW_KEYS< CODE_IDX >
+
+            KTBL_LEN -= 1
+
+         END ELSE
+
+            EXIT
+
+         END
+
+      REPEAT
+
+      ! Now reinsert the current key, but at the top of the  table.  Why?
+      ! Because any key the user presses is likely to be  pressed  again,
+      ! maybe even the very next key.
+
+      OLD_KEYS  = THE_CODE : @AM : OLD_KEYS
+      NEW_KEYS  = META_KEY : @AM : NEW_KEYS
+
+   END
+
+   ! Caution!  This interfere with the key  remapping.  Maybe  there's  a
+   ! way to reconcile the two by only erasing the  dupes  on  terms  that
+   ! don't need to remap, and only on terms that do need remapping  after
+   ! remapping.  Which terms are affected?
+
+RETURN
+
+FETCH.1ST.CLICK:
+
+   GOSUB FETCH.COORDINATES
+
+   META_KEY  = META_KEY : @AM : SCREEN_X : @AM : SCREEN_Y
+
+   ! Wait a quarter of a second ...
+
+   ! Beg Pick AP ===================== Generic Pick =====================
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick AP ===================== Generic Pick =====================
+   ! Beg Pick D3 ================= Rocket Software's D3 =================
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick D3 ================= Rocket Software's D3 =================
+   ! Beg Pick IC ================= InsterSytems' Cache ==================
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick IC ================= InsterSytems' Cache ==================
+   ! Beg Pick JB ==================== Zumasys' jBase ====================
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick JB ==================== Zumasys' jBase ====================
+   ! Beg Pick NR ================= Northgate's Reality ==================
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 25 DO REPEAT
+
+   ! End Pick NR ================= Northgate's Reality ==================
+   ! Beg Pick ON ======== Onware Software Corporations's Onware =========
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick ON ======== Onware Software Corporations's Onware =========
+   ! Beg Pick QM ================= Ladybridge's OpenQM ==================
+
+   TIME_BEG  = SYSTEM( 1020 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 1020 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   INPUT KEY_IN_Q, -1 ;! Anything in the buffer?
+
+   ! End Pick QM ================= Ladybridge's OpenQM ==================
+   ! Beg Pick UD ============== Rocket Software's UniData ===============
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick UD ============== Rocket Software's UniData ===============
+   ! Beg Pick UV ============== Rocket Software's UniVerse ==============
+
+   ! Set $OPTIONS to TIME.MILLISECOND
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick UV ============== Rocket Software's UniVerse ==============
+   ! Beg Pick VU ================ ViaSystems' UniVision =================
+
+   TIME_BEG  = SYSTEM( 12 )
+
+   LOOP
+
+      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+
+   UNTIL TELAPSED GT 250 DO REPEAT
+
+   ! End Pick VU ================ ViaSystems' UniVision =================
+
+   ! ... then see if there's another mouse-click.
+
+   IF KEY_IN_Q THEN
+
+      CALL ANY_KEY( SOME_KEY, DBL_CHCK )
+
+      META_KEY  = DBL_CHCK : @AM : SCREEN_X : @AM : SCREEN_Y
+
+   END
+
+RETURN
+
+FETCH.COORDINATES:
+
+   TYPE_ONE  = KEYB_TYP EQ 'ANS'
+   TYPE_ONE += KEYB_TYP EQ 'LNX'
+   TYPE_ONE += KEYB_TYP EQ 'TEX'
+   TYPE_ONE += KEYB_TYP EQ 'VT1'
+   TYPE_ONE += KEYB_TYP EQ 'VT2'
+   TYPE_ONE += KEYB_TYP EQ 'VT3'
+   TYPE_ONE += KEYB_TYP EQ 'VT4'
+   TYPE_ONE += KEYB_TYP EQ 'XTM'
+
+   BEGIN CASE
+
+      CASE TYPE_ONE
+
+         END_CHAR = ';' ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT - 1
+         END_CHAR = 'R' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT - 1
+
+      CASE KEYB_TYP EQ 'BBS'
+
+         END_CHAR = ';' ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT - 1
+         END_CHAR = 'x' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT - 1
+
+      CASE 1
+
+         END_CHAR = '.' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT
+         END_CHAR = CR  ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT
+
+   END CASE
+
+RETURN
+
+FETCH.COORDINATE:
+
+   COORDINT  = ''
+
+   LOOP
+
+      CRDT_CHR  = ANY_BFFR[ 1, 1 ]
+      BFFR_LEN -= 1
+      ANY_BFFR  = ANY_BFFR[ 2, BFFR_LEN ]
+
+   UNTIL CRDT_CHR EQ END_CHAR OR BFFR_LEN LT 1 DO
+
+      COORDINT := CRDT_CHR
+
+   REPEAT
+
+RETURN

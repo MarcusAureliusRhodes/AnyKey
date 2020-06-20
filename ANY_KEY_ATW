@@ -1,0 +1,603 @@
+SUBROUTINE ANY_KEY_ATW
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 06/11/2020 11:06:41 by Marcus
+
+! Platform: Any Pick; Any OS; AccuTerm; Any emulation
+
+! Function: Finds and programs all the current emulation's dead  keys  so
+!           they'll work with AnyKey-enabled programs.
+
+! Params__ IO Typ Description____________________________________________
+! N/A
+
+! Syntax  : CALL ANY_KEY_ATW
+
+! Examples: CALL ANY_KEY_ATW
+
+! Upcoming: Refactor into task-list/subroutines.
+!           Done 06/11/2020 09:17 Marcus
+!           Program some unusable key, such as Shift+Ctrl+Alt+Semi-Colon,
+!           to show that this subroutine has already run.
+!           Done 06/11/2020 10:22 Marcus
+!           Check the 'unusable key's programming to see whether we  need
+!           to continue.
+!           Done 06/11/2020 11:10 Marcus
+!           Change is the only constant. -- Heraclitus
+
+! Old name: N/A
+
+! Catalog : ANY_KEY_ATW
+
+! New name: N/A
+
+   EQU STX TO CHAR(  2 )
+   EQU LF  TO CHAR( 10 )
+   EQU CR  TO CHAR( 13 )
+   EQU EM  TO CHAR( 25 )
+   EQU ESC TO CHAR( 27 )
+
+   EQU IDENTITY TO 'ANY_KEY_ATW'
+
+   INCLUDE ANY_KEY_EQU
+
+   IF IDENTITY THEN GOSUB CHECK.FOR.ACCUTERM
+   IF IDENTITY THEN GOSUB CHECK.FOR.BREADCRUMBS
+   IF ALLSWELL THEN GOSUB START.OUR.VARS.ETC
+   IF ALLSWELL THEN GOSUB FETCH.OLD.DEFINITIONS
+   IF ALLSWELL THEN GOSUB LEAVE.OUR.BREADCRUMBS
+   IF ALLSWELL THEN GOSUB DITCH.OLD.DEFINITIONS
+   IF ALLSWELL THEN GOSUB SETUP.NEW.DEFINITIONS
+
+RETURN
+
+CHECK.FOR.ACCUTERM:
+
+   ALLSWELL  = EMU_TYPE NE 'ATW'
+
+RETURN
+
+CHECK.FOR.BREADCRUMBS:
+
+   ! Before continuing, test whether the 'unusable key' has already been
+   ! programmed with IDENTITY.
+
+   VBA_CODE  = ESC : STX : 'P'
+   VBA_CODE := 'dim s as accutermclasses.session' : EM
+   VBA_CODE := 'set s=activesession' : EM
+   VBA_CODE := 'accuterm.activate' : EM
+   VBA_CODE := 's.activate' : EM
+   VBA_CODE := 's.output s.Fkeys(7009)&vbCr' : CR
+
+   CRT VBA_CODE :
+
+   ECHO OFF
+
+   INPUT ATWK_TXT :
+
+   ECHO ON
+
+   ALLSWELL  = ATWK_TXT NE IDENTITY
+
+RETURN
+
+START.OUR.VARS.ETC:
+
+   ! This is the full list of AccuTerm keys we *may*  want  to  keep  and
+   ! program, as well as the  code-sequences  we'll  program  them  with.
+   ! I've already eliminated all the keys all emulations use, such as up,
+   ! down, backspace, tab, etc., leaving only those keys which  at  least
+   ! one emulation-mode lacks.  But, of course, we won't want to  program
+   ! all these keys, just  those  that  the  current  terminal  emulation
+   ! doesn't use, and aren't already  programmed  for  some  reason.  So,
+   ! we'll eliminate those down below.
+
+   KEEP_LST           =   '35' ; KEEP_LST< 2,   1 > = '027091052126'          ;! K_END
+   KEEP_LST< 1,   2 > =   '45' ; KEEP_LST< 2,   2 > = '027091050126'          ;! K_INSERT
+   KEEP_LST< 1,   3 > =  '116' ; KEEP_LST< 2,   3 > = '027091049053126'       ;! K_F05
+   KEEP_LST< 1,   4 > =  '117' ; KEEP_LST< 2,   4 > = '027091049055126'       ;! K_F06
+   KEEP_LST< 1,   5 > =  '118' ; KEEP_LST< 2,   5 > = '027091049056126'       ;! K_F07
+   KEEP_LST< 1,   6 > =  '119' ; KEEP_LST< 2,   6 > = '027091049057126'       ;! K_F08
+   KEEP_LST< 1,   7 > =  '120' ; KEEP_LST< 2,   7 > = '027091050048126'       ;! K_F09
+   KEEP_LST< 1,   8 > =  '121' ; KEEP_LST< 2,   8 > = '027091050049126'       ;! K_F10
+   KEEP_LST< 1,   9 > =  '122' ; KEEP_LST< 2,   9 > = '027091050051126'       ;! K_F11
+   KEEP_LST< 1,  10 > =  '123' ; KEEP_LST< 2,  10 > = '027091050052126'       ;! K_F12
+   KEEP_LST< 1,  11 > = '1008' ; KEEP_LST< 2,  11 > = '027083066083'          ;! KS_BACKSPACE ^[SBS
+   KEEP_LST< 1,  12 > = '1009' ; KEEP_LST< 2,  12 > = '027091090'             ;! KS_TAB
+   KEEP_LST< 1,  13 > = '1013' ; KEEP_LST< 2,  13 > = '027083013'             ;! KS_ENTER ^[S^M
+   KEEP_LST< 1,  14 > = '1032' ; KEEP_LST< 2,  14 > = '027083032'             ;! KS_SPACE ^[S_
+   KEEP_LST< 1,  15 > = '1033' ; KEEP_LST< 2,  15 > = '027091053059050126'    ;! KS_PAGE_UP
+   KEEP_LST< 1,  16 > = '1034' ; KEEP_LST< 2,  16 > = '027091054059050126'    ;! KS_PAGE_DOWN
+   KEEP_LST< 1,  17 > = '1035' ; KEEP_LST< 2,  17 > = '027091049059050070'    ;! KS_END
+   KEEP_LST< 1,  18 > = '1036' ; KEEP_LST< 2,  18 > = '027091049059050072'    ;! KS_HOME
+   KEEP_LST< 1,  19 > = '1037' ; KEEP_LST< 2,  19 > = '027091049059050068'    ;! KS_LEFT
+   KEEP_LST< 1,  20 > = '1038' ; KEEP_LST< 2,  20 > = '027091049059050065'    ;! KS_UP
+   KEEP_LST< 1,  21 > = '1039' ; KEEP_LST< 2,  21 > = '027091049059050067'    ;! KS_RIGHT
+   KEEP_LST< 1,  22 > = '1040' ; KEEP_LST< 2,  22 > = '027091049059050066'    ;! KS_DOWN
+   KEEP_LST< 1,  23 > = '1045' ; KEEP_LST< 2,  23 > = '027091050059050126'    ;! KS_INSERT
+   KEEP_LST< 1,  24 > = '1046' ; KEEP_LST< 2,  24 > = '027091051059050126'    ;! KS_DELETE
+   KEEP_LST< 1,  25 > = '1112' ; KEEP_LST< 2,  25 > = '027091049059050080'    ;! KS_F01
+   KEEP_LST< 1,  26 > = '1113' ; KEEP_LST< 2,  26 > = '027091049059050081'    ;! KS_F02
+   KEEP_LST< 1,  27 > = '1114' ; KEEP_LST< 2,  27 > = '027091049059050082'    ;! KS_F03
+   KEEP_LST< 1,  28 > = '1115' ; KEEP_LST< 2,  28 > = '027091049059050083'    ;! KS_F04
+   KEEP_LST< 1,  29 > = '1116' ; KEEP_LST< 2,  29 > = '027091049053059050126' ;! KS_F05
+   KEEP_LST< 1,  30 > = '1117' ; KEEP_LST< 2,  30 > = '027091049055059050126' ;! KS_F06
+   KEEP_LST< 1,  31 > = '1118' ; KEEP_LST< 2,  31 > = '027091049056059050126' ;! KS_F07
+   KEEP_LST< 1,  32 > = '1119' ; KEEP_LST< 2,  32 > = '027091049057059050126' ;! KS_F08
+   KEEP_LST< 1,  33 > = '1120' ; KEEP_LST< 2,  33 > = '027091050048059050126' ;! KS_F09
+   KEEP_LST< 1,  34 > = '1121' ; KEEP_LST< 2,  34 > = '027091050049059050126' ;! KS_F10
+   KEEP_LST< 1,  35 > = '1122' ; KEEP_LST< 2,  35 > = '027091050051059050126' ;! KS_F11
+   KEEP_LST< 1,  36 > = '1123' ; KEEP_LST< 2,  36 > = '027091050052059050126' ;! KS_F12
+   KEEP_LST< 1,  37 > = '2008' ; KEEP_LST< 2,  37 > = '027067066083'          ;! KC_BACKSPACE ^[CBS
+   KEEP_LST< 1,  38 > = '2013' ; KEEP_LST< 2,  38 > = '010'                   ;! KC_ENTER
+   KEEP_LST< 1,  39 > = '2032' ; KEEP_LST< 2,  39 > = '027067032'             ;! KC_SPACE ^[C_
+   KEEP_LST< 1,  40 > = '2033' ; KEEP_LST< 2,  40 > = '027091053059053126'    ;! KC_PAGE_UP
+   KEEP_LST< 1,  41 > = '2034' ; KEEP_LST< 2,  41 > = '027091054059053126'    ;! KC_PAGE_DOWN
+   KEEP_LST< 1,  42 > = '2035' ; KEEP_LST< 2,  42 > = '027091049059053070'    ;! KC_END
+   KEEP_LST< 1,  43 > = '2036' ; KEEP_LST< 2,  43 > = '027091049059053072'    ;! KC_HOME
+   KEEP_LST< 1,  44 > = '2037' ; KEEP_LST< 2,  44 > = '027091049059053068'    ;! KC_LEFT
+   KEEP_LST< 1,  45 > = '2038' ; KEEP_LST< 2,  45 > = '027091049059053065'    ;! KC_UP
+   KEEP_LST< 1,  46 > = '2039' ; KEEP_LST< 2,  46 > = '027091049059053067'    ;! KC_RIGHT
+   KEEP_LST< 1,  47 > = '2040' ; KEEP_LST< 2,  47 > = '027091049059053066'    ;! KC_DOWN
+   KEEP_LST< 1,  48 > = '2045' ; KEEP_LST< 2,  48 > = '027091050059053126'    ;! KC_INSERT
+   KEEP_LST< 1,  49 > = '2046' ; KEEP_LST< 2,  49 > = '027091051059053126'    ;! KC_DELETE
+   KEEP_LST< 1,  50 > = '2065' ; KEEP_LST< 2,  50 > = '001'                   ;! KC_A
+   KEEP_LST< 1,  51 > = '2066' ; KEEP_LST< 2,  51 > = '002'                   ;! KC_B
+   KEEP_LST< 1,  52 > = '2067' ; KEEP_LST< 2,  52 > = '003'                   ;! KC_C
+   KEEP_LST< 1,  53 > = '2068' ; KEEP_LST< 2,  53 > = '004'                   ;! KC_D
+   KEEP_LST< 1,  54 > = '2069' ; KEEP_LST< 2,  54 > = '005'                   ;! KC_E
+   KEEP_LST< 1,  55 > = '2070' ; KEEP_LST< 2,  55 > = '006'                   ;! KC_F
+   KEEP_LST< 1,  56 > = '2071' ; KEEP_LST< 2,  56 > = '007'                   ;! KC_G
+   KEEP_LST< 1,  57 > = '2075' ; KEEP_LST< 2,  57 > = '011'                   ;! KC_K
+   KEEP_LST< 1,  58 > = '2076' ; KEEP_LST< 2,  58 > = '012'                   ;! KC_L
+   KEEP_LST< 1,  59 > = '2078' ; KEEP_LST< 2,  59 > = '014'                   ;! KC_N
+   KEEP_LST< 1,  60 > = '2079' ; KEEP_LST< 2,  60 > = '015'                   ;! KC_O
+   KEEP_LST< 1,  61 > = '2080' ; KEEP_LST< 2,  61 > = '016'                   ;! KC_P
+   KEEP_LST< 1,  62 > = '2081' ; KEEP_LST< 2,  62 > = '017'                   ;! KC_Q
+   KEEP_LST< 1,  63 > = '2082' ; KEEP_LST< 2,  63 > = '018'                   ;! KC_R
+   KEEP_LST< 1,  64 > = '2083' ; KEEP_LST< 2,  64 > = '019'                   ;! KC_S
+   KEEP_LST< 1,  65 > = '2084' ; KEEP_LST< 2,  65 > = '020'                   ;! KC_T
+   KEEP_LST< 1,  66 > = '2085' ; KEEP_LST< 2,  66 > = '021'                   ;! KC_U
+   KEEP_LST< 1,  67 > = '2086' ; KEEP_LST< 2,  67 > = '022'                   ;! KC_V
+   KEEP_LST< 1,  68 > = '2087' ; KEEP_LST< 2,  68 > = '023'                   ;! KC_W
+   KEEP_LST< 1,  69 > = '2088' ; KEEP_LST< 2,  69 > = '024'                   ;! KC_X
+   KEEP_LST< 1,  70 > = '2089' ; KEEP_LST< 2,  70 > = '025'                   ;! KC_Y
+   KEEP_LST< 1,  71 > = '2090' ; KEEP_LST< 2,  71 > = '026'                   ;! KC_Z
+   KEEP_LST< 1,  72 > = '2112' ; KEEP_LST< 2,  72 > = '027091049059053080'    ;! KC_F01
+   KEEP_LST< 1,  73 > = '2113' ; KEEP_LST< 2,  73 > = '027091049059053081'    ;! KC_F02
+   KEEP_LST< 1,  74 > = '2114' ; KEEP_LST< 2,  74 > = '027091049059053082'    ;! KC_F03
+   KEEP_LST< 1,  75 > = '2115' ; KEEP_LST< 2,  75 > = '027091049059053083'    ;! KC_F04
+   KEEP_LST< 1,  76 > = '2116' ; KEEP_LST< 2,  76 > = '027091049053059053126' ;! KC_F05
+   KEEP_LST< 1,  77 > = '2117' ; KEEP_LST< 2,  77 > = '027091049055059053126' ;! KC_F06
+   KEEP_LST< 1,  78 > = '2118' ; KEEP_LST< 2,  78 > = '027091049056059053126' ;! KC_F07
+   KEEP_LST< 1,  79 > = '2119' ; KEEP_LST< 2,  79 > = '027091049057059053126' ;! KC_F08
+   KEEP_LST< 1,  80 > = '2120' ; KEEP_LST< 2,  80 > = '027091050048059053126' ;! KC_F09
+   KEEP_LST< 1,  81 > = '2121' ; KEEP_LST< 2,  81 > = '027091050049059053126' ;! KC_F10
+   KEEP_LST< 1,  82 > = '2122' ; KEEP_LST< 2,  82 > = '027091050051059053126' ;! KC_F11
+   KEEP_LST< 1,  83 > = '2123' ; KEEP_LST< 2,  83 > = '027091050052059053126' ;! KC_F12
+   KEEP_LST< 1,  84 > = '2191' ; KEEP_LST< 2,  84 > = '031'                   ;! KC_SLASH
+   KEEP_LST< 1,  85 > = '2219' ; KEEP_LST< 2,  85 > = '027'                   ;! KC_LBRACKET
+   KEEP_LST< 1,  86 > = '2220' ; KEEP_LST< 2,  86 > = '028'                   ;! KC_BACKSLASH
+   KEEP_LST< 1,  87 > = '2221' ; KEEP_LST< 2,  87 > = '029'                   ;! KC_RBRACKET
+   KEEP_LST< 1,  88 > = '3008' ; KEEP_LST< 2,  88 > = '027083067066083'       ;! KSC_BACKSPACE ^[SCBS
+   KEEP_LST< 1,  89 > = '3013' ; KEEP_LST< 2,  89 > = '027083067013'          ;! KSC_ENTER ^[SC^M
+   KEEP_LST< 1,  90 > = '3032' ; KEEP_LST< 2,  90 > = '027083067032'          ;! KSC_SPACE ^[SC_
+   KEEP_LST< 1,  91 > = '3033' ; KEEP_LST< 2,  91 > = '027091053059054126'    ;! KSC_PAGE_UP
+   KEEP_LST< 1,  92 > = '3034' ; KEEP_LST< 2,  92 > = '027091054059054126'    ;! KSC_PAGE_DOWN
+   KEEP_LST< 1,  93 > = '3035' ; KEEP_LST< 2,  93 > = '027091052059054126'    ;! KSC_END
+   KEEP_LST< 1,  94 > = '3036' ; KEEP_LST< 2,  94 > = '027091049059054126'    ;! KSC_HOME
+   KEEP_LST< 1,  95 > = '3037' ; KEEP_LST< 2,  95 > = '027091049059054068'    ;! KSC_LEFT
+   KEEP_LST< 1,  96 > = '3038' ; KEEP_LST< 2,  96 > = '027091049059054065'    ;! KSC_UP
+   KEEP_LST< 1,  97 > = '3039' ; KEEP_LST< 2,  97 > = '027091049059054067'    ;! KSC_RIGHT
+   KEEP_LST< 1,  98 > = '3040' ; KEEP_LST< 2,  98 > = '027091049059054066'    ;! KSC_DOWN
+   KEEP_LST< 1,  99 > = '3045' ; KEEP_LST< 2,  99 > = '027091050059054126'    ;! KSC_INSERT
+   KEEP_LST< 1, 100 > = '3046' ; KEEP_LST< 2, 100 > = '027091051059054126'    ;! KSC_DELETE
+   KEEP_LST< 1, 101 > = '3050' ; KEEP_LST< 2, 101 > = '000'                   ;! KC_AT
+   KEEP_LST< 1, 102 > = '3054' ; KEEP_LST< 2, 102 > = '030'                   ;! KC_CARET
+   KEEP_LST< 1, 103 > = '3112' ; KEEP_LST< 2, 103 > = '027091049059054080'    ;! KSC_F01
+   KEEP_LST< 1, 104 > = '3113' ; KEEP_LST< 2, 104 > = '027091049059054081'    ;! KSC_F02
+   KEEP_LST< 1, 105 > = '3114' ; KEEP_LST< 2, 105 > = '027091049059054082'    ;! KSC_F03
+   KEEP_LST< 1, 106 > = '3115' ; KEEP_LST< 2, 106 > = '027091049059054083'    ;! KSC_F04
+   KEEP_LST< 1, 107 > = '3116' ; KEEP_LST< 2, 107 > = '027091049053059054126' ;! KSC_F05
+   KEEP_LST< 1, 108 > = '3117' ; KEEP_LST< 2, 108 > = '027091049055059054126' ;! KSC_F06
+   KEEP_LST< 1, 109 > = '3118' ; KEEP_LST< 2, 109 > = '027091049056059054126' ;! KSC_F07
+   KEEP_LST< 1, 110 > = '3119' ; KEEP_LST< 2, 110 > = '027091049057059054126' ;! KSC_F08
+   KEEP_LST< 1, 111 > = '3120' ; KEEP_LST< 2, 111 > = '027091050048059054126' ;! KSC_F09
+   KEEP_LST< 1, 112 > = '3121' ; KEEP_LST< 2, 112 > = '027091050049059054126' ;! KSC_F10
+   KEEP_LST< 1, 113 > = '3122' ; KEEP_LST< 2, 113 > = '027091050051059054126' ;! KSC_F11
+   KEEP_LST< 1, 114 > = '3123' ; KEEP_LST< 2, 114 > = '027091050052059054126' ;! KSC_F12
+   KEEP_LST< 1, 115 > = '3189' ; KEEP_LST< 2, 115 > = '027067085'             ;! KC_UNDERSCORE
+   KEEP_LST< 1, 116 > = '4008' ; KEEP_LST< 2, 116 > = '027008'                ;! KA_BACKSPACE
+   KEEP_LST< 1, 117 > = '4013' ; KEEP_LST< 2, 117 > = '027013'                ;! KA_ENTER
+   KEEP_LST< 1, 118 > = '4033' ; KEEP_LST< 2, 118 > = '027091053059051126'    ;! KA_PAGE_UP
+   KEEP_LST< 1, 119 > = '4034' ; KEEP_LST< 2, 119 > = '027091054059051126'    ;! KA_PAGE_DOWN
+   KEEP_LST< 1, 120 > = '4035' ; KEEP_LST< 2, 120 > = '027091049059051070'    ;! KA_END
+   KEEP_LST< 1, 121 > = '4036' ; KEEP_LST< 2, 121 > = '027091049059051072'    ;! KA_HOME
+   KEEP_LST< 1, 122 > = '4037' ; KEEP_LST< 2, 122 > = '027091049059051068'    ;! KA_LEFT
+   KEEP_LST< 1, 123 > = '4038' ; KEEP_LST< 2, 123 > = '027091049059051065'    ;! KA_UP
+   KEEP_LST< 1, 124 > = '4039' ; KEEP_LST< 2, 124 > = '027091049059051067'    ;! KA_RIGHT
+   KEEP_LST< 1, 125 > = '4040' ; KEEP_LST< 2, 125 > = '027091049059051066'    ;! KA_DOWN
+   KEEP_LST< 1, 126 > = '4045' ; KEEP_LST< 2, 126 > = '027091050059051126'    ;! KA_INSERT
+   KEEP_LST< 1, 127 > = '4046' ; KEEP_LST< 2, 127 > = '027091051059051126'    ;! KA_DELETE
+   KEEP_LST< 1, 128 > = '4048' ; KEEP_LST< 2, 128 > = '027048'                ;! KA_0
+   KEEP_LST< 1, 129 > = '4049' ; KEEP_LST< 2, 129 > = '027049'                ;! KA_1
+   KEEP_LST< 1, 130 > = '4050' ; KEEP_LST< 2, 130 > = '027050'                ;! KA_2
+   KEEP_LST< 1, 131 > = '4051' ; KEEP_LST< 2, 131 > = '027051'                ;! KA_3
+   KEEP_LST< 1, 132 > = '4052' ; KEEP_LST< 2, 132 > = '027052'                ;! KA_4
+   KEEP_LST< 1, 133 > = '4053' ; KEEP_LST< 2, 133 > = '027053'                ;! KA_5
+   KEEP_LST< 1, 134 > = '4054' ; KEEP_LST< 2, 134 > = '027054'                ;! KA_6
+   KEEP_LST< 1, 135 > = '4055' ; KEEP_LST< 2, 135 > = '027055'                ;! KA_7
+   KEEP_LST< 1, 136 > = '4056' ; KEEP_LST< 2, 136 > = '027056'                ;! KA_8
+   KEEP_LST< 1, 137 > = '4057' ; KEEP_LST< 2, 137 > = '027057'                ;! KA_9
+   KEEP_LST< 1, 138 > = '4065' ; KEEP_LST< 2, 138 > = '027097'                ;! KA_A
+   KEEP_LST< 1, 139 > = '4066' ; KEEP_LST< 2, 139 > = '027098'                ;! KA_B
+   KEEP_LST< 1, 140 > = '4067' ; KEEP_LST< 2, 140 > = '027067'                ;! KA_C
+   KEEP_LST< 1, 141 > = '4068' ; KEEP_LST< 2, 141 > = '027100'                ;! KA_D
+   KEEP_LST< 1, 142 > = '4069' ; KEEP_LST< 2, 142 > = '027101'                ;! KA_E
+   KEEP_LST< 1, 143 > = '4070' ; KEEP_LST< 2, 143 > = '027102'                ;! KA_F
+   KEEP_LST< 1, 144 > = '4071' ; KEEP_LST< 2, 144 > = '027071'                ;! KA_G
+   KEEP_LST< 1, 145 > = '4072' ; KEEP_LST< 2, 145 > = '027104'                ;! KA_H
+   KEEP_LST< 1, 146 > = '4073' ; KEEP_LST< 2, 146 > = '027105'                ;! KA_I
+   KEEP_LST< 1, 147 > = '4074' ; KEEP_LST< 2, 147 > = '027106'                ;! KA_J
+   KEEP_LST< 1, 148 > = '4075' ; KEEP_LST< 2, 148 > = '027107'                ;! KA_K
+   KEEP_LST< 1, 149 > = '4076' ; KEEP_LST< 2, 149 > = '027108'                ;! KA_L
+   KEEP_LST< 1, 150 > = '4077' ; KEEP_LST< 2, 150 > = '027109'                ;! KA_M
+   KEEP_LST< 1, 151 > = '4078' ; KEEP_LST< 2, 151 > = '027110'                ;! KA_N
+   KEEP_LST< 1, 152 > = '4079' ; KEEP_LST< 2, 152 > = '027111'                ;! KA_O
+   KEEP_LST< 1, 153 > = '4080' ; KEEP_LST< 2, 153 > = '027080'                ;! KA_P
+   KEEP_LST< 1, 154 > = '4081' ; KEEP_LST< 2, 154 > = '027081'                ;! KA_Q
+   KEEP_LST< 1, 155 > = '4082' ; KEEP_LST< 2, 155 > = '027082'                ;! KA_R
+   KEEP_LST< 1, 156 > = '4083' ; KEEP_LST< 2, 156 > = '027115'                ;! KA_S
+   KEEP_LST< 1, 157 > = '4084' ; KEEP_LST< 2, 157 > = '027116'                ;! KA_T
+   KEEP_LST< 1, 158 > = '4085' ; KEEP_LST< 2, 158 > = '027117'                ;! KA_U
+   KEEP_LST< 1, 159 > = '4086' ; KEEP_LST< 2, 159 > = '027118'                ;! KA_V
+   KEEP_LST< 1, 160 > = '4087' ; KEEP_LST< 2, 160 > = '027119'                ;! KA_W
+   KEEP_LST< 1, 161 > = '4088' ; KEEP_LST< 2, 161 > = '027120'                ;! KA_X
+   KEEP_LST< 1, 162 > = '4089' ; KEEP_LST< 2, 162 > = '027121'                ;! KA_Y
+   KEEP_LST< 1, 163 > = '4090' ; KEEP_LST< 2, 163 > = '027122'                ;! KA_Z
+   KEEP_LST< 1, 164 > = '4112' ; KEEP_LST< 2, 164 > = '027091049059051080'    ;! KA_F01
+   KEEP_LST< 1, 165 > = '4113' ; KEEP_LST< 2, 165 > = '027091049059051081'    ;! KA_F02
+   KEEP_LST< 1, 166 > = '4114' ; KEEP_LST< 2, 166 > = '027091049059051082'    ;! KA_F03
+   KEEP_LST< 1, 167 > = '4115' ; KEEP_LST< 2, 167 > = '027091049059051083'    ;! KA_F04
+   KEEP_LST< 1, 168 > = '4116' ; KEEP_LST< 2, 168 > = '027091049053059051126' ;! KA_F05
+   KEEP_LST< 1, 169 > = '4117' ; KEEP_LST< 2, 169 > = '027091049055059051126' ;! KA_F06
+   KEEP_LST< 1, 170 > = '4118' ; KEEP_LST< 2, 170 > = '027091049056059051126' ;! KA_F07
+   KEEP_LST< 1, 171 > = '4119' ; KEEP_LST< 2, 171 > = '027091049057059051126' ;! KA_F08
+   KEEP_LST< 1, 172 > = '4120' ; KEEP_LST< 2, 172 > = '027091050048059051126' ;! KA_F09
+   KEEP_LST< 1, 173 > = '4121' ; KEEP_LST< 2, 173 > = '027091050049059051126' ;! KA_F10
+   KEEP_LST< 1, 174 > = '4122' ; KEEP_LST< 2, 174 > = '027091050051059051126' ;! KA_F11
+   KEEP_LST< 1, 175 > = '4123' ; KEEP_LST< 2, 175 > = '027091050052059051126' ;! KA_F12
+   KEEP_LST< 1, 176 > = '4186' ; KEEP_LST< 2, 176 > = '027059'                ;! KA_SCOLON
+   KEEP_LST< 1, 177 > = '4187' ; KEEP_LST< 2, 177 > = '027061'                ;! KA_EQUAL
+   KEEP_LST< 1, 178 > = '4188' ; KEEP_LST< 2, 178 > = '027044'                ;! KA_COMMA
+   KEEP_LST< 1, 179 > = '4189' ; KEEP_LST< 2, 179 > = '027045'                ;! KA_DASH
+   KEEP_LST< 1, 180 > = '4190' ; KEEP_LST< 2, 180 > = '027046'                ;! KA_PERIOD
+   KEEP_LST< 1, 181 > = '4191' ; KEEP_LST< 2, 181 > = '027047'                ;! KA_SLASH
+   KEEP_LST< 1, 182 > = '4192' ; KEEP_LST< 2, 182 > = '027096'                ;! KA_ACCENT
+   KEEP_LST< 1, 183 > = '4219' ; KEEP_LST< 2, 183 > = '027091'                ;! KA_LBRACKET
+   KEEP_LST< 1, 184 > = '4220' ; KEEP_LST< 2, 184 > = '027092'                ;! KA_BACKSLASH
+   KEEP_LST< 1, 185 > = '4221' ; KEEP_LST< 2, 185 > = '027093'                ;! KA_RBRACKET
+   KEEP_LST< 1, 186 > = '4222' ; KEEP_LST< 2, 186 > = '027039'                ;! KA_SQUOTE
+   KEEP_LST< 1, 187 > = '5048' ; KEEP_LST< 2, 187 > = '027041'                ;! KA_RPAREN
+   KEEP_LST< 1, 188 > = '5049' ; KEEP_LST< 2, 188 > = '027033'                ;! KA_BANG
+   KEEP_LST< 1, 189 > = '5050' ; KEEP_LST< 2, 189 > = '027064'                ;! KA_AT
+   KEEP_LST< 1, 190 > = '5051' ; KEEP_LST< 2, 190 > = '027035'                ;! KA_POUND
+   KEEP_LST< 1, 191 > = '5052' ; KEEP_LST< 2, 191 > = '027036'                ;! KA_DOLLAR
+   KEEP_LST< 1, 192 > = '5053' ; KEEP_LST< 2, 192 > = '027037'                ;! KA_PERCENT
+   KEEP_LST< 1, 193 > = '5054' ; KEEP_LST< 2, 193 > = '027094'                ;! KA_CARET
+   KEEP_LST< 1, 194 > = '5055' ; KEEP_LST< 2, 194 > = '027038'                ;! KA_AMPERSAND
+   KEEP_LST< 1, 195 > = '5056' ; KEEP_LST< 2, 195 > = '027042'                ;! KA_STAR
+   KEEP_LST< 1, 196 > = '5057' ; KEEP_LST< 2, 196 > = '027040'                ;! KA_LPAREN
+   KEEP_LST< 1, 197 > = '5186' ; KEEP_LST< 2, 197 > = '027058'                ;! KA_COLON
+   KEEP_LST< 1, 198 > = '5187' ; KEEP_LST< 2, 198 > = '027043'                ;! KA_PLUS
+   KEEP_LST< 1, 199 > = '5188' ; KEEP_LST< 2, 199 > = '027060'                ;! KA_LANGLE
+   KEEP_LST< 1, 200 > = '5189' ; KEEP_LST< 2, 200 > = '027095'                ;! KA_UNDERSCORE
+   KEEP_LST< 1, 201 > = '5190' ; KEEP_LST< 2, 201 > = '027062'                ;! KA_RANGLE
+   KEEP_LST< 1, 202 > = '5191' ; KEEP_LST< 2, 202 > = '027063'                ;! KA_QUERY
+   KEEP_LST< 1, 203 > = '5192' ; KEEP_LST< 2, 203 > = '027126'                ;! KA_TILDE
+   KEEP_LST< 1, 204 > = '5219' ; KEEP_LST< 2, 204 > = '027123'                ;! KA_LBRACE
+   KEEP_LST< 1, 205 > = '5220' ; KEEP_LST< 2, 205 > = '027124'                ;! KA_PIPE
+   KEEP_LST< 1, 206 > = '5221' ; KEEP_LST< 2, 206 > = '027125'                ;! KA_RBRACE
+   KEEP_LST< 1, 207 > = '5222' ; KEEP_LST< 2, 207 > = '027034'                ;! KA_DQUOTE
+
+   KEEP_MAX  = DCOUNT( KEEP_LST< 1 >, @VM )
+
+   ! This is a list of AccuTerm's emulation modes, ...
+
+   LOSE_LST  = 'ANS,BBS,LNX,MDS,PCK,PV6,SCO,TEX,TTY,VP6,VPT,VT0,VT1,VT2,'
+   LOSE_LST := 'VT3,VT4,WYS~'
+
+   ! ... as well as  AccuTerm's  numbers  for  each  of  the  keys  those
+   ! emulation modes provide by default.
+
+   ! ANS
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1033,1034,1035,1045'
+   LOSE_LST := ',1112,1114,1115,1116,1117,1118,1119,1120,1121,1122,1123,'
+   LOSE_LST := '2013,2065,2066,2068,2069,2070,2071,2075,2076,2078,2079,2'
+   LOSE_LST := '080,2081,2082,2083,2084,2085,2086,2087,2088,2089,2090,21'
+   LOSE_LST := '12,2113,2114,2115,2116,2117,2118,2119,2120,2121,2122,212'
+   LOSE_LST := '3,2220,2221,3054,3112,3113,3114,3115,3116,3117,3118,3119'
+   LOSE_LST := ',3122,3123,3189~'
+
+   ! BBS
+
+   LOSE_LST := '8,9,13,27,33,34,36,37,38,39,40,46,112,113,114,115,116,11'
+   LOSE_LST := '7,118,119,1009,1046,1112,1113,1114,1115,1116,1117,1118,1'
+   LOSE_LST := '119,1120,2013,2065,2066,2068,2069,2070,2071,2075,2076,20'
+   LOSE_LST := '78,2079,2080,2081,2082,2083,2084,2085,2086,2087,2088,208'
+   LOSE_LST := '9,2090,2220,2221,3054~'
+
+   ! LNX
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1035,1046,1112,1113,1114'
+   LOSE_LST := ',1115,1116,1117,1118,1119,2013,2065,2066,2068,2069,2070,'
+   LOSE_LST := '2071,2075,2076,2078,2079,2080,2081,2082,2083,2084,2085,2'
+   LOSE_LST := '086,2087,2088,2089,2090,2220,2221,3054~'
+
+   ! MDS
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1033,1037,1038,1039'
+   LOSE_LST := ',1040,1112,1113,1114,1115,1116,1117,1118,1119,1120,1121,'
+   LOSE_LST := '1122,1123,2033,2034,2037,2038,2039,2040,2066,2068,2069,2'
+   LOSE_LST := '071,2075,2078,2079,2080,2081,2082,2083,2084,2086,2087,20'
+   LOSE_LST := '88,2112,2113,2114,2115,2116,2117,2118,2119,2120,2121,212'
+   LOSE_LST := '2,2123,2220,2221,3054,3189~'
+
+   ! PCK
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1112,1113,1114,1115,1116'
+   LOSE_LST := ',1117,1118,1119,1120,1121,1122,1123,2008,2065,2066,2068,'
+   LOSE_LST := '2069,2071,2075,2076,2078,2079,2080,2081,2082,2083,2084,2'
+   LOSE_LST := '086,2087,2088,2089,2112,2113,2114,2115,2116,2117,2118,21'
+   LOSE_LST := '19,2120,2121,2122,2123,2220,2221,3054,4112,4113,4114,411'
+   LOSE_LST := '5,4116,4117,4118,4119,4120,4121,4122,4123~'
+
+   ! PV6
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1035,1045,1046,1112'
+   LOSE_LST := ',1113,1114,1115,1116,1117,1118,1119,1120,1121,1122,1123,'
+   LOSE_LST := '2046,2066,2068,2069,2071,2075,2076,2078,2079,2080,2081,2'
+   LOSE_LST := '082,2083,2084,2086,2087,2088,2089,2112,2113,2114,2115,21'
+   LOSE_LST := '16,2117,2118,2119,2120,2121,2122,2123,2220,2221,3054,311'
+   LOSE_LST := '2,3113,3114,3115,3116,3117,3118,3119,3120,3121,3122,3123'
+   LOSE_LST := ',3189~'
+
+   ! SCO
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1112,1114,1115,1116'
+   LOSE_LST := ',1117,1118,1119,1120,1121,1122,1123,2013,2065,2066,2068,'
+   LOSE_LST := '2069,2070,2071,2075,2076,2078,2081,2082,2083,2084,2085,2'
+   LOSE_LST := '086,2087,2088,2089,2090,2112,2113,2114,2115,2116,2117,21'
+   LOSE_LST := '18,2119,2120,2121,2122,2123,2220,2221,3054,3189~'
+
+   ! TEX
+
+   LOSE_LST := '~'
+
+   ! TTY
+
+   LOSE_LST := '8,9,13,27,40,46,2065,2066,2068,2069,2070,2071,2075,2076,'
+   LOSE_LST := '2078,2079,2080,2081,2082,2083,2084,2085,2086,2087,2088,2'
+   LOSE_LST := '089,2090,2220,2221,3054,3189~'
+
+   ! VP6
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1035,1045,1046,1112'
+   LOSE_LST := ',1113,1114,1115,1116,1117,1118,1119,1120,1121,1122,1123,'
+   LOSE_LST := '2046,2066,2068,2069,2071,2075,2076,2078,2079,2080,2081,2'
+   LOSE_LST := '082,2083,2084,2086,2087,2088,2089,2112,2113,2114,2115,21'
+   LOSE_LST := '16,2117,2118,2119,2120,2121,2122,2123,2220,2221,3054,311'
+   LOSE_LST := '2,3113,3114,3115,3116,3117,3118,3119,3120,3121,3122,3123'
+   LOSE_LST := ',3189~'
+
+   ! VPT
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1035,1045,1046,1112'
+   LOSE_LST := ',1113,1114,1115,1116,1117,1118,1119,1120,1121,1122,1123,'
+   LOSE_LST := '2046,2066,2068,2069,2071,2078,2079,2080,2081,2082,2083,2'
+   LOSE_LST := '084,2086,2087,2088,2089,2112,2113,2114,2115,2116,2117,21'
+   LOSE_LST := '18,2119,2120,2121,2122,2123,2220,2221,3112,3113,3114,311'
+   LOSE_LST := '5,3116,3117,3118,3119,3120,3121,3122,3123,3189~'
+
+   ! VT0
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,122,1009,1033,1034,1036,1037,1038,1039,1'
+   LOSE_LST := '040,1046,1112,1113,1114,1115,2065,2066,2068,2069,2070,20'
+   LOSE_LST := '71,2074,2075,2076,2078,2079,2080,2081,2082,2083,2084,208'
+   LOSE_LST := '6,2087,2088,2089,2090,2220,2221,3054~'
+
+   ! VT1
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,1009,1037,1046,2013,2065,206'
+   LOSE_LST := '6,2068,2069,2070,2071,2075,2076,2078,2079,2080,2081,2082'
+   LOSE_LST := ',2083,2084,2086,2087,2088,2089,2090,2114,2115,2116,2117,'
+   LOSE_LST := '2118,2119,2120,2121,2220,2221,3054~'
+
+   ! VT2
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1033,1034,1035,1036'
+   LOSE_LST := ',1037,1038,1039,1040,1045,1046,2065,2066,2068,2069,2070,'
+   LOSE_LST := '2071,2074,2075,2076,2078,2079,2080,2081,2082,2083,2084,2'
+   LOSE_LST := '086,2087,2088,2089,2090,2112,2114,2115,2116,2117,2118,21'
+   LOSE_LST := '19,2120,2121,2220,2221,3054~'
+
+   ! VT3
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1034,2065,2066,2068'
+   LOSE_LST := ',2069,2070,2071,2074,2075,2076,2078,2079,2080,2081,2082,'
+   LOSE_LST := '2083,2084,2085,2086,2087,2088,2089,2090,2114,2115,2116,2'
+   LOSE_LST := '117,2118,2119,2120,2121,2220,2221,3054~'
+
+   ! VT4
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1033,1034,1035,1036'
+   LOSE_LST := ',1037,1038,1039,1040,1045,1046,2013,2065,2066,2068,2069,'
+   LOSE_LST := '2070,2071,2075,2076,2078,2079,2080,2081,2082,2083,2084,2'
+   LOSE_LST := '085,2086,2087,2088,2089,2090,2112,2114,2115,2116,2117,21'
+   LOSE_LST := '18,2119,2120,2121,2220,2221,3054~'
+
+   ! WYS
+
+   LOSE_LST := '8,9,13,27,33,34,35,36,37,38,39,40,45,46,112,113,114,115,'
+   LOSE_LST := '116,117,118,119,120,121,122,123,1009,1033,1034,1035,1036'
+   LOSE_LST := ',1038,1039,1040,1045,1046,1112,1113,1114,1115,1116,1117,'
+   LOSE_LST := '1118,1119,1120,1121,1122,1123,2065,2066,2068,2069,2070,2'
+   LOSE_LST := '071,2078,2079,2080,2081,2082,2083,2084,2086,2087,2088,20'
+   LOSE_LST := '89,2090,2112,2113,2114,2115,2116,2117,2118,2119,2120,212'
+   LOSE_LST := '1,2122,2123,2220,2221,3054,3112,3113,3114,3115,3116,3117'
+   LOSE_LST := ',3118,3119,3120,3121,3122,3123'
+
+   LOSE_LST  = CHANGE( LOSE_LST, '~', @AM )
+   LOSE_LST  = CHANGE( LOSE_LST, ',', @VM )
+
+   ! Keep only the list corresponding to the current emulation mode.
+
+   LOCATE KEYB_TYP IN LOSE_LST< 1 > SETTING LOSE_IDX THEN
+
+      LOSE_LST  = CHANGE( LOSE_LST< LOSE_IDX >, @VM, @AM )
+
+   END ELSE
+
+      LOSE_LST  = ''
+
+   END
+
+   LOSE_MAX  = DCOUNT( LOSE_LST, @AM )
+
+RETURN
+
+FETCH.OLD.DEFINITIONS:
+
+   ! Now append any currently programmed keys to LOSE_LST, ...
+
+   VBA_CODE  = ESC : STX : 'P'
+   VBA_CODE := 'dim s as accutermclasses.session' : EM
+   VBA_CODE := 'set s=activesession' : EM
+   VBA_CODE := 'accuterm.activate' : EM
+   VBA_CODE := 's.activate' : EM
+   VBA_CODE := 'Dim i As Variant' : EM
+   VBA_CODE := 'For Each i In ActiveSession.Settings.FKeys' : EM
+   VBA_CODE :=    's.output Item((i.Item),1,1,vbNullChar)&vbCr' : EM
+   VBA_CODE := 'Next' : EM
+   VBA_CODE := 's.output "Done!"&vbCr' : CR
+
+   CRT VBA_CODE :
+
+   ECHO OFF
+
+   LOOP
+
+      INPUT ATWK_IDX :
+
+   UNTIL ATWK_IDX EQ 'Done!' DO
+
+      LOSE_MAX += 1
+
+      LOSE_LST< LOSE_MAX > = ATWK_IDX
+
+   REPEAT
+
+   ECHO ON
+
+RETURN
+
+LEAVE.OUR.BREADCRUMBS:
+
+   ! Assign IDENTITY to the 'unusable key' so we don't keep repeating
+   ! this.
+
+   VBA_CODE  = ESC : STX : 'P'
+   VBA_CODE := 'dim s as accutermclasses.session' : EM
+   VBA_CODE := 'set s=activesession' : EM
+   VBA_CODE := 'accuterm.activate' : EM
+   VBA_CODE := 's.activate' : EM
+   VBA_CODE := 's.Fkeys(7009)="' : IDENTITY : '"' : CR
+
+   CRT VBA_CODE :
+
+RETURN
+
+DITCH.OLD.DEFINITIONS:
+
+   ! ... then remove all the LOSE_LST keys from the KEEP_LST.
+
+   FOR LOSE_IDX = 1 TO LOSE_MAX
+
+      ATWK_IDX  = LOSE_LST< LOSE_IDX >
+
+      LOCATE ATWK_IDX IN KEEP_LST< 1 > SETTING POSITION THEN
+
+         DEL KEEP_LST< 1, POSITION >
+         DEL KEEP_LST< 2, POSITION >
+
+         KEEP_MAX -= 1
+
+      END
+
+   NEXT LOSE_IDX
+
+   ALLSWELL  = KEEP_MAX
+
+RETURN
+
+SETUP.NEW.DEFINITIONS:
+
+   ! Now, program all the keys still remaining in KEEP_LST<1> with the
+   ! definitions in KEEP_LST<2>.
+
+   VBA_CODE  = ESC : STX : 'P'
+   VBA_CODE := 'dim s as accutermclasses.session' : EM
+   VBA_CODE := 'set s=activesession' : EM
+   VBA_CODE := 'accuterm.activate' : EM
+   VBA_CODE := 's.activate'
+
+   FOR KEEP_IDX = 1 TO KEEP_MAX
+
+      ATWK_IDX  = KEEP_LST< 1, KEEP_IDX >
+      CODE_STR  = KEEP_LST< 2, KEEP_IDX >
+      CODE_LEN  = LEN( CODE_STR )
+      ATWK_STR  = ''
+
+      FOR CODE_IDX = 1 TO CODE_LEN STEP 3
+
+         CHAR_NUM  = TRIM( CODE_STR[ CODE_IDX, 3 ], '0', 'L' ) + 0
+
+         BEGIN CASE
+
+            CASE CHAR_NUM LT  32 ; ATWK_STR := '&Chr$(' : CHAR_NUM : ')'
+            CASE CHAR_NUM EQ  34 ; ATWK_STR := '&Chr$(' : CHAR_NUM : ')'
+            CASE CHAR_NUM EQ  38 ; ATWK_STR := '&Chr$(' : CHAR_NUM : ')'
+            CASE CHAR_NUM GT 126 ; ATWK_STR := '&Chr$(' : CHAR_NUM : ')'
+            CASE 1               ; ATWK_STR := '&"' : CHAR( CHAR_NUM ) : '"'
+
+         END CASE
+
+      NEXT CODE_IDX
+
+      VBA_CODE := EM : 's.Fkeys(' : ATWK_IDX : ')='
+      VBA_CODE := TRIM( CHANGE( ATWK_STR, '"&"', '' ), '&', 'L' )
+
+   NEXT KEEP_IDX
+
+   CRT VBA_CODE : CR :
+
+RETURN
