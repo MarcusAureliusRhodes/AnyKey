@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 06/19/2020 10:45:01 by Marcus
+! Modified: 06/28/2020 12:28:02 by Marcus
 
 ! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
 
@@ -54,7 +54,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 !           AccuTerm mouse code-string is received.  Aaaannd, if AccuTerm
 !           is, in fact, found to be in use, and it hasn't  already  been
 !           done, then program all the dead keys for that terminal so the
-!           user has a better experience.
+!           user has a better experience.  (Done.  See: ANY_KEY_ATW)
 
 ! Old name: ANY_KEY_GET
 
@@ -81,16 +81,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
    END ELSE
 
-      ! Beg Pick UD ============= Rocket Software's UniData =============
-
       STARTING  = INT( TIME() )
-
-      ! End Pick UD ============= Rocket Software's UniData =============
-      ! Beg Pick UV ============ Rocket Software's UniVerse =============
-
-      STARTING  = INT( TIME() )
-
-      ! End Pick UV ============ Rocket Software's UniVerse =============
 
       LOOP
 
@@ -102,8 +93,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
          END
 
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
-
          ! End Pick AP ================== Generic Pick ==================
          ! Beg Pick D3 ============== Rocket Software's D3 ==============
 
@@ -112,8 +101,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
             EXIT
 
          END
-
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
 
          ! End Pick D3 ============== Rocket Software's D3 ==============
          ! Beg Pick IC ============== InsterSytems' Cache ===============
@@ -124,8 +111,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
          END
 
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
-
          ! End Pick IC ============== InsterSytems' Cache ===============
          ! Beg Pick JB ================= Zumasys' jBase =================
 
@@ -134,8 +119,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
             EXIT
 
          END
-
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
 
          ! End Pick JB ================= Zumasys' jBase =================
          ! Beg Pick NR ============== Northgate's Reality ===============
@@ -146,8 +129,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
          END
 
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
-
          ! End Pick NR ============== Northgate's Reality ===============
          ! Beg Pick ON ===== Onware Software Corporations's Onware ======
 
@@ -157,8 +138,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
          END
 
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
-
          ! End Pick ON ===== Onware Software Corporations's Onware ======
          ! Beg Pick QM ================ Zumasys' OpenQM =================
 
@@ -167,8 +146,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
             EXIT
 
          END
-
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
 
          ! End Pick QM ================ Zumasys' OpenQM =================
          ! Beg Pick UD =========== Rocket Software's UniData ============
@@ -192,11 +169,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
          END ELSE
 
-            IF ( INT( TIME() ) - STARTING ) GE 3 THEN
-
-!              CALL EMV_MSG_GET ;! Check our messages every three seconds.
-
-            END
+            SLEEP 1
 
          END
 
@@ -222,11 +195,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
          END ELSE
 
-            IF ( INT( TIME() ) - STARTING ) GE 3 THEN
-
-!              CALL EMV_MSG_GET ;! Check our messages every three seconds.
-
-            END
+            SLEEP 1
 
          END
 
@@ -239,9 +208,13 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
          END
 
-!        CALL EMV_MSG_GET ;! Check our messages every three seconds.
-
          ! End Pick VU ============= ViaSystems' UniVision ==============
+
+         IF ( INT( TIME() ) - STARTING ) GE 3 THEN
+
+!           CALL EMV_MSG_GET ;! Check our messages every three seconds.
+
+         END
 
       REPEAT
 
@@ -372,7 +345,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
                CASE META_KEY EQ KM_R1 ; GOSUB FETCH.1ST.CLICK
 !              CASE META_KEY EQ KM_L2 ; GOSUB FETCH.COORDINATES
 !              CASE META_KEY EQ KM_R2 ; GOSUB FETCH.COORDINATES
-               CASE META_KEY EQ KC_Q  ; CALL ANY_KEY_BLD ; DEBUG
+               CASE META_KEY EQ KC_Q  ; CALL ANY_KEY_BLD
 
             END CASE
 
@@ -719,18 +692,18 @@ FETCH.COORDINATES:
 
       CASE TYPE_ONE
 
-         END_CHAR = ';' ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT - 1
-         END_CHAR = 'R' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT - 1
+         CHAR_END = ';' ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT - 1
+         CHAR_END = 'R' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT - 1
 
       CASE KEYB_TYP EQ 'BBS'
 
-         END_CHAR = ';' ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT - 1
-         END_CHAR = 'x' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT - 1
+         CHAR_END = ';' ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT - 1
+         CHAR_END = 'x' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT - 1
 
       CASE 1
 
-         END_CHAR = '.' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT
-         END_CHAR = CR  ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT
+         CHAR_END = '.' ; GOSUB FETCH.COORDINATE ; SCREEN_X = COORDINT
+         CHAR_END = CR  ; GOSUB FETCH.COORDINATE ; SCREEN_Y = COORDINT
 
    END CASE
 
@@ -746,7 +719,7 @@ FETCH.COORDINATE:
       BFFR_LEN -= 1
       ANY_BFFR  = ANY_BFFR[ 2, BFFR_LEN ]
 
-   UNTIL CRDT_CHR EQ END_CHAR OR BFFR_LEN LT 1 DO
+   UNTIL CRDT_CHR EQ CHAR_END OR BFFR_LEN LT 1 DO
 
       COORDINT := CRDT_CHR
 
