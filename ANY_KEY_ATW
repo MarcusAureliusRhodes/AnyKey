@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY_ATW
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 06/11/2020 11:06:41 by Marcus
+! Modified: 06/30/2020 20:57:42 by Marcus
 
 ! Platform: Any Pick; Any OS; AccuTerm; Any emulation
 
@@ -20,14 +20,34 @@ SUBROUTINE ANY_KEY_ATW
 
 ! Examples: CALL ANY_KEY_ATW
 
+! Notes   : This program is pretty clever, if I do say so myself.  It can
+!           program all the dead keys of any terminal  AccuTerm  emulates
+!           without disrupting that terminal's native codes OR any  other
+!           keys the user may have  programmed.  This  ensures  that  the
+!           command line continues to function as before,  and  that  any
+!           programs the  user  runs  that  contain  hard-coded  key-code
+!           sequences, also continue to function  as  before,  minimizing
+!           the amount/severity of accommodations  required  to  existing
+!           programs.
+
 ! Upcoming: Refactor into task-list/subroutines.
-!           Done 06/11/2020 09:17 Marcus
+
+!           Done 06/11/2020 09:17 by Marcus
+
 !           Program some unusable key, such as Shift+Ctrl+Alt+Semi-Colon,
 !           to show that this subroutine has already run.
-!           Done 06/11/2020 10:22 Marcus
+
+!           Done 06/11/2020 10:22 by Marcus  (Shift+Ctrl+Alt+Tab)
+
 !           Check the 'unusable key's programming to see whether we  need
 !           to continue.
-!           Done 06/11/2020 11:10 Marcus
+
+!           Done 06/11/2020 11:10 by Marcus
+
+!           Reprogram any duplicate keys, too.
+
+!           Done 06/30/2020 20:57 by Marcus
+
 !           Change is the only constant. -- Heraclitus
 
 ! Old name: N/A
@@ -47,7 +67,7 @@ SUBROUTINE ANY_KEY_ATW
    INCLUDE ANY_KEY_EQU
 
    IF IDENTITY THEN GOSUB CHECK.FOR.ACCUTERM
-   IF IDENTITY THEN GOSUB CHECK.FOR.BREADCRUMBS
+   IF ALLSWELL THEN GOSUB CHECK.FOR.BREADCRUMBS
    IF ALLSWELL THEN GOSUB START.OUR.VARS.ETC
    IF ALLSWELL THEN GOSUB FETCH.OLD.DEFINITIONS
    IF ALLSWELL THEN GOSUB LEAVE.OUR.BREADCRUMBS
@@ -58,7 +78,7 @@ RETURN
 
 CHECK.FOR.ACCUTERM:
 
-   ALLSWELL  = EMU_TYPE NE 'ATW'
+   ALLSWELL  = EMU_TYPE EQ 'ATW'
 
 RETURN
 
@@ -95,7 +115,17 @@ START.OUR.VARS.ETC:
    ! one emulation-mode lacks.  But, of course, we won't want to  program
    ! all these keys, just  those  that  the  current  terminal  emulation
    ! doesn't use, and aren't already  programmed  for  some  reason.  So,
-   ! we'll eliminate those down below.
+   ! we'll eliminate those further down.
+
+   ! By the way, keys with a second comment, such as ^[SBS, are unique to
+   ! AnyKey+AccuTerm.  No emulator I know of generates those code sequen-
+   ! ces (i.e.: ^[S^M).  No emulation I know  of  even  allows  such  key
+   ! combinations (i.e.: Shift+Backspace).  This is  yet  another  reason
+   ! I say AccuTerm is the gold standard of terminal emulators.  Passport
+   ! may allow it, but I don't have a copy to  work  with,  or  even  any
+   ! documentation for it,  but,  as  I  recall,  its  keys  couldn't  be
+   ! reprogrammed from the host anyway.  That, too, I believe, is  unique
+   ! to AccuTerm.
 
    KEEP_LST           =   '35' ; KEEP_LST< 2,   1 > = '027091052126'          ;! K_END
    KEEP_LST< 1,   2 > =   '45' ; KEEP_LST< 2,   2 > = '027091050126'          ;! K_INSERT
@@ -307,7 +337,7 @@ START.OUR.VARS.ETC:
 
    KEEP_MAX  = DCOUNT( KEEP_LST< 1 >, @VM )
 
-   ! This is a list of AccuTerm's emulation modes, ...
+   ! This is a list of AnyKey's+AccuTerm's emulation modes, ...
 
    LOSE_LST  = 'ANS,BBS,LNX,MDS,PCK,PV6,SCO,TEX,TTY,VP6,VPT,VT0,VT1,VT2,'
    LOSE_LST := 'VT3,VT4,WYS~'
@@ -382,7 +412,7 @@ START.OUR.VARS.ETC:
    LOSE_LST := '086,2087,2088,2089,2090,2112,2113,2114,2115,2116,2117,21'
    LOSE_LST := '18,2119,2120,2121,2122,2123,2220,2221,3054,3189~'
 
-   ! TEX
+   ! TEX  (need to work on this)
 
    LOSE_LST := '~'
 
@@ -473,7 +503,7 @@ START.OUR.VARS.ETC:
 
    LOCATE KEYB_TYP IN LOSE_LST< 1 > SETTING LOSE_IDX THEN
 
-      LOSE_LST  = CHANGE( LOSE_LST< LOSE_IDX >, @VM, @AM )
+      LOSE_LST  = CHANGE( LOSE_LST< LOSE_IDX + 1 >, @VM, @AM )
 
    END ELSE
 
@@ -483,11 +513,15 @@ START.OUR.VARS.ETC:
 
    LOSE_MAX  = DCOUNT( LOSE_LST, @AM )
 
+   ATWK_LST  = ''
+
 RETURN
 
 FETCH.OLD.DEFINITIONS:
 
    ! Now append any currently programmed keys to LOSE_LST, ...
+
+   ! ... unless overridden.
 
    VBA_CODE  = ESC : STX : 'P'
    VBA_CODE := 'dim s as accutermclasses.session' : EM
@@ -495,8 +529,9 @@ FETCH.OLD.DEFINITIONS:
    VBA_CODE := 'accuterm.activate' : EM
    VBA_CODE := 's.activate' : EM
    VBA_CODE := 'Dim i As Variant' : EM
-   VBA_CODE := 'For Each i In ActiveSession.Settings.FKeys' : EM
+   VBA_CODE := 'For Each i In s.Settings.FKeys' : EM
    VBA_CODE :=    's.output Item((i.Item),1,1,vbNullChar)&vbCr' : EM
+   VBA_CODE :=    's.output Item((i.Item),2,2,vbNullChar)&"*"' : EM
    VBA_CODE := 'Next' : EM
    VBA_CODE := 's.output "Done!"&vbCr' : CR
 
@@ -510,9 +545,44 @@ FETCH.OLD.DEFINITIONS:
 
    UNTIL ATWK_IDX EQ 'Done!' DO
 
-      LOSE_MAX += 1
+      ! Ok, so, this is where it gets technical.  It turns out that  some
+      ! terminals have some duplicate keys.  That is  to  say  that  when
+      ! using, say, VT320 emulation, AccuTerm will send  the  same  code-
+      ! sequence (^[[A) for both the Up key and the  Shift+Up  key.  And,
+      ! while it is possible that someone wrote an application  requiring
+      ! that Shift+Up instead of  just  Up,  it's  pretty  unlikely,  and
+      ! completely unnecessary.  Fortunately, AccuTerm reports  its  keys
+      ! in numerical order, which corresponds  roughly  to  level  order.
+      ! That means that the  VBA  code  up  above  will  send  the  code-
+      ! sequences for Backspace, then for Shift+Backspace, and  then  for
+      ! Shift+Ctrl+Backspace, etc.  And  we  can  use  that  behavior  to
+      ! preserve  the  native  programming  of  the  simpler  keys  while
+      ! clearing out  any  duplicates  among  the  more  complicated  key
+      ! combinations so we can use them for our own purposes.  So  that's
+      ! what you see here: We're having AccuTerm report its existing  key
+      ! programming, which it does in order, and we're checking for,  and
+      ! omitting any duplictates of lower-order keys that we  find  among
+      ! the higher-order keys.
 
-      LOSE_LST< LOSE_MAX > = ATWK_IDX
+      GOSUB FETCH.KEY.CODES
+
+      LOCATE ATWK_IDX IN LOSE_LST SETTING WHATEVER ELSE
+
+         ! This key# isn't already in the lose-list.
+
+         LOCATE ATWK_VAL IN ATWK_LST SETTING WHATEVER ELSE
+
+            ! This code-sequence is unique.
+
+            ATWK_LST< -1 > = ATWK_VAL
+
+            LOSE_MAX += 1
+
+            LOSE_LST< LOSE_MAX > = ATWK_IDX
+
+         END
+
+      END
 
    REPEAT
 
@@ -520,9 +590,48 @@ FETCH.OLD.DEFINITIONS:
 
 RETURN
 
+FETCH.KEY.CODES:
+
+   ATWK_VAL  = ''
+
+   LOOP
+
+      ! Beg Pick UV ============ Rocket Software's UniVerse =============
+
+      INPUTIF THE_CHAR, 1 : THEN
+
+         IF THE_CHAR EQ '' THEN
+
+            THE_CHAR  = CHAR( 13 )
+
+         END
+
+         CHAR_NUM  = SEQ( THE_CHAR )
+
+      END
+
+      ! End Pick UV ============ Rocket Software's UniVerse =============
+      ! Beg Pick QM ================== Zumasys' OpenQM ==================
+
+      IN CHAR_NUM FOR 30 THEN
+
+         THE_CHAR  = CHAR( CHAR_NUM )
+
+      END
+
+      ! End Pick QM ================== Zumasys' OpenQM ==================
+
+   UNTIL THE_CHAR EQ '*' DO
+
+      ATWK_VAL := THE_CHAR
+
+   REPEAT
+
+RETURN
+
 LEAVE.OUR.BREADCRUMBS:
 
-   ! Assign IDENTITY to the 'unusable key' so we don't keep repeating
+   ! Assign IDENTITY to the 'unusable key'  so we  don't  keep  repeating
    ! this.
 
    VBA_CODE  = ESC : STX : 'P'
@@ -531,6 +640,9 @@ LEAVE.OUR.BREADCRUMBS:
    VBA_CODE := 'accuterm.activate' : EM
    VBA_CODE := 's.activate' : EM
    VBA_CODE := 's.Fkeys(7009)="' : IDENTITY : '"' : CR
+
+   ! Fkeys(7009) is never used anywhere else in  AnyKey,  so  there's  no
+   ! need to worry about it getting clobbered by any of our programming.
 
    CRT VBA_CODE :
 
