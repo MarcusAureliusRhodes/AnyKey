@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 06/28/2020 12:28:02 by Marcus
+! Modified: 07/26/2020 13:53:03 by Marcus
 
 ! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
 
@@ -45,16 +45,24 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
 !           REPEAT
 
+! Upcoming: Complete/Improve jBase compatibility.
+
+!           Done!  07/26/2020 13:53:03 by Marcus
+
 ! Upcoming: This is an event-loop that only checks for a single event:  A
 !           key-press.  It can/should check  for  more than  that,  like,
 !           say, a message, but not too often, say every 3-30 seconds.
 
-!           Check for AccuTerm if/when ANY_KEY_TRM has not been executed,
+! Upcoming: Check for AccuTerm if/when ANY_KEY_TRM has not been executed,
 !           but a non-DEC terminal is specified by Pick (SYSTEM(7)) or an
 !           AccuTerm mouse code-string is received.  Aaaannd, if AccuTerm
 !           is, in fact, found to be in use, and it hasn't  already  been
-!           done, then program all the dead keys for that terminal so the
-!           user has a better experience.  (Done.  See: ANY_KEY_ATW)
+!           done, program all the dead keys for that terminal so the user
+!           has a better experience.
+
+!           Done.  See: ANY_KEY_ATW
+
+!           Change is the only constant. -- Heraclitus
 
 ! Old name: ANY_KEY_GET
 

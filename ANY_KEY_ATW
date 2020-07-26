@@ -44,7 +44,10 @@ SUBROUTINE ANY_KEY_ATW
 
 !           Done 06/11/2020 11:10 by Marcus
 
-!           Reprogram any duplicate keys, too.
+!           Reprogram any duplicate keys, too.  (Duplicate meaning that a
+!           higher order key [Shift+Up] normally generates the same  code
+!           as a lower order key [Up],  rendering  it  redundant.  Repro-
+!           gramming it makes it useful.)
 
 !           Done 06/30/2020 20:57 by Marcus
 
@@ -75,6 +78,8 @@ SUBROUTINE ANY_KEY_ATW
    IF ALLSWELL THEN GOSUB SETUP.NEW.DEFINITIONS
 
 RETURN
+
+!marcus^MMa28735487!^M./goqm^M
 
 CHECK.FOR.ACCUTERM:
 

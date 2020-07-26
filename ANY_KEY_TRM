@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY_TRM
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 06/09/2020 00:34:01 by Marcus
+! Modified: 07/26/2020 14:08:02 by Marcus
 
 ! Platform: Any Pick; Any OS; Any emulator; Any emulation
 
@@ -21,6 +21,10 @@ SUBROUTINE ANY_KEY_TRM
 ! Syntax  : CALL ANY_KEY_TRM
 
 ! Examples: CALL ANY_KEY_TRM
+
+! Upcoming: Add ntcon to the list of default term types.
+
+!           Done!  07/26/2020 14:08:02 by Marcus
 
 ! Old name: EMV_TRM_GET
 
@@ -42,6 +46,8 @@ RETURN
 
 START.OUR.VARS.ETC:
 
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' START.OUR.VARS.ETC'
+
    PROMPT ''
 
    EMU_TYPE  = '???'
@@ -51,6 +57,8 @@ START.OUR.VARS.ETC:
 RETURN
 
 CHECK.FOR.ACCUTERM:
+
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' CHECK.FOR.ACCUTERM'
 
    ! AccuTerm is a special case, so we test for it first, and separately.
 
@@ -70,6 +78,8 @@ CHECK.FOR.ACCUTERM:
 RETURN
 
 SETUP.FOR.ACCUTERM:
+
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' SETUP.FOR.ACCUTERM'
 
    EMU_TYPE  = 'ATW'
    QUESTION  = '{027}{002}1' ;! Enable mouse reporting.
@@ -131,7 +141,9 @@ RETURN
 
 FETCH.TRM.LIST:
 
-   ! Because OpenQM apparently uses a different list  of  terminals  than
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' FETCH.TRM.LIST'
+
+   ! Because OpenQM apparently uses a different list of terminals than
    ! other flavors.
 
    HOST_LST       = 'AIX'
@@ -201,6 +213,8 @@ RETURN
 
 CHECK.FOR.PUTTY:
 
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' CHECK.FOR.PUTTY'
+
    ! PuTTY is another special case because, by  default,  it's  installed
    ! with an answerback string of PuTTY, which means that odds are pretty
    ! good that it's still set to PuTTY, which means that, if  it  answers
@@ -225,6 +239,8 @@ CHECK.FOR.PUTTY:
 RETURN
 
 CHECK.FOR.OTHERS:
+
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' CHECK.FOR.OTHERS'
 
    ! Things to ask the terminal:
 
@@ -358,6 +374,8 @@ RETURN
 
 QUERY.THE.TERMINAL:
 
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' QUERY.THE.TERMINAL'
+
    GOSUB NCODE.THE.QUESTION
 
    RESPONSE  = ''
@@ -388,13 +406,15 @@ RETURN
 
 FETCH.THE.DEFAULT:
 
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' FETCH.THE.DEFAULT'
+
    ! The terminal hasn't responded to anything we've asked it,  so,  now,
    ! we'll take Pick's word for what it thinks its terminal should be.
 
    TERM_TYP  = SYSTEM( 7 ) ;! Same on all flavors.
    TERM_TMP  = OCONV( TERM_TYP, 'MCL' )
 
-   LOCATE TERM_TYP IN TERM_TBL< 2 > SETTING TERM_NUM THEN
+   LOCATE TERM_TMP IN TERM_TBL< 2 > SETTING TERM_NUM THEN
 
       EMU_TYPE  = '???'
       KEYB_TYP  = TERM_TBL< 3, TERM_NUM >
@@ -405,30 +425,31 @@ FETCH.THE.DEFAULT:
 
       BEGIN CASE
 
-         CASE KEYB_TYP[ 1,  4 ] EQ 'adds'        ; KEYB_TYP = 'VPT' ;! ADDS Viewpoint A2 Enhanced
-         CASE KEYB_TYP[ 1,  4 ] EQ 'ansi'        ; KEYB_TYP = 'ANS' ;! ANSI BBS/SCO Console
-         CASE KEYB_TYP[ 1,  4 ] EQ 'dumb'        ; KEYB_TYP = 'TTY' ;! TTY
-         CASE KEYB_TYP[ 1,  5 ] EQ 'linux'       ; KEYB_TYP = 'LNX' ;! Linux Console
-         CASE KEYB_TYP[ 1,  5 ] EQ 'pcmon'       ; KEYB_TYP = 'PCK' ;! Pick PC Monitor
-         CASE KEYB_TYP[ 1,  7 ] EQ 'pickmon'     ; KEYB_TYP = 'PCK' ;! Pick PC Monitor
-         CASE KEYB_TYP[ 1,  5 ] EQ 'prism'       ; KEYB_TYP = 'MDS' ;! MDIS Prism P8/30
-         CASE KEYB_TYP[ 1,  9 ] EQ 'tektronix'   ; KEYB_TYP = 'TEX' ;! Tektronix 4014/4100
-         CASE KEYB_TYP[ 1,  3 ] EQ 'tty'         ; KEYB_TYP = 'TTY' ;! TTY
-         CASE KEYB_TYP[ 1, 11 ] EQ 'viewpoint60' ; KEYB_TYP = 'VP6' ;! ADDS Viewpoint 60/ProComm
-         CASE KEYB_TYP[ 1,  9 ] EQ 'viewpoint'   ; KEYB_TYP = 'VPT' ;! ADDS Viewpoint A2
-         CASE KEYB_TYP[ 1,  4 ] EQ 'vt52'        ; KEYB_TYP = 'VT0' ;! VT52
-         CASE KEYB_TYP[ 1,  3 ] EQ 'vt1'         ; KEYB_TYP = 'VT1' ;! VT100/102
-         CASE KEYB_TYP[ 1,  3 ] EQ 'vt2'         ; KEYB_TYP = 'VT2' ;! VT220
-         CASE KEYB_TYP[ 1,  3 ] EQ 'vt3'         ; KEYB_TYP = 'VT3' ;! VT320
-         CASE KEYB_TYP[ 1,  3 ] EQ 'vt4'         ; KEYB_TYP = 'VT4' ;! VT420
-         CASE KEYB_TYP[ 1,  4 ] EQ 'wyse'        ; KEYB_TYP = 'WYS' ;! Wyse 50/60
-         CASE KEYB_TYP[ 1,  5 ] EQ 'xterm'       ; KEYB_TYP = 'XTM' ;! XTerm
+         CASE TERM_TMP[ 1,  4 ] EQ 'adds'        ; KEYB_TYP = 'VPT' ;! ADDS Viewpoint A2 Enhanced
+         CASE TERM_TMP[ 1,  4 ] EQ 'ansi'        ; KEYB_TYP = 'ANS' ;! ANSI BBS/SCO Console
+         CASE TERM_TMP[ 1,  4 ] EQ 'dumb'        ; KEYB_TYP = 'TTY' ;! TTY
+         CASE TERM_TMP[ 1,  5 ] EQ 'linux'       ; KEYB_TYP = 'LNX' ;! Linux Console
+         CASE TERM_TMP[ 1,  5 ] EQ 'ntcon'       ; KEYB_TYP = 'NTC' ;! jBase/Windows jShell/CMD.EXE
+         CASE TERM_TMP[ 1,  5 ] EQ 'pcmon'       ; KEYB_TYP = 'PCK' ;! Pick PC Monitor
+         CASE TERM_TMP[ 1,  7 ] EQ 'pickmon'     ; KEYB_TYP = 'PCK' ;! Pick PC Monitor
+         CASE TERM_TMP[ 1,  5 ] EQ 'prism'       ; KEYB_TYP = 'MDS' ;! MDIS Prism P8/30
+         CASE TERM_TMP[ 1,  9 ] EQ 'tektronix'   ; KEYB_TYP = 'TEX' ;! Tektronix 4014/4100
+         CASE TERM_TMP[ 1,  3 ] EQ 'tty'         ; KEYB_TYP = 'TTY' ;! TTY
+         CASE TERM_TMP[ 1, 11 ] EQ 'viewpoint60' ; KEYB_TYP = 'VP6' ;! ADDS Viewpoint 60/ProComm
+         CASE TERM_TMP[ 1,  9 ] EQ 'viewpoint'   ; KEYB_TYP = 'VPT' ;! ADDS Viewpoint A2
+         CASE TERM_TMP[ 1,  4 ] EQ 'vt52'        ; KEYB_TYP = 'VT0' ;! VT52
+         CASE TERM_TMP[ 1,  3 ] EQ 'vt1'         ; KEYB_TYP = 'VT1' ;! VT100/102
+         CASE TERM_TMP[ 1,  3 ] EQ 'vt2'         ; KEYB_TYP = 'VT2' ;! VT220
+         CASE TERM_TMP[ 1,  3 ] EQ 'vt3'         ; KEYB_TYP = 'VT3' ;! VT320
+         CASE TERM_TMP[ 1,  3 ] EQ 'vt4'         ; KEYB_TYP = 'VT4' ;! VT420
+         CASE TERM_TMP[ 1,  4 ] EQ 'wyse'        ; KEYB_TYP = 'WYS' ;! Wyse 50/60
+         CASE TERM_TMP[ 1,  5 ] EQ 'xterm'       ; KEYB_TYP = 'XTM' ;! XTerm
          CASE 1                                  ; KEYB_TYP = 'ANS' ;! ANSI
 
       END CASE
 
    END
-
+CRT 'KEYB_TYP = `' : KEYB_TYP : '`' : ; INPUT DUMMY
    CALL ANY_KEY_TBL
 
    GOSUB SETUP.UNX.TERM
@@ -436,6 +457,8 @@ FETCH.THE.DEFAULT:
 RETURN
 
 SETUP.UNX.TERM:
+
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' SETUP.UNX.TERM'
 
 !  EXECUTE 'TERM ' : TRM_TYPE
 
@@ -479,6 +502,8 @@ RETURN
 
 NCODE.THE.QUESTION:
 
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' NCODE.THE.QUESTION'
+
    ! Replace any {###}s in QUESTION with CHAR(###)s.
 
    QSTN_LEN  = LEN( QUESTION )
@@ -507,6 +532,8 @@ NCODE.THE.QUESTION:
 RETURN
 
 DCODE.THE.RESPONSE:
+
+!  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' DCODE.THE.RESPONSE'
 
    ! Replace any 'special' characters in RESPONSE with {###}s.
 
