@@ -1,17 +1,15 @@
 PROGRAM ANY_KEY_TST
 
 ! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
-
 !           This program is free software; You can redistribute it and/or
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 05/13/2020 12:41:00 by Marcus
+! Modified: 09/15/2020 11:06:09 by Marcus
 
 ! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
 
 ! Function: Test-drives ANY_KEY
-
 !           See ANY_KEY_EQU for more.
 
 ! Examples: ANY_KEY_NUM
@@ -48,12 +46,13 @@ PROGRAM ANY_KEY_TST
 
       ANY_BFFR  = ''
       BFFR_LEN  = 0
+      TEXT_KEY  = ''
       META_KEY  = ''
       KEYB_DBG  = 0
 
       CALL ANY_KEY( TEXT_KEY, META_KEY )
 
-      CRT KEYB_TYP : ' -> ' : CRT_CODE 'L#24 -> ' : META_KEY< 1 > : ' -> ' :
+      CRT KEYB_TYP : ' -> ' : CRT_CODE 'L#24 -> ' : ( TEXT_KEY : META_KEY< 1 > ) 'L#18 -> ' :
 
       BEGIN CASE
 
@@ -96,6 +95,7 @@ PROGRAM ANY_KEY_TST
          CASE META_KEY EQ KA_8           ; CRT 'Alt+8'
          CASE META_KEY EQ KA_9           ; CRT 'Alt+9'
          CASE META_KEY EQ KA_A           ; CRT 'Alt+A'
+         CASE META_KEY EQ KA_ACCENT      ; CRT 'Alt+`'
          CASE META_KEY EQ KA_AMPERSAND   ; CRT 'Alt+&'
          CASE META_KEY EQ KA_AT          ; CRT 'Alt+@'
          CASE META_KEY EQ KA_B           ; CRT 'Alt+B'
@@ -362,13 +362,16 @@ PROGRAM ANY_KEY_TST
          CASE META_KEY EQ KSC_SPACE      ; CRT 'Shift+Ctrl+Space'
          CASE META_KEY EQ KSC_UP         ; CRT 'Shift+Ctrl+Up'
 
-         CASE META_KEY< 1 > EQ KM_L1     ; CRT 'Mouse Left Single-Click @ '  : META_KEY< 2 > : 'x' : META_KEY< 3 >
-         CASE META_KEY< 1 > EQ KM_L2     ; CRT 'Mouse Left Double-Click @ '  : META_KEY< 2 > : 'x' : META_KEY< 3 >
+         CASE META_KEY< 1 > EQ KM_L1     ; CRT 'Mouse Left  Single-Click @ ' : META_KEY< 2 > : 'x' : META_KEY< 3 >
+         CASE META_KEY< 1 > EQ KM_L2     ; CRT 'Mouse Left  Double-Click @ ' : META_KEY< 2 > : 'x' : META_KEY< 3 >
          CASE META_KEY< 1 > EQ KM_R1     ; CRT 'Mouse Right Single-Click @ ' : META_KEY< 2 > : 'x' : META_KEY< 3 >
          CASE META_KEY< 1 > EQ KM_R2     ; CRT 'Mouse Right Double-Click @ ' : META_KEY< 2 > : 'x' : META_KEY< 3 >
+
+         CASE 1                          ; CRT 'Unknown key!'
 
       END CASE
 
    UNTIL META_KEY EQ K_ESCAPE DO REPEAT
 
 STOP
+

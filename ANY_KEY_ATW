@@ -79,8 +79,6 @@ SUBROUTINE ANY_KEY_ATW
 
 RETURN
 
-!marcus^MMa28735487!^M./goqm^M
-
 CHECK.FOR.ACCUTERM:
 
    ALLSWELL  = EMU_TYPE EQ 'ATW'
@@ -598,6 +596,7 @@ RETURN
 FETCH.KEY.CODES:
 
    ATWK_VAL  = ''
+   THE_CHAR  = ''
 
    LOOP
 
@@ -618,7 +617,7 @@ FETCH.KEY.CODES:
       ! End Pick UV ============ Rocket Software's UniVerse =============
       ! Beg Pick QM ================== Zumasys' OpenQM ==================
 
-      IN CHAR_NUM FOR 30 THEN
+      IN CHAR_NUM FOR 1 THEN
 
          THE_CHAR  = CHAR( CHAR_NUM )
 
@@ -718,3 +717,4 @@ SETUP.NEW.DEFINITIONS:
    CRT VBA_CODE : CR :
 
 RETURN
+

@@ -24,8 +24,8 @@
 
 !           Regular keys are returned  individually,  and  unaltered,  so
 !           they are not defined here or anywhere else in this suite.
-
 !           All equates adhere to the following naming-convention:
+
 !           K - all key equates begin with K for Key.
 !           P - indicates a keypad-key was pressed.
 !           M - indicates that a mouse-key was pressed.
@@ -33,6 +33,7 @@
 !           C - indicates that the key is modified by Control/Ctrl.
 !           A - indicates that the key is modified by Alt(ernate).
 !           _ - separates the modifiers from the key cap/name.
+
 !           Keyname - A, B, C, HOME, END, TAB, etc.
 
 !           Thus Ctrl+A equates to KC_A, and Shift+Ctrl+Home  equates  to
@@ -41,7 +42,6 @@
 !           Symbol keys, like ! & *, which cannot be used in variable  or
 !           equate names are assigned long names, such as BANG and  STAR.
 !           Thus Alt+! equates to KA_BANG, and Alt+* equates to KA_STAR.
-
 !           The aim here is not only to give new programs features  users
 !           have come  to  expect  from  modern  software,  but  also  to
 !           simplify the task of updating older programs, and to do  both
@@ -127,7 +127,6 @@
 !           Just include this in any program, CALL ANY_KEY, and  use  the
 !           following equate names to detect  and  react  to  the  user's
 !           input as shown in the example below.
-
 !           Omit any unnecessary/undesirable keys.
 
 ! Examples: INCLUDE ANY_KEY_EQU
@@ -505,7 +504,6 @@
    EQU KSC_RIGHT      TO '_&' ;! Shift+Ctrl+Right-arrow
    EQU KSC_SPACE      TO '_(' ;! Shift+Ctrl+Space
    EQU KSC_UP         TO '_)' ;! Shift+Ctrl+Up-arrow
-
    EQU KM_L1          TO '_*' ;! AccuTerm Mouse  Left-button Single-click
    EQU KM_L2          TO '_+' ;! AccuTerm Mouse  Left-button Double-click
    EQU KM_R1          TO '_:' ;! AccuTerm Mouse Right-button Single-click

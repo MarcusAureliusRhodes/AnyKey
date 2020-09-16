@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 07/26/2020 13:53:03 by Marcus
+! Modified: 09/09/2020 20:53:06 by Marcus
 
 ! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
 
@@ -61,6 +61,12 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 !           has a better experience.
 
 !           Done.  See: ANY_KEY_ATW
+
+! Upcoming: Improve UV compatibility.  UV not only lacks an  IN(PUT)/FOR,
+!           as well as any way to work around it within  Basic,  but  its
+!           INPUTIF doesn't return ^H/Backspace, at least not on the  AIX
+!           installation currently available to me, so  that leaves  only
+!           KEYIN() and SYSTEM(14) to work with.
 
 !           Change is the only constant. -- Heraclitus
 
@@ -184,28 +190,9 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
          ! End Pick UD =========== Rocket Software's UniData ============
          ! Beg Pick UV =========== Rocket Software's UniVerse ===========
 
-         INPUTIF THE_CHAR, 1 : THEN
+         CHAR_NUM  = SEQ( KEYIN() )
 
-            IF THE_CHAR EQ '' THEN
-
-               CHAR_NUM  = 13
-               THE_CHAR  = CHAR( 13 )
-
-            END ELSE
-
-               CHAR_NUM  = SEQ( THE_CHAR )
-
-            END
-
-            ANY_BFFR := THE_CHAR
-
-            EXIT
-
-         END ELSE
-
-            SLEEP 1
-
-         END
+         EXIT ;! There's no good way to keep repeating this.  Rethink!
 
          ! End Pick UV =========== Rocket Software's UniVerse ===========
          ! Beg Pick VU ============= ViaSystems' UniVision ==============
@@ -228,15 +215,23 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
    END
 
+   CRT_CODE  = CHAR_NUM 'R%3'
+
    ! If that was a regular key, then return it as is,  otherwise,  append
    ! up to 15 more key codes to the buffer.  (Because AccuTerm mouse keys
    ! can generate code-strings as long as 16 chars.)
 
-   IF CHAR_NUM GT 31 AND CHAR_NUM LT 127 THEN
+   ! Some systems prefix mouse-codes with _/char(95) requiring a bit more
+   ! complication in  this  IF/THEN.  If  you're  not  on  one  of  those
+   ! systems, and worry about speed, then uncomment the  next  line,  and
+   ! comment-out the line after it.
+
+!  IF CHAR_NUM GT 31 AND CHAR_NUM LT 127 THEN
+
+   IF ( CHAR_NUM GT 31 AND CHAR_NUM LT 95 ) OR ( CHAR_NUM GT 95 AND CHAR_NUM LT 127 ) THEN
 
       TEXT_KEY  = CHAR( CHAR_NUM )
       META_KEY  = ''
-      CRT_CODE  = CHAR_NUM 'R%3'
 
    END ELSE
 
@@ -244,7 +239,6 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
       ANY_BFFR  = CHAR( CHAR_NUM ) : ANY_BFFR
       BFFR_LEN += 1
-      CRT_CODE  = CHAR_NUM 'R%3'
 
       ! ... then add up to 15 more codes, if available.
 
@@ -257,6 +251,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
             ANY_BFFR := CHAR( CHAR_NUM )
             BFFR_LEN += 1
             CRT_CODE := CHAR_NUM 'R%3'
+            KEY_IN_Q  = 1
 
          END ELSE
 
@@ -293,6 +288,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
             ANY_BFFR := CHAR( CHAR_NUM )
             BFFR_LEN += 1
             CRT_CODE := CHAR_NUM 'R%3'
+            KEY_IN_Q  = 1
 
          END ELSE
 
@@ -305,15 +301,29 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
       ! End Pick UD ============= Rocket Software's UniData =============
       ! Beg Pick UV ============ Rocket Software's UniVerse =============
 
-      LOOP WHILE BFFR_LEN LT 16 DO
+      LOOP WHILE BFFR_LEN LT 32 DO
 
-         INPUTIF CHAR_NUM, 1 THEN
+         INPUTIF THE_CHAR, 1 THEN
 
-            ANY_BFFR := CHAR( CHAR_NUM )
+            IF THE_CHAR EQ '' THEN
+
+               THE_CHAR  = CHAR( 13 )
+               CHAR_NUM  = 13
+
+            END ELSE
+
+               CHAR_NUM  = SEQ( THE_CHAR )
+
+            END
+
+            ANY_BFFR := THE_CHAR
             BFFR_LEN += 1
             CRT_CODE := CHAR_NUM 'R%3'
+            KEY_IN_Q  = 1
 
          END ELSE
+
+            KEY_IN_Q  = 0
 
             EXIT
 
@@ -327,62 +337,72 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
       ! chars, working our way down to a single char, until  a  match  is
       ! found.
 
-      TEXT_KEY  = ''
-      META_KEY  = ''
-      CODE_MAX  = LEN( ANY_BFFR[ 1, 8 ] )
+      CODE_MAX  = LEN( ANY_BFFR[ 1, 16 ] )
 
-      FOR CODE_LEN = CODE_MAX TO 1 STEP -1 WHILE META_KEY EQ ''
+      IF CODE_MAX EQ 1 AND ANY_BFFR EQ '_' THEN
 
-         THE_CODE  = ANY_BFFR[ 1,   CODE_LEN       ]
-         CRT_CODE  = CRT_CODE[ 1, ( CODE_LEN * 3 ) ]
+         TEXT_KEY  = '_'
+         META_KEY  = ''
 
-         LOCATE THE_CODE IN OLD_KEYS SETTING CODE_IDX THEN
+      END ELSE
 
-            META_KEY  = NEW_KEYS< CODE_IDX >
-            BFFR_LEN -= CODE_LEN
-            ANY_BFFR  = ANY_BFFR[ CODE_LEN + 1, BFFR_LEN ]
+         TEXT_KEY  = ''
+         META_KEY  = ''
 
-!           GOSUB REMAP.THE.KEYS
-!           GOSUB ERASE.ANY.DUPES
+         FOR CODE_LEN = CODE_MAX TO 1 STEP -1 WHILE META_KEY EQ ''
 
-            ! Handle any mouse clicks.
+            THE_CODE  = ANY_BFFR[ 1,   CODE_LEN       ]
+            CRT_CODE  = CRT_CODE[ 1, ( CODE_LEN * 3 ) ]
 
-            BEGIN CASE
+            LOCATE THE_CODE IN OLD_KEYS SETTING CODE_IDX THEN
 
-               CASE META_KEY EQ KM_L1 ; GOSUB FETCH.1ST.CLICK
-               CASE META_KEY EQ KM_R1 ; GOSUB FETCH.1ST.CLICK
-!              CASE META_KEY EQ KM_L2 ; GOSUB FETCH.COORDINATES
-!              CASE META_KEY EQ KM_R2 ; GOSUB FETCH.COORDINATES
-               CASE META_KEY EQ KC_Q  ; CALL ANY_KEY_BLD
+               META_KEY  = NEW_KEYS< CODE_IDX >
+               BFFR_LEN -= CODE_LEN
+               ANY_BFFR  = ANY_BFFR[ CODE_LEN + 1, BFFR_LEN ]
 
-            END CASE
+!              GOSUB REMAP.THE.KEYS
+!              GOSUB ERASE.ANY.DUPES
+
+               ! Handle any mouse clicks.
+
+               BEGIN CASE
+
+                  CASE META_KEY EQ KM_L1 ; GOSUB FETCH.1ST.CLICK
+                  CASE META_KEY EQ KM_R1 ; GOSUB FETCH.1ST.CLICK
+!                 CASE META_KEY EQ KM_L2 ; GOSUB FETCH.COORDINATES
+!                 CASE META_KEY EQ KM_R2 ; GOSUB FETCH.COORDINATES
+!                 CASE META_KEY EQ KC_Q  ; CALL ANY_KEY_BLD
+
+               END CASE
+
+            END
+
+         NEXT CODE_LEN
+
+         ! What do we do with an unrecognized code-sequence?  Confuse the
+         ! user with it, of course!  But at least reformat it first.
+
+         IF META_KEY EQ '' THEN
+
+            FOR CODE_IDX = 1 TO BFFR_LEN
+
+               THE_CHAR  = ANY_BFFR[ CODE_IDX, 1 ]
+               CHAR_NUM  = SEQ( THE_CHAR )
+
+               BEGIN CASE
+
+                  CASE CHAR_NUM LT  32 ; META_KEY := '^' : CHAR( CHAR_NUM + 64 )
+                  CASE CHAR_NUM GT 126 ; META_KEY := '{' : CHAR_NUM 'R%3}'
+                  CASE 1               ; META_KEY := THE_CHAR
+
+               END CASE
+
+            NEXT CODE_IDX
+
+            BFFR_LEN  = 0
+            ANY_BFFR  = ''
 
          END
-
-      NEXT CODE_LEN
-
-      ! What do we do with an unrecognized code-sequence?  Confuse the
-      ! user with it, of course!  But at least reformat it first.
-
-      IF META_KEY EQ '' THEN
-
-         FOR CODE_IDX = 1 TO BFFR_LEN
-
-            THE_CHAR  = ANY_BFFR[ CODE_IDX, 1 ]
-            CHAR_NUM  = SEQ( THE_CHAR )
-
-            BEGIN CASE
-
-               CASE CHAR_NUM LT  32 ; META_KEY := '^' : CHAR( CHAR_NUM + 64 )
-               CASE CHAR_NUM GT 126 ; META_KEY := '{' : CHAR_NUM 'R%3}'
-               CASE 1               ; META_KEY := THE_CHAR
-
-            END CASE
-
-         NEXT CODE_IDX
-
-         BFFR_LEN  = 0
-         ANY_BFFR  = ''
 
       END
 
@@ -652,13 +672,13 @@ FETCH.1ST.CLICK:
 
    ! Set $OPTIONS to TIME.MILLISECOND
 
-   TIME_BEG  = SYSTEM( 12 )
+   TIME_BEG  = SYSTEM( 12 ) * 10
 
    LOOP
 
-      TELAPSED  = SYSTEM( 12 ) - TIME_BEG
+      TELAPSED  = ( SYSTEM( 12 ) * 10 ) - TIME_BEG
 
-   UNTIL TELAPSED GT 250 DO REPEAT
+   UNTIL TELAPSED GT 5 DO REPEAT
 
    ! End Pick UV ============== Rocket Software's UniVerse ==============
    ! Beg Pick VU ================ ViaSystems' UniVision =================
@@ -675,7 +695,7 @@ FETCH.1ST.CLICK:
 
    ! ... then see if there's another mouse-click.
 
-   IF KEY_IN_Q THEN
+   IF BFFR_LEN THEN
 
       CALL ANY_KEY( SOME_KEY, DBL_CHCK )
 
@@ -734,3 +754,4 @@ FETCH.COORDINATE:
    REPEAT
 
 RETURN
+
