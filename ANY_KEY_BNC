@@ -1,0 +1,42 @@
+PROGRAM ANY_KEY_BNC
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 05/13/2020 12:41:00 by Marcus
+
+! Platform: Any Pick; Any OS; Any emulator; Any emulation
+
+! Function: B-n-Cs the ANY_KEY suite
+
+! (Options: N/A
+
+! Syntax  : ANY_KEY_BNC
+
+! Examples: ANY_KEY_BNC
+
+! Upcoming: Change is the only constant. -- Heraclitus
+
+! Old name: EMV_KEY_BNC
+
+! New name: N/A
+
+! Catalog : ANY_KEY_BNC
+
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_EQU (FJV'
+!  EXECUTE 'EMV_BNC EMV,DEV ANY_KEY ANY_KEY_BLD ANY_KEY_CFG ANY_KEY_DEL ANY_KEY_INI ANY_KEY_NUM ANY_KEY_TBL ANY_KEY_TRM ANY_KEY_ATW ANY_KEY_TST (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_BLD (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_CFG (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_DEL (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_INI (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_NUM (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_TBL (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_TRM (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_ATW (FV'
+   EXECUTE 'EMV_BNC EMV,DEV ANY_KEY_TST (FV'
+
+STOP

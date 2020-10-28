@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY_TRM
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 09/15/2020 10:24:08 by Marcus
+! Modified: 10/17/2020 19:53:10 by Marcus
 
 ! Platform: Any Pick; Any OS; Any emulator; Any emulation
 
@@ -25,6 +25,10 @@ SUBROUTINE ANY_KEY_TRM
 ! Upcoming: Add ntcon to the list of default term types.
 
 !           Done!  07/26/2020 14:08:02 by Marcus
+
+!           Add Ubuntu 20.04 mate-terminal (gnome-terminal)
+
+!           Done!  10/06/2020 10:01:09 by Marcus
 
 ! Old name: EMV_TRM_GET
 
@@ -78,6 +82,8 @@ SETUP.FOR.ACCUTERM:
 
 !  IF KEYB_DBG THEN CRT @( 0 ) : IDENTITY : ' SETUP.FOR.ACCUTERM'
 
+   SLEEP 1 ;! To give AccuTerm time to figure some things out.
+
    EMU_TYPE  = 'ATW'
    QUESTION  = '{027}{002}1' ;! Enable mouse reporting.
 
@@ -91,7 +97,8 @@ SETUP.FOR.ACCUTERM:
 
    QUESTION  = '{027}{002}P dim s as accutermclasses.session{025}set s=a'
    QUESTION := 'ctivesession{025}accuterm.activate{025}s.activate{025}s.'
-   QUESTION := 'output cstr(s.termtype)&vbCr{013}'
+   QUESTION := 'output cstr(s.termtype)&"~"&cstr(s.ScrMode)&"~"&cstr(s.e'
+   QUESTION := 'xtcols)&"~"&cstr(s.extrows)&vbCr{013}'
 
    GOSUB QUERY.THE.TERMINAL
 
@@ -99,10 +106,21 @@ SETUP.FOR.ACCUTERM:
 
       GOSUB BUILD.TRM.LIST
 
-      RESPONSE += 1 ;! Because ATW returns 0-19
+      RESPONSE  = CHANGE( RESPONSE, '~', @AM )
 
-      TERM_TYP  = TERM_TBL< 1, RESPONSE >
-      KEYB_TYP  = TERM_TBL< 2, RESPONSE >
+      TERM_IDX  = RESPONSE< 1 > + 1 ;! Because ATW returns 0-19
+      EXT_MODE  = RESPONSE< 2 > * -1
+      EXT_COLS  = RESPONSE< 3 >
+      EXT_ROWS  = RESPONSE< 4 >
+
+      TERM_TYP  = TERM_TBL< 1, TERM_IDX >
+      KEYB_TYP  = TERM_TBL< 2, TERM_IDX >
+
+      IF EXT_MODE THEN
+
+         EXECUTE 'TERM ' : EXT_COLS : ',' : EXT_ROWS ;! CAPTURING RESPONSE
+
+      END
 
       EXECUTE 'TERM ' : TERM_TYP CAPTURING RESPONSE
 
@@ -287,49 +305,51 @@ CHECK.FOR.OTHERS:
    TERM_TBL< 1, 17 > = '{027}[?63;1;2;6;8c'                  ; TERM_TBL< 2, 17 > = 'vt320'     ; TERM_TBL< 3, 17 > = 'VT3' ;! Win AccuTerm          vt320 7-bit         {027}[0c
    TERM_TBL< 1, 18 > = '{027}[?64;1;2;6;8c'                  ; TERM_TBL< 2, 18 > = 'vt420'     ; TERM_TBL< 3, 18 > = 'VT4' ;! Win AccuTerm          vt420 7-bit         {027}[0c
    TERM_TBL< 1, 19 > = '{027}[?64;1;2;6;9;15;18;21;22c'      ; TERM_TBL< 2, 19 > = 'linux'     ; TERM_TBL< 3, 19 > = 'XTM' ;! *nx xterm             linux
-   TERM_TBL< 1, 20 > = '{027}[?6c'                           ; TERM_TBL< 2, 20 > = 'linux'     ; TERM_TBL< 3, 20 > = 'LVT' ;! Win ?? CMD.EXE/Putty/ATW linux            {027}[0c, {027}Z, {027}[0c, {027}[>c, {027}[c
-   TERM_TBL< 1, 21 > = '{027}[{027}[?6c'                     ; TERM_TBL< 2, 21 > = 'linux'     ; TERM_TBL< 3, 21 > = 'NTC' ;! Win ?? CMD.EXE        linux
-   TERM_TBL< 1, 22 > = '{027}[{027}[>67;201102;0c'           ; TERM_TBL< 2, 22 > = 'linux'     ; TERM_TBL< 3, 22 > = 'NTC' ;! Win 07 CMD.EXE        linux               {027}[>c
-   TERM_TBL< 1, 23 > = '{027}[>0;136;0c'                     ; TERM_TBL< 2, 23 > = 'vt220'     ; TERM_TBL< 3, 23 > = 'PTY' ;! Win PuTTY             vt220               {027}[>c
-   TERM_TBL< 1, 24 > = '{027}[>1;2802;0c'                    ; TERM_TBL< 2, 24 > = 'linux'     ; TERM_TBL< 3, 24 > = 'GTM' ;! *nx gnome-terminal    linux
-   TERM_TBL< 1, 25 > = '{027}[>1;3409;0c'                    ; TERM_TBL< 2, 25 > = 'linux'     ; TERM_TBL< 3, 25 > = 'GTM' ;! *nx gnome-terminal    linux
-   TERM_TBL< 1, 26 > = '{027}[>1;4205;0c'                    ; TERM_TBL< 2, 26 > = 'linux'     ; TERM_TBL< 3, 26 > = 'GTM' ;! *nx mate-terminal     linux
-   TERM_TBL< 1, 27 > = '{027}[>1;5202;0c'                    ; TERM_TBL< 2, 27 > = 'linux'     ; TERM_TBL< 3, 27 > = 'GTM' ;! *nx gnome-terminal    linux               {027}[>c
-   TERM_TBL< 1, 28 > = '{027}[>41;322;0c'                    ; TERM_TBL< 2, 28 > = 'linux'     ; TERM_TBL< 3, 28 > = 'XTM' ;! *nx xterm             linux
-   TERM_TBL< 1, 29 > = '{027}[>41;330;0c'                    ; TERM_TBL< 2, 29 > = 'linux'     ; TERM_TBL< 3, 29 > = 'XTM' ;! *nx xterm             linux
-   TERM_TBL< 1, 30 > = '{027}[>41;5;1c'                      ; TERM_TBL< 2, 30 > = 'vt220'     ; TERM_TBL< 3, 30 > = 'VT2' ;! *nx xterm             vt220
-   TERM_TBL< 1, 31 > = '{027}[>41;7;1c'                      ; TERM_TBL< 2, 31 > = 'vt220'     ; TERM_TBL< 3, 31 > = 'VT2' ;! Win AccuTerm          vt220 7-bit 
-   TERM_TBL< 1, 32 > = '{027}[>67;201102;0c'                 ; TERM_TBL< 2, 32 > = 'linux'     ; TERM_TBL< 3, 32 > = 'NTC' ;! Win ?? CMD.EXE        linux               {027}[>c
-   TERM_TBL< 1, 33 > = '{027}[VT105c'                        ; TERM_TBL< 2, 33 > = 'vt102'     ; TERM_TBL< 3, 33 > = 'W2K' ;! Win CU's Win2000      vt102
-   TERM_TBL< 1, 34 > = '{027}\Z'                             ; TERM_TBL< 2, 34 > = 'vt52'      ; TERM_TBL< 3, 34 > = 'VT0' ;! Win AccuTerm          vt52
-   TERM_TBL< 1, 35 > = '{027}>41;330;0c'                     ; TERM_TBL< 2, 35 > = 'linux'     ; TERM_TBL< 3, 35 > = 'VT2' ;! Win AccuTerm          linux
-   TERM_TBL< 1, 36 > = '{194}{155}?62;1;2;6;8c'              ; TERM_TBL< 2, 36 > = 'vt220'     ; TERM_TBL< 3, 36 > = 'VT2' ;! Win AccuTerm          vt220 8-bit         {027}[c, {027}[0c
-   TERM_TBL< 1, 37 > = '{194}{155}?63;1;2;6;8c'              ; TERM_TBL< 2, 37 > = 'vt320'     ; TERM_TBL< 3, 37 > = 'VT3' ;! Win AccuTerm          vt320 8-bit         {027}[0c, {027}[c
-   TERM_TBL< 1, 38 > = '{194}{155}?64;1;2;6;8c'              ; TERM_TBL< 2, 38 > = 'vt420'     ; TERM_TBL< 3, 38 > = 'VT4' ;! Win AccuTerm          vt420 8-bit         {027}[0c, {027}[c
-   TERM_TBL< 1, 39 > = '{194}{155}?64;1;2;6;9;15;18;21;22c'  ; TERM_TBL< 2, 39 > = 'vt420'     ; TERM_TBL< 3, 39 > = 'VT4' ;! Win AccuTerm          vt420 8-bit 
-   TERM_TBL< 1, 40 > = '{194}{155}?6c'                       ; TERM_TBL< 2, 40 > = 'linux'     ; TERM_TBL< 3, 40 > = 'LNX' ;! Win AccuTerm          linux 8-bit         {027}Z, {027}[0c, {027}[c
-   TERM_TBL< 1, 41 > = '{194}{155}>41;7;1c'                  ; TERM_TBL< 2, 41 > = 'vt220'     ; TERM_TBL< 3, 41 > = 'VT2' ;! Win AccuTerm          vtx20 8-bit         {027}[>c
-   TERM_TBL< 1, 42 > = '50'                                  ; TERM_TBL< 2, 42 > = 'wyse50'    ; TERM_TBL< 3, 42 > = 'WYS' ;! Win CU's Win2000      Wyse50              {005}, {027}{005}, {027}{032}
-   TERM_TBL< 1, 43 > = '50{013}'                             ; TERM_TBL< 2, 43 > = 'viewpoint' ; TERM_TBL< 3, 43 > = 'VPT' ;! Win AccuTerm          Wyse50/Vpnt A2 Enh
-   TERM_TBL< 1, 44 > = '60{013}'                             ; TERM_TBL< 2, 44 > = 'wyse60'    ; TERM_TBL< 3, 44 > = 'WYS' ;! Win AccuTerm          Wyse60
-   TERM_TBL< 1, 45 > = 'p9'                                  ; TERM_TBL< 2, 45 > = 'p9'        ; TERM_TBL< 3, 45 > = 'CUI' ;! Win CU's Win2000      Prism9              {005}, {027}{005}
-   TERM_TBL< 1, 46 > = 'PuTTY'                               ; TERM_TBL< 2, 46 > = 'vt220'     ; TERM_TBL< 3, 46 > = 'PTY' ;! Win PuTTY             vt220               {005}
-   TERM_TBL< 1, 47 > = 'vt100'                               ; TERM_TBL< 2, 47 > = 'vt101'     ; TERM_TBL< 3, 47 > = 'CUO' ;! Win CU's Win2000      vt100               {005}
-   TERM_TBL< 1, 48 > = 'vt220'                               ; TERM_TBL< 2, 48 > = 'vt220'     ; TERM_TBL< 3, 48 > = 'COP' ;! Win CU's Win2000      vt220               {005}, {027}{032}
-   TERM_TBL< 1, 49 > = '[c{027}[COSTARc'                     ; TERM_TBL< 2, 49 > = 'vt101'     ; TERM_TBL< 3, 49 > = 'CUO' ;! Win CU's Win2000      vt102               {027}[c
-   TERM_TBL< 1, 50 > = '[COSTARc{027}[COSTARc'               ; TERM_TBL< 2, 50 > = 'vt101'     ; TERM_TBL< 3, 50 > = 'CUO' ;! Win CU's Win2000      vt102               {027}[0c
-   TERM_TBL< 1, 51 > = '[COSTARcp9'                          ; TERM_TBL< 2, 51 > = 'p9'        ; TERM_TBL< 3, 51 > = 'CUI' ;! Win CU's Win2000      vt102               {005}
-   TERM_TBL< 1, 52 > = '{027}[c'                             ; TERM_TBL< 2, 52 > = 'vt101'     ; TERM_TBL< 3, 52 > = 'CUO' ;! Win CU's Win2000      vt102               {027}[>c
-   TERM_TBL< 1, 53 > = '{027}[>1;10;0c'                      ; TERM_TBL< 2, 53 > = 'vt220'     ; TERM_TBL< 3, 53 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {027}[>c
-   TERM_TBL< 1, 54 > = '[>1;10;0c{027}[?62;2c'               ; TERM_TBL< 2, 54 > = 'vt220'     ; TERM_TBL< 3, 54 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {027}[c
-   TERM_TBL< 1, 55 > = '[?62;2c'                             ; TERM_TBL< 2, 55 > = 'vt220'     ; TERM_TBL< 3, 55 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {027}{002}I
-   TERM_TBL< 1, 56 > = '{027}[?62;2c'                        ; TERM_TBL< 2, 56 > = 'vt220'     ; TERM_TBL< 3, 56 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {027}Z
-   TERM_TBL< 1, 57 > = '[?62;2c{027}[?62;2c'                 ; TERM_TBL< 2, 57 > = 'vt220'     ; TERM_TBL< 3, 57 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {027}[0c
-   TERM_TBL< 1, 58 > = '[?62;2cvt220'                        ; TERM_TBL< 2, 58 > = 'vt220'     ; TERM_TBL< 3, 58 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {005}
-   TERM_TBL< 1, 59 > = '{155}>41;7;1c'                       ; TERM_TBL< 2, 59 > = 'vt220'     ; TERM_TBL< 3, 59 > = 'VT3' ;! Win AccuTerm          vt320 8-bit         {027}[>c
-   TERM_TBL< 1, 60 > = '{155}?63;1;2;6;8c'                   ; TERM_TBL< 2, 60 > = 'vt220'     ; TERM_TBL< 3, 60 > = 'VT3' ;! Win AccuTerm          vt320 8-bit         {027}[0c, {027}[c
-   TERM_TBL< 1, 61 > = 'v{027}[>1;10;0c'                     ; TERM_TBL< 2, 61 > = 'vt220'     ; TERM_TBL< 3, 61 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {027}[>c
-   TERM_TBL< 1, 62 > = 'v{027}[?62;2c'                       ; TERM_TBL< 2, 62 > = 'vt220'     ; TERM_TBL< 3, 62 > = 'CUQ' ;! Win CU's Win2000      vt220 8-bit         {027}[0c, {027}[c
+   TERM_TBL< 1, 20 > = '{027}[?65;1;9c'                      ; TERM_TBL< 2, 20 > = 'linux'     ; TERM_TBL< 3, 20 > = 'GTM' ;! *nx mate-terminal     linux               {027}[0c, {027}[c
+   TERM_TBL< 1, 21 > = '{027}[?6c'                           ; TERM_TBL< 2, 21 > = 'linux'     ; TERM_TBL< 3, 21 > = 'LVT' ;! Win ?? CMD.EXE/Putty/ATW linux            {027}[0c, {027}Z, {027}[0c, {027}[>c, {027}[c
+   TERM_TBL< 1, 22 > = '{027}[{027}[?6c'                     ; TERM_TBL< 2, 22 > = 'linux'     ; TERM_TBL< 3, 22 > = 'NTC' ;! Win ?? CMD.EXE        linux
+   TERM_TBL< 1, 23 > = '{027}[{027}[>67;201102;0c'           ; TERM_TBL< 2, 23 > = 'linux'     ; TERM_TBL< 3, 23 > = 'NTC' ;! Win 07 CMD.EXE        linux               {027}[>c
+   TERM_TBL< 1, 24 > = '{027}[>0;136;0c'                     ; TERM_TBL< 2, 24 > = 'vt220'     ; TERM_TBL< 3, 24 > = 'PTY' ;! Win PuTTY             vt220               {027}[>c
+   TERM_TBL< 1, 25 > = '{027}[>1;2802;0c'                    ; TERM_TBL< 2, 25 > = 'linux'     ; TERM_TBL< 3, 25 > = 'GTM' ;! *nx gnome-terminal    linux
+   TERM_TBL< 1, 26 > = '{027}[>1;3409;0c'                    ; TERM_TBL< 2, 26 > = 'linux'     ; TERM_TBL< 3, 26 > = 'GTM' ;! *nx gnome-terminal    linux
+   TERM_TBL< 1, 27 > = '{027}[>1;4205;0c'                    ; TERM_TBL< 2, 27 > = 'linux'     ; TERM_TBL< 3, 27 > = 'GTM' ;! *nx mate-terminal     linux
+   TERM_TBL< 1, 28 > = '{027}[>1;5202;0c'                    ; TERM_TBL< 2, 28 > = 'linux'     ; TERM_TBL< 3, 28 > = 'GTM' ;! *nx gnome-terminal    linux               {027}[>c
+   TERM_TBL< 1, 29 > = '{027}[>41;322;0c'                    ; TERM_TBL< 2, 29 > = 'linux'     ; TERM_TBL< 3, 29 > = 'XTM' ;! *nx xterm             linux
+   TERM_TBL< 1, 30 > = '{027}[>41;330;0c'                    ; TERM_TBL< 2, 30 > = 'linux'     ; TERM_TBL< 3, 30 > = 'XTM' ;! *nx xterm             linux
+   TERM_TBL< 1, 31 > = '{027}[>41;5;1c'                      ; TERM_TBL< 2, 31 > = 'vt220'     ; TERM_TBL< 3, 31 > = 'VT2' ;! *nx xterm             vt220
+   TERM_TBL< 1, 32 > = '{027}[>41;7;1c'                      ; TERM_TBL< 2, 32 > = 'vt220'     ; TERM_TBL< 3, 32 > = 'VT2' ;! Win AccuTerm          vt220 7-bit
+   TERM_TBL< 1, 33 > = '{027}[>65;6003;1c'                   ; TERM_TBL< 2, 33 > = 'linux'     ; TERM_TBL< 3, 33 > = 'GTM' ;! *nx mate-terminal     linux               {027}[>c
+   TERM_TBL< 1, 34 > = '{027}[>67;201102;0c'                 ; TERM_TBL< 2, 34 > = 'linux'     ; TERM_TBL< 3, 34 > = 'NTC' ;! Win ?? CMD.EXE        linux               {027}[>c
+   TERM_TBL< 1, 35 > = '{027}[VT105c'                        ; TERM_TBL< 2, 35 > = 'vt102'     ; TERM_TBL< 3, 35 > = 'W2K' ;! Win Co*Star           vt102
+   TERM_TBL< 1, 36 > = '{027}\Z'                             ; TERM_TBL< 2, 36 > = 'vt52'      ; TERM_TBL< 3, 36 > = 'VT0' ;! Win AccuTerm          vt52
+   TERM_TBL< 1, 37 > = '{027}>41;330;0c'                     ; TERM_TBL< 2, 37 > = 'linux'     ; TERM_TBL< 3, 37 > = 'VT2' ;! Win AccuTerm          linux
+   TERM_TBL< 1, 38 > = '{194}{155}?62;1;2;6;8c'              ; TERM_TBL< 2, 38 > = 'vt220'     ; TERM_TBL< 3, 38 > = 'VT2' ;! Win AccuTerm          vt220 8-bit         {027}[c, {027}[0c
+   TERM_TBL< 1, 39 > = '{194}{155}?63;1;2;6;8c'              ; TERM_TBL< 2, 39 > = 'vt320'     ; TERM_TBL< 3, 39 > = 'VT3' ;! Win AccuTerm          vt320 8-bit         {027}[0c, {027}[c
+   TERM_TBL< 1, 40 > = '{194}{155}?64;1;2;6;8c'              ; TERM_TBL< 2, 40 > = 'vt420'     ; TERM_TBL< 3, 40 > = 'VT4' ;! Win AccuTerm          vt420 8-bit         {027}[0c, {027}[c
+   TERM_TBL< 1, 41 > = '{194}{155}?64;1;2;6;9;15;18;21;22c'  ; TERM_TBL< 2, 41 > = 'vt420'     ; TERM_TBL< 3, 41 > = 'VT4' ;! Win AccuTerm          vt420 8-bit
+   TERM_TBL< 1, 42 > = '{194}{155}?6c'                       ; TERM_TBL< 2, 42 > = 'linux'     ; TERM_TBL< 3, 42 > = 'LNX' ;! Win AccuTerm          linux 8-bit         {027}Z, {027}[0c, {027}[c
+   TERM_TBL< 1, 43 > = '{194}{155}>41;7;1c'                  ; TERM_TBL< 2, 43 > = 'vt220'     ; TERM_TBL< 3, 43 > = 'VT2' ;! Win AccuTerm          vtx20 8-bit         {027}[>c
+   TERM_TBL< 1, 44 > = '50'                                  ; TERM_TBL< 2, 44 > = 'wyse50'    ; TERM_TBL< 3, 44 > = 'WYS' ;! Win Co*Star           Wyse50              {005}, {027}{005}, {027}{032}
+   TERM_TBL< 1, 45 > = '50{013}'                             ; TERM_TBL< 2, 45 > = 'viewpoint' ; TERM_TBL< 3, 45 > = 'VPT' ;! Win AccuTerm          Wyse50/Vpnt A2 Enh
+   TERM_TBL< 1, 46 > = '60{013}'                             ; TERM_TBL< 2, 46 > = 'wyse60'    ; TERM_TBL< 3, 46 > = 'WYS' ;! Win AccuTerm          Wyse60
+   TERM_TBL< 1, 47 > = 'p9'                                  ; TERM_TBL< 2, 47 > = 'p9'        ; TERM_TBL< 3, 47 > = 'CUI' ;! Win Co*Star           Prism9              {005}, {027}{005}
+   TERM_TBL< 1, 48 > = 'PuTTY'                               ; TERM_TBL< 2, 48 > = 'vt220'     ; TERM_TBL< 3, 48 > = 'PTY' ;! Win PuTTY             vt220               {005}
+   TERM_TBL< 1, 49 > = 'vt100'                               ; TERM_TBL< 2, 49 > = 'vt101'     ; TERM_TBL< 3, 49 > = 'CUO' ;! Win Co*Star           vt100               {005}
+   TERM_TBL< 1, 50 > = 'vt220'                               ; TERM_TBL< 2, 50 > = 'vt220'     ; TERM_TBL< 3, 50 > = 'COP' ;! Win Co*Star           vt220               {005}, {027}{032}
+   TERM_TBL< 1, 51 > = '[c{027}[COSTARc'                     ; TERM_TBL< 2, 51 > = 'vt101'     ; TERM_TBL< 3, 51 > = 'CUO' ;! Win Co*Star           vt102               {027}[c
+   TERM_TBL< 1, 52 > = '[COSTARc{027}[COSTARc'               ; TERM_TBL< 2, 52 > = 'vt101'     ; TERM_TBL< 3, 52 > = 'CUO' ;! Win Co*Star           vt102               {027}[0c
+   TERM_TBL< 1, 53 > = '[COSTARcp9'                          ; TERM_TBL< 2, 53 > = 'p9'        ; TERM_TBL< 3, 53 > = 'CUI' ;! Win Co*Star           vt102               {005}
+   TERM_TBL< 1, 54 > = '{027}[c'                             ; TERM_TBL< 2, 54 > = 'vt101'     ; TERM_TBL< 3, 54 > = 'CUO' ;! Win Co*Star           vt102               {027}[>c
+   TERM_TBL< 1, 55 > = '{027}[>1;10;0c'                      ; TERM_TBL< 2, 55 > = 'vt220'     ; TERM_TBL< 3, 55 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {027}[>c
+   TERM_TBL< 1, 56 > = '[>1;10;0c{027}[?62;2c'               ; TERM_TBL< 2, 56 > = 'vt220'     ; TERM_TBL< 3, 56 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {027}[c
+   TERM_TBL< 1, 57 > = '[?62;2c'                             ; TERM_TBL< 2, 57 > = 'vt220'     ; TERM_TBL< 3, 57 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {027}{002}I
+   TERM_TBL< 1, 58 > = '{027}[?62;2c'                        ; TERM_TBL< 2, 58 > = 'vt220'     ; TERM_TBL< 3, 58 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {027}Z
+   TERM_TBL< 1, 59 > = '[?62;2c{027}[?62;2c'                 ; TERM_TBL< 2, 59 > = 'vt220'     ; TERM_TBL< 3, 59 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {027}[0c
+   TERM_TBL< 1, 60 > = '[?62;2cvt220'                        ; TERM_TBL< 2, 60 > = 'vt220'     ; TERM_TBL< 3, 60 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {005}
+   TERM_TBL< 1, 61 > = '{155}>41;7;1c'                       ; TERM_TBL< 2, 61 > = 'vt220'     ; TERM_TBL< 3, 61 > = 'VT3' ;! Win AccuTerm          vt320 8-bit         {027}[>c
+   TERM_TBL< 1, 62 > = '{155}?63;1;2;6;8c'                   ; TERM_TBL< 2, 62 > = 'vt220'     ; TERM_TBL< 3, 62 > = 'VT3' ;! Win AccuTerm          vt320 8-bit         {027}[0c, {027}[c
+   TERM_TBL< 1, 63 > = 'v{027}[>1;10;0c'                     ; TERM_TBL< 2, 63 > = 'vt220'     ; TERM_TBL< 3, 63 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {027}[>c
+   TERM_TBL< 1, 64 > = 'v{027}[?62;2c'                       ; TERM_TBL< 2, 64 > = 'vt220'     ; TERM_TBL< 3, 64 > = 'CUQ' ;! Win Co*Star           vt220 8-bit         {027}[0c, {027}[c
 
    FOR QSTN_NUM = 1 TO QSTN_MAX
 

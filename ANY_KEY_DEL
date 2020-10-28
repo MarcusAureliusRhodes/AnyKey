@@ -1,0 +1,105 @@
+PROGRAM ANY_KEY_DEL
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 05/26/2020 09:56:01 by Marcus
+
+! Platform: Any Pick; Any OS; Any emulator; Any emulation
+
+! Function: Removes keyboard codes from the ANY_KEYS.
+
+! (Options: N/A
+
+! Syntax  : ANY_KEY_DEL KBD[ KBD[ KBD[ KBD]]] ...
+
+! Examples: ANY_KEY_DEL ANS
+
+!           ANY_KEY_DEL TTY VTX PTY
+
+! Upcoming: Change is the only constant. -- Heraclitus
+
+! Old name: EMV_KEY_DEL
+
+! New name: ANY_KEY_DEL
+
+! Catalog : ANY_KEY_DEL
+
+   EQU IDENTITY TO 'ANY_KEY_DEL'
+
+!  INCLUDE EMV_KEY_EQU
+
+   FILENAME  = 'ANY_KEYS'
+   KYBD_LST  = TRIM( @SENTENCE )
+   TEMP_LST  = CHANGE( KYBD_LST, ' ', @AM )
+
+   OPEN FILENAME TO KEY_FILE THEN
+
+      LOCATE IDENTITY IN TEMP_LST SETTING POSITION THEN
+
+         KYBD_LST  =  OCONV( KYBD_LST, 'G' : POSITION : ' 99' )
+         KYBD_LST  = CHANGE( KYBD_LST, ' ', @AM )
+         KYBD_MAX  = DCOUNT( KYBD_LST, @AM )
+
+         SELECT KEY_FILE
+
+         LOOP
+
+            READNEXT CODE_STR THEN
+
+               READU KEY_ITEM FROM KEY_FILE, CODE_STR THEN
+
+                  MODIFIED  = @FALSE
+
+                  FOR KYBD_IDX = 1 TO KYBD_MAX
+
+                     KEYBOARD  = KYBD_LST< KYBD_IDX >
+
+                     LOCATE KEYBOARD IN KEY_ITEM< 2 > SETTING VALU_NUM THEN
+
+                        DEL KEY_ITEM< 1, VALU_NUM >
+                        DEL KEY_ITEM< 2, VALU_NUM >
+                        DEL KEY_ITEM< 3, VALU_NUM >
+
+                        MODIFIED  = @TRUE
+
+                     END
+
+                  NEXT KYBD_IDX
+
+                  IF MODIFIED THEN
+
+                     WRITE KEY_ITEM ON KEY_FILE, CODE_STR
+
+                  END ELSE
+
+                     RELEASE KEY_FILE, CODE_STR
+
+                  END
+
+               END ELSE
+
+                  RELEASE KEY_FILE, CODE_STR
+
+               END
+
+            END ELSE
+
+               EXIT
+
+            END
+
+         REPEAT
+
+      END
+
+   END ELSE
+
+      CRT 'Couldn`t open ' : FILENAME : '!'
+
+   END
+
+STOP

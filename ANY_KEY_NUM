@@ -1,0 +1,194 @@
+PROGRAM ANY_KEY_NUM
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 05/13/2020 12:41:00 by Marcus
+
+! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
+
+! Function: Properly renumbers ANY_KEY_EQU and ANY_KEY_TBL  for  you.  To
+!           be used when you've made changes to either of those  programs
+!           so you don't have  to  manually  (and  probably  erroneously)
+!           correct the numbering and/or character sequences.
+
+! Examples: ANY_KEY_NUM
+
+! Upcoming: Update ANY_KEY_GET_TST, too.
+
+! Old name: N/A
+
+! New name: N/A
+
+! Catalog : ANY_KEY_NUM
+
+   EQU IDENTITY TO 'ANY_KEY_NUM'
+
+   OPEN 'EMV,DEV' TO PROGRAMS THEN
+
+      READU THE_PROG FROM PROGRAMS, 'ANY_KEY_EQU' THEN
+
+         GOSUB FIX.EQU.CODE
+
+         WRITE THE_PROG ON PROGRAMS, 'ANY_KEY_EQU'
+      END
+
+      READU THE_PROG FROM PROGRAMS, 'ANY_KEY_TBL' THEN
+
+         GOSUB FIX.BLD.CODE
+
+         WRITE THE_PROG ON PROGRAMS, 'ANY_KEY_TBL'
+
+      END
+
+   END
+
+STOP
+
+FIX.EQU.CODE:
+
+   PROMPT ''
+
+   CHAR_ONE  = 1
+   CHAR_STR  = '!"#$%&()*+:<>?@^_{|}~'
+   CHAR_TWO  = 0
+   KEY_DEFS  = 0
+   CHAR_LEN  = LEN( CHAR_STR )
+   LINE_MAX  = DCOUNT( THE_PROG, @AM )
+
+   FOR LINE_NUM = 1 TO LINE_MAX
+
+      THE_LINE  = TRIM( THE_PROG< LINE_NUM > )
+
+      BEGIN CASE
+
+         CASE THE_LINE[ 1, 9 ] EQ 'EQU KPCA_' ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 9 ] EQ 'EQU KPSC_' ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 9 ] EQ 'EQU KSCA_' ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 8 ] EQ 'EQU KCA_'  ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 8 ] EQ 'EQU KPA_'  ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 8 ] EQ 'EQU KPC_'  ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 8 ] EQ 'EQU KPS_'  ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 8 ] EQ 'EQU KSA_'  ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 8 ] EQ 'EQU KSC_'  ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 7 ] EQ 'EQU KA_'   ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 7 ] EQ 'EQU KC_'   ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 7 ] EQ 'EQU KM_'   ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 7 ] EQ 'EQU KP_'   ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 7 ] EQ 'EQU KS_'   ; GOSUB BUILD.NEW.KEY
+         CASE THE_LINE[ 1, 6 ] EQ 'EQU K_'    ; GOSUB BUILD.NEW.KEY
+
+      END CASE
+
+   NEXT LINE_NUM
+
+RETURN
+
+BUILD.NEW.KEY:
+
+   KEY_DEFS += 1
+   CHAR_TWO += 1
+
+   IF CHAR_TWO EQ CHAR_ONE THEN
+
+      CHAR_TWO += 1
+
+   END
+
+   IF CHAR_TWO GT CHAR_LEN THEN
+
+      CHAR_TWO  = 1
+      CHAR_ONE += 1
+
+   END
+
+   IF CHAR_ONE GT CHAR_LEN THEN
+
+      CRT KEY_DEFS : ' is too many keys to define with ' : CHAR_LEN : ' characters!'
+
+      STOP
+
+   END
+
+   THE_LINE  = THE_PROG< LINE_NUM >
+   THE_LINE  = FIELD( THE_LINE, "'", 1 ) : "'" : CHAR_STR[ CHAR_ONE, 1 ] : CHAR_STR[ CHAR_TWO, 1 ] : "'" : FIELD( THE_LINE, "'", 3 )
+
+   THE_PROG< LINE_NUM > = THE_LINE
+
+RETURN
+
+FIX.BLD.CODE:
+
+   VALU_PFX  = SPACE( 50 ) : 'NEW_KEYS< '
+   LINE_IDX  = 1
+   LINE_MAX  = DCOUNT( THE_PROG, @AM )
+   VALU_IDX  = 1
+
+   FOR LINE_NUM = 1 TO LINE_MAX
+
+      THE_LINE  = THE_PROG< LINE_NUM >
+
+      IF THE_LINE[ 1, 13 ] EQ '   OLD_KEYS< ' THEN
+
+         OLD_KEYS  = TRIM( FIELD( THE_LINE, ';', 1 ), ' ', 'B' )
+         NEW_KEYS  = TRIM( FIELD( THE_LINE, ';', 2 ), ' ', 'B' )
+         KEYBOARD  = TRIM( FIELD( THE_LINE, ';', 3 ), ' ', 'B' )
+         COMMENTS  = TRIM( FIELD( THE_LINE, ';', 4 ), ' ', 'B' )
+         LINE_IDX += 1
+         VALU_IDX  = 1
+         OLD_KEYS  = 'OLD_KEYS< ' : LINE_IDX 'R#3 >'     : FIELD( OLD_KEYS, '>', 2 )
+         NEW_KEYS  = 'NEW_KEYS< ' : LINE_IDX 'R#3     >' : FIELD( NEW_KEYS, '>', 2 )
+
+         IF KEYBOARD[ 1, 3 ] EQ '! ^' OR KEYBOARD[ 1, 3 ] EQ '! {' THEN
+
+            THE_LINE  = '   ' : OLD_KEYS 'L#44 ; ' : NEW_KEYS 'L#65 ;' : KEYBOARD
+
+         END ELSE
+
+            KEYBOARD  = 'KEYBOARD< ' : LINE_IDX 'R#3     >' : FIELD( KEYBOARD, '>', 2 )
+            THE_LINE  = '   ' : OLD_KEYS 'L#44 ; ' : NEW_KEYS 'L#35 ; ' : KEYBOARD 'L#27 ;' : COMMENTS
+
+         END
+
+         THE_PROG< LINE_NUM > = TRIM( THE_LINE, ' ', 'T' )
+
+      END
+
+      IF THE_LINE[ 1, 60 ] EQ VALU_PFX THEN
+
+         OLD_KEYS  = SPACE( 50 )
+         NEW_KEYS  = TRIM( FIELD( THE_LINE, ';', 1 ), ' ', 'B' )
+         KEYBOARD  = TRIM( FIELD( THE_LINE, ';', 2 ), ' ', 'B' )
+         COMMENTS  = TRIM( FIELD( THE_LINE, ';', 3 ), ' ', 'B' )
+         VALU_IDX += 1
+         NEW_KEYS  = 'NEW_KEYS< ' : LINE_IDX 'R#3, ' : VALU_IDX 'R#2 >' : FIELD( NEW_KEYS, '>', 2 ) 'L#16'
+
+         IF KEYBOARD[ 1, 9 ] EQ 'KEYBOARD<' THEN
+
+            KEYBOARD  = ' ; KEYBOARD< ' : LINE_IDX 'R#3, ' : VALU_IDX 'R#2 >' : FIELD( KEYBOARD, '>', 2 )
+            COMMENTS  = ''
+
+         END ELSE
+
+            COMMENTS  = KEYBOARD
+            KEYBOARD  = SPACE( 30 )
+
+         END
+
+         IF COMMENTS EQ '' ELSE
+
+            COMMENTS  = ' ;' : COMMENTS
+
+         END
+
+         THE_LINE  = TRIM( OLD_KEYS : NEW_KEYS : KEYBOARD : COMMENTS, ' ', 'T' )
+
+         THE_PROG< LINE_NUM > = THE_LINE
+
+      END
+
+   NEXT LINE_NUM
+
+RETURN

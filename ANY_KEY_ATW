@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY_ATW
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 06/30/2020 20:57:42 by Marcus
+! Modified: 09/17/2020 13:50:43 by Marcus
 
 ! Platform: Any Pick; Any OS; AccuTerm; Any emulation
 
@@ -50,6 +50,16 @@ SUBROUTINE ANY_KEY_ATW
 !           gramming it makes it useful.)
 
 !           Done 06/30/2020 20:57 by Marcus
+
+!           AccuTerm 8.x uses a new  scheme  for  storing  settings  that
+!           appears to conflict with key programming.  I'm seeing strange
+!           characters in the keyboard programming dialog.  Still  trying
+!           to find a work-around.  Maybe check the  current  programming
+!           to see if it makes sense, and, if it  doesn't  overwrite  the
+!           key?  What's up, Zumasys?
+
+!           Page Down seems to be doing whatever it wants instead of what
+!           I told it.  Still researching...
 
 !           Change is the only constant. -- Heraclitus
 
@@ -556,16 +566,17 @@ FETCH.OLD.DEFINITIONS:
       ! that Shift+Up instead of  just  Up,  it's  pretty  unlikely,  and
       ! completely unnecessary.  Fortunately, AccuTerm reports  its  keys
       ! in numerical order, which corresponds  roughly  to  level  order.
-      ! That means that the  VBA  code  up  above  will  send  the  code-
+      ! That means that the  VBA  code  (above)  will  return  the  code-
       ! sequences for Backspace, then for Shift+Backspace, and  then  for
       ! Shift+Ctrl+Backspace, etc.  And  we  can  use  that  behavior  to
       ! preserve  the  native  programming  of  the  simpler  keys  while
       ! clearing out  any  duplicates  among  the  more  complicated  key
-      ! combinations so we can use them for our own purposes.  So  that's
-      ! what you see here: We're having AccuTerm report its existing  key
+      ! combinations, so we can use them for our own purposes.  So that's
+      ! what you see here:  We're having AccuTerm report its existing key
       ! programming, which it does in order, and we're checking for,  and
-      ! omitting any duplictates of lower-order keys that we  find  among
-      ! the higher-order keys.
+      ! removing any duplictates of lower-order keys that we  find  among
+      ! the higher-order keys so that the higher order keys will then  be
+      ! available for reprogramming.
 
       GOSUB FETCH.KEY.CODES
 
@@ -635,8 +646,8 @@ RETURN
 
 LEAVE.OUR.BREADCRUMBS:
 
-   ! Assign IDENTITY to the 'unusable key'  so we  don't  keep  repeating
-   ! this.
+   ! Assign IDENTITY to the 'unusable key' so we don't keep repeating all
+   ! these steps.
 
    VBA_CODE  = ESC : STX : 'P'
    VBA_CODE := 'dim s as accutermclasses.session' : EM

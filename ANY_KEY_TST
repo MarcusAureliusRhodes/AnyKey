@@ -5,7 +5,7 @@ PROGRAM ANY_KEY_TST
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 09/15/2020 11:06:09 by Marcus
+! Modified: 09/17/2020 12:04:10 by Marcus
 
 ! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
 
@@ -25,7 +25,7 @@ PROGRAM ANY_KEY_TST
 
 ! New name: ANY_KEY_TST
 
-! Catalog : ANY_KEY_NUM
+! Catalog : ANY_KEY_TST
 
    EQU IDENTITY TO 'ANY_KEY_TST'
 
@@ -163,7 +163,8 @@ PROGRAM ANY_KEY_TST
          CASE META_KEY EQ KA_RIGHT       ; CRT 'Alt+Right'
          CASE META_KEY EQ KA_RPAREN      ; CRT 'Alt+)'
          CASE META_KEY EQ KA_S           ; CRT 'Alt+S'
-         CASE META_KEY EQ KA_SEMICOLON   ; CRT 'Alt+;'
+         CASE META_KEY EQ KA_COLON       ; CRT 'Alt+:'
+         CASE META_KEY EQ KA_SCOLON      ; CRT 'Alt+;'
          CASE META_KEY EQ KA_SLASH       ; CRT 'Alt+/'
          CASE META_KEY EQ KA_SPACE       ; CRT 'Alt+Space'
          CASE META_KEY EQ KA_SQUOTE      ; CRT "Alt+'"

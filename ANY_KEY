@@ -27,6 +27,12 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
 ! Examples: INCLUDE ANY_KEY_EQU
 
+!           LOOP
+
+!              CALL ANY_KEY( TEXT_KEY, META_KEY )
+
+!              BEGIN CASE
+
 !                 CASE META_KEY EQ KC_HOME     ; GOSUB JUMP.TO.TOP
 !                 CASE META_KEY EQ KC_END      ; GOSUB JUMP.TO.END
 !                 CASE META_KEY EQ K_PAGE_UP   ; GOSUB PAGE.UP
@@ -67,6 +73,12 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 !           INPUTIF doesn't return ^H/Backspace, at least not on the  AIX
 !           installation currently available to me, so  that leaves  only
 !           KEYIN() and SYSTEM(14) to work with.
+
+! Upcoming: Improve/correct 2nd mouse-click detection.  This is going  to
+!           require solving the UV problem of  lacking  a  timeout.  Why?
+!           Because, if the input won't timeout, then  we  could  end  up
+!           stopping everything, waiting for a 2nd click that  may  never
+!           come, frustrating the user.
 
 !           Change is the only constant. -- Heraclitus
 
@@ -754,4 +766,3 @@ FETCH.COORDINATE:
    REPEAT
 
 RETURN
-

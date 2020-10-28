@@ -1,0 +1,696 @@
+PROGRAM ANY_KEY_BLD
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 10/25/2020 23:16:02 by Marcus
+
+! Platform: Any Pick; Any OS; Any emulator; Any emulation
+
+! Function: Updates the ANY_KEYS file from the ANY_KEY_TBL  program,  and
+!           then builds  a  new  ANY_KEY_TBL  program  from  the  updated
+!           ANY_KEYS file.
+
+! Params__ IO Typ Description____________________________________________
+! N/A
+
+! Syntax  : CALL ANY_KEY_BLD ;! No parameters!
+
+! Examples: CALL ANY_KEY_BLD
+
+! Upcoming: First, update the ANY_KEYS file from the current  ANY_KEY_TBL
+!           program in case the program has been updated,  but  the  file
+!           hasn't.
+
+!           In progress since 10/24/2020 18:12:01 by Marcus
+
+! Upcoming: Redesign the arrays and ANY_KEYS file into 3D arrays:
+
+!           ANY_KEYS<1>=...  ;ANY_KEYS<2>=...     ;ANY_KEYS<3>=...
+!           ----------------- -------------------- ----------------------
+!           OLD_KEYS<2>='001';NEW_KEYS<2,1>=K_HOME;KEYBOARD<2,1, 1>='MDS'
+!                                                  KEYBOARD<2,1, 2>='PV6'
+!                                                  KEYBOARD<2,1, 3>='VP6'
+!                                                  KEYBOARD<2,1, 4>='VPT'
+!                             NEW_KEYS<2,2>=KC_A  ;KEYBOARD<2,2, 1>='ANS'
+!                                                  KEYBOARD<2,2, 2>='BBS'
+!                                                  KEYBOARD<2,2, 3>='GTM'
+!                                                  KEYBOARD<2,2, 4>='LNX'
+!                                                  KEYBOARD<2,2, 5>='LVT'
+!                                                  KEYBOARD<2,2, 6>='NTC'
+!                                                  KEYBOARD<2,2, 7>='PCK'
+!                                                  KEYBOARD<2,2, 8>='PTY'
+!                                                  KEYBOARD<2,2, 9>='SCO'
+!                                                  KEYBOARD<2,2,10>='TTY'
+!                                                  KEYBOARD<2,2,11>='VT0'
+!                                                  KEYBOARD<2,2,12>='VT1'
+!                                                  KEYBOARD<2,2,13>='VT2'
+!                                                  KEYBOARD<2,2,14>='VT3'
+!                                                  KEYBOARD<2,2,15>='VT4'
+!                                                  KEYBOARD<2,2,16>='WYS'
+!                                                  KEYBOARD<2,2,17>='XTM'
+
+!           RAISE, LOWER, @TM will be needed.  Will they work?
+
+! Upcoming: Change is the only constant. -- Heraclitus
+
+! Old name: N/A
+
+! New name: N/A
+
+! Catalog : ANY_KEY_BLD
+
+   EQU IDENTITY TO 'ANY_KEY_BLD'
+
+   INCLUDE ANY_KEY_EQU
+
+   IF IDENTITY THEN GOSUB START.OUR.VARS
+   IF ALLSWELL THEN GOSUB BUILD.EQU.TABLE
+   IF ALLSWELL THEN GOSUB PARSE.KEY.TABLE
+   IF ALLSWELL THEN GOSUB PARSE.KEY.FILE
+
+STOP
+
+START.OUR.VARS:
+
+   PRG_FILE  = 'EMV,DEV'  ;! Need to detect file run from.
+   KEY_FILE  = 'ANY_KEYS'
+   ALLSWELL  = @TRUE
+
+   FILENAME  = KEY_FILE ; GOSUB FETCH.ITS.FVAR ; KEY_FVAR  = ITS_FVAR
+   FILENAME  = PRG_FILE ; GOSUB FETCH.ITS.FVAR ; PRG_FVAR  = ITS_FVAR
+
+RETURN
+
+FETCH.ITS.FVAR:
+
+   IF ALLSWELL THEN
+
+      OPEN FILENAME TO ITS_FVAR ELSE
+
+         CRT 'Couldn`t open ' : FILENAME : '!  (Press any key to continue.)' :
+
+         INPUT WHATEVER, 1
+
+         ALLSWELL  = @FALSE
+
+      END
+
+   END
+
+RETURN
+
+BUILD.EQU.TABLE:
+
+   ! The first thing we need is a table to correlate  our  keys'  equated
+   ! names to their equated values.  To do this, we read in  ANY_KEY_EQU,
+   ! and build a multi-value table from it.
+
+   READ EQU_CODE FROM PRG_FVAR, 'ANY_KEY_EQU' THEN
+
+      EQUS_TBL  = ''
+      LINE_MAX  = DCOUNT( EQU_CODE, @AM )
+
+      FOR LINE_IDX = 1 TO LINE_MAX
+
+         THE_LINE  = EQU_CODE< LINE_IDX >
+
+         IF TRIM( THE_LINE[ 1, 7 ] ) EQ 'EQU' THEN
+
+            EQU_NAME  = TRIM( THE_LINE[  8, 14 ] )
+            EQU_TEXT  = TRIM( THE_LINE[ 27,  2 ] )
+            KEY_DESC  = TRIM( THE_LINE[ 34, 99 ] )
+
+            LOCATE EQU_NAME IN EQUS_TBL< 1 > BY 'AL' SETTING VALU_NUM ELSE
+
+               EQUS_TBL  = INSERT( EQUS_TBL, 1, VALU_NUM; EQU_NAME )
+               EQUS_TBL  = INSERT( EQUS_TBL, 2, VALU_NUM; EQU_TEXT )
+               EQUS_TBL  = INSERT( EQUS_TBL, 3, VALU_NUM; KEY_DESC )
+
+            END
+
+         END
+
+      NEXT LINE_IDX
+
+      IF DCOUNT( EQUS_TBL< 1 >, @VM ) LT 30 THEN
+
+         CRT 'Something`s wrong with ' : PRG_FILE : ', ANY_KEY_EQU!  (Press any key to continue.)' :
+
+         INPUT WHATEVER, 1
+
+         ALLSWELL  = @FALSE
+
+      END
+
+   END ELSE
+
+      CRT 'Couldn`t read ' : PRG_FILE : ', ANY_KEY_EQU!  (Press any key to continue.)' :
+
+      INPUT WHATEVER, 1
+
+      ALLSWELL  = @FALSE
+
+   END
+
+RETURN
+
+PARSE.KEY.TABLE:
+
+   ! Now we update ANY_KEYS from ANY_KEY_TBL in case  anyone's  made  any
+   ! changes to it, because ANY_KEY_TBL is the  final  authority  in  the
+   ! matter.
+
+   KEY_ITEM  = ''
+
+   READ TBL_PROG FROM PRG_FVAR, 'ANY_KEY_TBL' THEN
+
+      LINE_MAX  = DCOUNT( TBL_PROG, @AM )
+
+      FOR LINE_IDX = 1 TO LINE_MAX
+
+         THE_LINE  = TBL_PROG< LINE_IDX >
+
+         KEY_OPEN  =        TRIM( THE_LINE[   1, 11 ] ) EQ 'OLD_KEYS'
+         INT_CODE  = FIELD( TRIM( THE_LINE[  23, 24 ] ), "'", 1 )
+         KEY_LINE  =        TRIM( THE_LINE[  51,  8 ] ) EQ 'NEW_KEYS'
+         EQU_NAME  =        TRIM( THE_LINE[  73, 13 ] )
+         KEYBOARD  =        TRIM( THE_LINE[ 112,  3 ] )
+         EXT_CODE  =        TRIM( THE_LINE[ 120, 24 ] )
+         ATW_KNUM  =        TRIM( THE_LINE[ 145,  4 ] )
+         KEYB_LST  =        TRIM( THE_LINE[ 150, 99 ] )
+
+         IF KEYBOARD EQ '' THEN
+
+            KEYBOARD  = '~~~' ;! catch-all/default
+
+         END
+
+         BEGIN CASE
+
+            CASE KEY_OPEN
+
+               IF KEY_ITEM NE '' THEN
+
+                  WRITE KEY_ITEM ON KEY_FVAR, PRV_CODE
+
+               END
+
+               PRV_CODE  = INT_CODE
+
+               READU KEY_ITEM FROM KEY_FVAR, INT_CODE THEN
+
+!                 IF KEY_ITEM< 2, 1 > EQ '' THEN
+
+!                    KEY_ITEM< 2, 1 > = '~~~'
+
+!                    IF KEY_ITEM< 2, 2 > NE '' THEN
+
+!                       VALU_MAX  = DCOUNT( KEY_ITEM< 1 >, @VM ) + 1
+
+!                       KEY_ITEM< 1, VALU_MAX > = KEY_ITEM< 1, 1 > ; DEL KEY_ITEM< 1, 1 >
+!                       KEY_ITEM< 2, VALU_MAX > = KEY_ITEM< 2, 1 > ; DEL KEY_ITEM< 2, 1 >
+!                       KEY_ITEM< 3, VALU_MAX > = KEY_ITEM< 3, 1 > ; DEL KEY_ITEM< 3, 1 >
+!                       KEY_ITEM< 4, VALU_MAX > = KEY_ITEM< 4, 1 > ; DEL KEY_ITEM< 4, 1 >
+
+!                    END
+
+!                 END
+
+                  GOSUB UDATE.KEY.ITEM
+
+               END ELSE
+
+                  GOSUB FETCH.ANY.CODE
+
+                  KEY_ITEM      = EQU_TEXT
+                  KEY_ITEM< 2 > = KEYBOARD
+                  KEY_ITEM< 3 > = EQU_NAME
+                  KEY_ITEM< 4 > = ATW_KNUM
+                  KEY_ITEM< 5 > = EXT_CODE
+
+               END
+
+            CASE KEY_LINE
+
+               GOSUB UDATE.KEY.ITEM
+
+         END CASE
+
+      NEXT LINE_IDX
+
+      IF KEY_ITEM NE '' THEN
+
+         WRITE KEY_ITEM ON KEY_FVAR, PRV_CODE
+
+      END
+
+   END ELSE
+
+      CRT 'Couldn`t read ' : PRG_FILE : ', ANY_KEY_TBL!  (Press any key to continue.)' :
+
+      INPUT WHATEVER, 1
+
+      ALLSWELL  = @FALSE
+
+   END
+
+RETURN
+
+UDATE.KEY.ITEM:
+
+   GOSUB FETCH.ANY.CODE
+
+   LOCATE KEYBOARD IN KEY_ITEM< 2 > BY 'AL' SETTING VALU_NUM THEN
+
+      KEY_ITEM< 1, VALU_NUM > = EQU_TEXT
+      KEY_ITEM< 2, VALU_NUM > = KEYBOARD
+      KEY_ITEM< 3, VALU_NUM > = EQU_NAME
+      KEY_ITEM< 4, VALU_NUM > = ATW_KNUM
+
+   END ELSE
+
+      KEY_ITEM  = INSERT( KEY_ITEM, 1, VALU_NUM; EQU_TEXT )
+      KEY_ITEM  = INSERT( KEY_ITEM, 2, VALU_NUM; KEYBOARD )
+      KEY_ITEM  = INSERT( KEY_ITEM, 3, VALU_NUM; EQU_NAME )
+      KEY_ITEM  = INSERT( KEY_ITEM, 4, VALU_NUM; ATW_KNUM )
+
+   END
+
+   IF EXT_CODE NE '' THEN
+
+      KEY_ITEM< 5 > = EXT_CODE
+
+   END
+
+RETURN
+
+FETCH.ANY.CODE:
+
+   LOCATE EQU_NAME IN EQUS_TBL< 1 > BY 'AL' SETTING VALU_NUM THEN
+
+      EQU_TEXT  = EQUS_TBL< 2, VALU_NUM >
+      KEY_DESC  = EQUS_TBL< 3, VALU_NUM >
+
+      IF ATW_KNUM EQ '' THEN
+
+         ATW_KNUM  = EQUS_TBL< 4, VALU_NUM >
+
+      END ELSE
+
+         EQUS_TBL< 4, VALU_NUM > = ATW_KNUM
+
+      END
+
+   END ELSE
+
+      EQU_TEXT  = '??'
+      KEY_DESC  = 'Unknown key(s)!'
+
+   END
+
+
+RETURN
+
+PARSE.KEY.FILE:
+
+   CODE_ATR  = 0
+
+   EXECUTE 'SSELECT ' : KEY_FILE
+
+   LOOP
+
+      READNEXT INT_CODE THEN
+
+         READ OLD_ITEM FROM KEY_FVAR, INT_CODE THEN
+
+            GOSUB PARSE.KEY.ITEM
+
+         END
+
+      END ELSE
+
+         EXIT
+
+      END
+
+   REPEAT
+
+RETURN
+
+PARSE.KEY.ITEM:
+
+!  OLD_ITEM  = CHANGE( OLD_ITEM, '~~~', '' )
+   CHAR_NUM  = TRIM( INT_CODE, '0', 'L' )
+   CODE_MAX  = DCOUNT( OLD_ITEM< 1 >, @VM )
+   CODE_LEN  = LEN( INT_CODE )
+   CODE_ATR += 1
+
+   IF OLD_ITEM< 2, CODE_MAX > EQ '~~~' THEN
+
+      DEL OLD_ITEM< 2, CODE_MAX >
+
+      EQU_TEXT  = OLD_ITEM< 1, CODE_MAX >
+      KEYBOARD  = OLD_ITEM< 2, CODE_MAX >
+      EQU_NAME  = OLD_ITEM< 3, CODE_MAX >
+      ATW_KNUM  = OLD_ITEM< 4, CODE_MAX >
+      EXT_CODE  = OLD_ITEM< 5,     1    >
+
+      PENULTMT  = CODE_MAX - 1
+
+      FOR VALU_NUM = PENULTMT TO 1 STEP -1
+
+         IF OLD_ITEM< 3, VALU_NUM > EQ EQU_NAME THEN
+
+            DEL OLD_ITEM< 1, VALU_NUM >
+            DEL OLD_ITEM< 2, VALU_NUM >
+            DEL OLD_ITEM< 3, VALU_NUM >
+            DEL OLD_ITEM< 4, VALU_NUM >
+
+            CODE_MAX -= 1
+
+         END
+
+      NEXT VALU_NUM
+
+      NEW_ITEM  = OLD_ITEM
+
+      GOSUB PAINT.THE.LINES
+
+   END ELSE
+
+      IF CODE_LEN EQ 3 AND CHAR_NUM LT 32 THEN
+
+         GOSUB SETUP.CTL.KEY
+
+      END ELSE
+
+         GOSUB SETUP.NRM.KEY
+
+      END
+
+   END
+
+RETURN
+
+SETUP.CTL.KEY:
+
+   ! Move any/all  simple,  Ctrl+key  definitions  to  the  final/default
+   ! position of the key's list of definitions, but without any keyboard,
+   ! which is what makes it the default.
+
+   ! ANY_KEYS................   1.   2..   3............
+   ! 001                        (&   ANS   KC_A    <<< This,
+   !                            (&   BBS   KC_A    <<< this,
+   !                            (&   GTM   KC_A    <<< this,
+   !                            (&   LNX   KC_A    <<< this,
+   !                            (&   LVT   KC_A    <<< this,
+   !                            !}   MDS   K_HOME
+   !                            (&   NTC   KC_A    <<< this,
+   !                            (&   PCK   KC_A    <<< this,
+   !                            (&   PTY   KC_A    <<< this,
+   !                            !}   PV6   K_HOME
+   !                            (&   SCO   KC_A    <<< this,
+   !                            (&   TTY   KC_A    <<< this,
+   !                            !}   VP6   K_HOME
+   !                            !)   VPT   K_F01
+   !                            (&   VT0   KC_A    <<< this,
+   !                            (&   VT1   KC_A    <<< this,
+   !                            (&   VT2   KC_A    <<< this,
+   !                            (&   VT3   KC_A    <<< this,
+   !                            (&   VT4   KC_A    <<< this,
+   !                            (&   WYS   KC_A    <<< this,
+   !                            (&   XTM   KC_A    <<< and this, ...
+
+   ! ...
+
+   ! ANY_KEYS................   3............ 2..
+   ! 001                        K_HOME        MDS
+   !                            K_HOME        PV6
+   !                            K_HOME        VP6
+   !                            K_F01         VPT
+   !                            KC_A          <<<<<<<< ... are all combined here.
+
+   ! ... and gets portrayed in ANY_KEY_TBL like this:
+
+   !   OLD_KEYS<   2 > = '001'                      ; NEW_KEYS<   2     > = K_HOME        ; KEYBOARD<   2     > = 'MDS' ;! ^A
+   !                                                  NEW_KEYS<   2,  2 > = K_HOME        ; KEYBOARD<   2,  2 > = 'PV6'
+   !                                                  NEW_KEYS<   2,  3 > = K_HOME        ; KEYBOARD<   2,  3 > = 'VP6'
+   !                                                  NEW_KEYS<   2,  4 > = K_F01         ; KEYBOARD<   2,  4 > = 'VPT'
+   !                                                  NEW_KEYS<   2,  5 > = KC_A
+
+   IF OLD_ITEM< 2, CODE_MAX > EQ '~~~' THEN
+
+      DEL OLD_ITEM< 2, CODE_MAX >
+
+      EQU_TEXT  = OLD_ITEM< 1, CODE_MAX >
+      KEYBOARD  = OLD_ITEM< 2, CODE_MAX >
+      EQU_NAME  = OLD_ITEM< 3, CODE_MAX >
+      ATW_KNUM  = OLD_ITEM< 4, CODE_MAX >
+      EXT_CODE  = OLD_ITEM< 5,     1    >
+
+      PENULTMT  = CODE_MAX - 1
+
+      FOR VALU_NUM = PENULTMT TO 1 STEP -1
+
+         IF OLD_ITEM< 3, VALU_NUM > EQ EQU_NAME THEN
+
+            DEL OLD_ITEM< 1, VALU_NUM >
+            DEL OLD_ITEM< 2, VALU_NUM >
+            DEL OLD_ITEM< 3, VALU_NUM >
+            DEL OLD_ITEM< 4, VALU_NUM >
+
+            CODE_MAX -= 1
+
+         END
+
+      NEXT VALU_NUM
+
+      NEW_ITEM  = OLD_ITEM
+
+   END ELSE
+
+      EQU_NAME  = 'KC_' : CHAR( CHAR_NUM + 64 )
+
+      LOCATE EQU_NAME IN OLD_ITEM< 3 > SETTING WHATEVER THEN
+
+         GOSUB SETUP.THE.KEY
+
+      END ELSE
+
+         GOSUB SETUP.NRM.KEY
+
+      END
+
+   END
+
+   GOSUB PAINT.THE.LINES
+
+RETURN
+
+SETUP.NRM.KEY:
+
+   ! Find the definition most frequently associated with this code, and
+   ! move all instances of it to the last/default definition.
+
+   ! First, tally up the various definitions.
+
+   SORT_LST  = ''
+   SORT_MAX  = 0
+
+   FOR CODE_VAL = 1 TO CODE_MAX
+
+      EQU_NAME  = OLD_ITEM< 3, CODE_VAL >
+
+      LOCATE EQU_NAME IN SORT_LST< 1 > BY 'AL' SETTING SORT_VAL THEN
+
+         SORT_LST< 2, SORT_VAL > = SORT_LST< 2, SORT_VAL > + 1
+
+      END ELSE
+
+         SORT_LST  = INSERT( SORT_LST, 1, SORT_VAL; EQU_NAME )
+         SORT_LST  = INSERT( SORT_LST, 2, SORT_VAL;     1    )
+         SORT_MAX += 1
+
+      END
+
+   NEXT CODE_VAL
+
+   ! Find the most frequently used definition.
+
+   HIGH_VAL  = 1
+   HIGH_QTY  = SORT_LST< 2, HIGH_VAL >
+
+   FOR SORT_VAL = 2 TO SORT_MAX
+
+      SORT_QTY  = SORT_LST< 2, SORT_VAL >
+
+      IF SORT_QTY GT HIGH_QTY THEN
+
+         HIGH_QTY  = SORT_QTY
+         HIGH_VAL  = SORT_VAL
+
+      END
+
+   NEXT SORT_VAL
+
+   EQU_NAME  = SORT_LST< 1, HIGH_VAL >
+
+   GOSUB SETUP.THE.KEY
+
+RETURN
+
+SETUP.THE.KEY:
+
+   ! Move all instances of the most frequently assigned key to the final/
+   ! default position.
+
+   EQU_TEXT  = ''
+   KEYB_LST  = ''
+   NEW_ITEM  = OLD_ITEM
+   ATW_KNUM  = ''
+
+   FOR CODE_VAL = CODE_MAX TO 1 STEP -1
+
+      IF NEW_ITEM< 3, CODE_VAL > EQ EQU_NAME THEN
+
+         EQU_TEXT  = NEW_ITEM< 1, CODE_VAL >
+         KEYB_LST  = TRIM( NEW_ITEM< 2, CODE_VAL > : ' ' : KEYB_LST )
+         ATW_KNUM  = NEW_ITEM< 4, CODE_VAL >
+
+         DEL NEW_ITEM< 1, CODE_VAL >
+         DEL NEW_ITEM< 2, CODE_VAL >
+         DEL NEW_ITEM< 3, CODE_VAL >
+         DEL NEW_ITEM< 4, CODE_VAL >
+
+         CODE_MAX -= 1
+
+      END
+
+   NEXT CODE_VAL
+
+   CODE_MAX += 1
+
+   NEW_ITEM< 1, CODE_MAX > = EQU_TEXT
+   NEW_ITEM< 2, CODE_MAX > = KEYBOARD
+   NEW_ITEM< 3, CODE_MAX > = EQU_NAME
+   NEW_ITEM< 4, CODE_MAX > = ATW_KNUM
+
+   GOSUB PAINT.THE.LINES
+
+RETURN
+
+PAINT.THE.LINES:
+
+   FOR CODE_VAL = 1 TO CODE_MAX
+
+      GOSUB PAINT.THE.LINE
+
+   NEXT CODE_VAL
+
+RETURN
+
+PAINT.THE.LINE:
+
+   EQU_TEXT  = NEW_ITEM< 1, CODE_MAX >
+   KEYBOARD  = NEW_ITEM< 2, CODE_VAL >
+   EQU_NAME  = NEW_ITEM< 3, CODE_VAL >
+   ATW_KNUM  = NEW_ITEM< 4, CODE_VAL >
+   EXT_CODE  = NEW_ITEM< 5,     1    >
+
+   BEGIN CASE
+
+      CASE CODE_ATR EQ 1
+
+         !  OLD_KEYS        = '000'                      ; NEW_KEYS            = KC_AT         ; KEYBOARD            = 'BBS' ;! ^@                        3050
+
+         GOSUB BUILD.EXT.CODE
+
+         THE_LINE  = "   OLD_KEYS        = '"
+         THE_LINE := ( INT_CODE : "'" ) "L#25 ; NEW_KEYS            = "
+         THE_LINE :=   EQU_NAME         "L#13 ; KEYBOARD            = '"
+         THE_LINE := ( KEYBOARD : "'" ) "L#4 ;! "
+         THE_LINE :=   EXT_CODE         "L#24 "
+         THE_LINE :=   ATW_KNUM         "R#4"
+         THE_LINE :=   KEYB_LST
+
+      CASE CODE_MAX EQ 1
+
+         GOSUB BUILD.EXT.CODE
+
+         THE_LINE  = '   OLD_KEYS< '
+         THE_LINE :=   CODE_ATR         "R#3 > = '"
+         THE_LINE := ( INT_CODE : "'" ) "L#25 ; NEW_KEYS< "
+         THE_LINE :=   CODE_ATR         "R#3     > = "
+         THE_LINE :=   EQU_NAME         "L#43 ;! "
+         THE_LINE :=   EXT_CODE         "L#24 "
+         THE_LINE :=   ATW_KNUM         "R#4 "
+         THE_LINE :=   KEYB_LST
+
+      CASE CODE_VAL EQ CODE_MAX
+
+         THE_LINE  = "                                                  NEW_KEYS< "
+         THE_LINE :=   CODE_ATR         "R#3, "
+         THE_LINE :=   CODE_VAL         "R#2 > = "
+         THE_LINE :=   EQU_NAME         "L#43 ;!" : SPACE( 26 )
+         THE_LINE :=   ATW_KNUM         "R#4 "
+         THE_LINE :=   KEYBOARD
+
+      CASE CODE_VAL LT 2
+
+         GOSUB BUILD.EXT.CODE
+
+         THE_LINE  = '   OLD_KEYS< '
+         THE_LINE :=   CODE_ATR         "R#3 > = '"
+         THE_LINE := ( INT_CODE : "'" ) "L#25 ; NEW_KEYS< "
+         THE_LINE :=   CODE_ATR         "R#3     > = "
+         THE_LINE :=   EQU_NAME         "L#13 ; KEYBOARD< "
+         THE_LINE :=   CODE_ATR         "R#3     > = '"
+         THE_LINE :=   KEYBOARD : "' ;! "
+         THE_LINE :=   EXT_CODE         "L#24 "
+         THE_LINE :=   ATW_KNUM         "R#4"
+
+      CASE CODE_VAL LT CODE_MAX
+
+         THE_LINE  = "                                                  NEW_KEYS< "
+         THE_LINE :=   CODE_ATR         "R#3, "
+         THE_LINE :=   CODE_VAL         "R#2 > = "
+         THE_LINE :=   EQU_NAME         "L#13 ; KEYBOARD< "
+         THE_LINE :=   CODE_ATR         "R#3, "
+         THE_LINE :=   CODE_VAL         "R#2 > = '"
+         THE_LINE :=   KEYBOARD : "' ;!                          "
+         THE_LINE :=   ATW_KNUM         "R#4 "
+
+   END CASE
+
+   THE_LINE  = CHANGE( THE_LINE, ',  1 > =', '     > =' )
+
+   CRT THE_LINE
+
+RETURN
+
+BUILD.EXT.CODE:
+
+   ! Append the human-readable key-code string as a comment.
+
+   EXT_CODE  = ''
+
+   FOR CHAR_POS = 1 TO CODE_LEN STEP 3
+
+      CHAR_NUM  = TRIM( INT_CODE[ CHAR_POS, 3 ], '0', 'L' )
+
+      BEGIN CASE
+
+         CASE NOT( NUM( CHAR_NUM ) ) ; CRT 'CHAR_NUM = `' : CHAR_NUM : '`!  (Press any key to continue.)' : ; INPUT WHATEVER, 1
+         CASE CHAR_NUM LT  32 ; EXT_CODE := '^' : CHAR( CHAR_NUM + 64 )
+         CASE CHAR_NUM LT 127 ; EXT_CODE :=       CHAR( CHAR_NUM )
+         CASE 1               ; EXT_CODE :=       '{' : CHAR_NUM 'R%3}'
+
+      END CASE
+
+   NEXT CHAR_POS
+
+RETURN

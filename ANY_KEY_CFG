@@ -1,0 +1,795 @@
+PROGRAM ANY_KEY_CFG
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 05/13/2020 12:41:00 by Marcus
+
+! Platform: Any Pick; Any OS; Any emulator; Any emulation
+
+! Function: Prompts the user to press specific  key  combinations,  whose
+
+!           information is then written to ANY_KEYS.
+
+! Params__ IO Typ Description____________________________________________
+! N/A
+
+! Syntax  : ANY_KEY_CFG
+
+! Examples: ANY_KEY_CFG
+
+! Upcoming: Change is the only constant. -- Heraclitus
+
+! Old name: N/A
+
+! Catalog : EMV_KEY_CFG
+
+! New name: N/A
+
+   EQU IDENTITY TO 'ANY_KEY_CFG'
+
+   INCLUDE ANY_KEY_EQU
+
+   IF IDENTITY THEN GOSUB START.OUR.VARS
+   IF ALLSWELL THEN GOSUB MOUNT.THE.FILE
+   IF ALLSWELL THEN GOSUB WRITE.CUR.DEFINITIONS
+   IF ALLSWELL THEN GOSUB CHECK.FOR.RESUME
+   IF ALLSWELL THEN GOSUB PARSE.THE.TABLE
+
+STOP
+
+START.OUR.VARS:
+
+   CALL ANY_KEY_TRM
+
+   ALLSWELL  = @TRUE
+   DASHLINE  = ' ' : STR( '-', 70 )
+   FILENAME  = 'ANY_KEYS'
+   LAST_KEY  = ''
+   RUN_NAME  = @LOGNAME : '_' : KEYB_TYP
+
+
+   ! --------------- Screen prompt --------------- ; ------------- Item-id -------------- ; ------------ EMV-code ------------ ; --------- ATW# ----------
+   KEYS_TBL           = 'Up-arrow'                 ; KEYS_TBL< 2,   1 > = 'K_UP'          ; KEYS_TBL< 3,   1 > = K_UP          ; KEYS_TBL< 4,   1 > =   38
+   KEYS_TBL< 1,   2 > = 'Down-arrow'               ; KEYS_TBL< 2,   2 > = 'K_DOWN'        ; KEYS_TBL< 3,   2 > = K_DOWN        ; KEYS_TBL< 4,   2 > =   40
+   KEYS_TBL< 1,   3 > = 'Right-arrow'              ; KEYS_TBL< 2,   3 > = 'K_RIGHT'       ; KEYS_TBL< 3,   3 > = K_RIGHT       ; KEYS_TBL< 4,   3 > =   39
+   KEYS_TBL< 1,   4 > = 'Left-arrow'               ; KEYS_TBL< 2,   4 > = 'K_LEFT'        ; KEYS_TBL< 3,   4 > = K_LEFT        ; KEYS_TBL< 4,   4 > =   37
+   KEYS_TBL< 1,   5 > = 'Page-up'                  ; KEYS_TBL< 2,   5 > = 'K_PAGE_UP'     ; KEYS_TBL< 3,   5 > = K_PAGE_UP     ; KEYS_TBL< 4,   5 > =   33
+   KEYS_TBL< 1,   6 > = 'Page-down'                ; KEYS_TBL< 2,   6 > = 'K_PAGE_DOWN'   ; KEYS_TBL< 3,   6 > = K_PAGE_DOWN   ; KEYS_TBL< 4,   6 > =   34
+   KEYS_TBL< 1,   7 > = 'Home'                     ; KEYS_TBL< 2,   7 > = 'K_HOME'        ; KEYS_TBL< 3,   7 > = K_HOME        ; KEYS_TBL< 4,   7 > =   36
+   KEYS_TBL< 1,   8 > = 'End'                      ; KEYS_TBL< 2,   8 > = 'K_END'         ; KEYS_TBL< 3,   8 > = K_END         ; KEYS_TBL< 4,   8 > =   35
+   KEYS_TBL< 1,   9 > = 'Insert'                   ; KEYS_TBL< 2,   9 > = 'K_INSERT'      ; KEYS_TBL< 3,   9 > = K_INSERT      ; KEYS_TBL< 4,   9 > =   45
+   KEYS_TBL< 1,  10 > = 'Delete'                   ; KEYS_TBL< 2,  10 > = 'K_DELETE'      ; KEYS_TBL< 3,  10 > = K_DELETE      ; KEYS_TBL< 4,  10 > =   46
+   KEYS_TBL< 1,  11 > = 'Backspace'                ; KEYS_TBL< 2,  11 > = 'K_BACKSPACE'   ; KEYS_TBL< 3,  11 > = K_BACKSPACE   ; KEYS_TBL< 4,  11 > =    8
+   KEYS_TBL< 1,  12 > = 'Tab'                      ; KEYS_TBL< 2,  12 > = 'K_TAB'         ; KEYS_TBL< 3,  12 > = K_TAB         ; KEYS_TBL< 4,  12 > =    9
+   KEYS_TBL< 1,  13 > = 'Esc'                      ; KEYS_TBL< 2,  13 > = 'K_ESCAPE'      ; KEYS_TBL< 3,  13 > = K_ESCAPE      ; KEYS_TBL< 4,  13 > =   27
+   KEYS_TBL< 1,  14 > = 'F1'                       ; KEYS_TBL< 2,  14 > = 'K_F01'         ; KEYS_TBL< 3,  14 > = K_F01         ; KEYS_TBL< 4,  14 > =  112
+   KEYS_TBL< 1,  15 > = 'F2'                       ; KEYS_TBL< 2,  15 > = 'K_F02'         ; KEYS_TBL< 3,  15 > = K_F02         ; KEYS_TBL< 4,  15 > =  113
+   KEYS_TBL< 1,  16 > = 'F3'                       ; KEYS_TBL< 2,  16 > = 'K_F03'         ; KEYS_TBL< 3,  16 > = K_F03         ; KEYS_TBL< 4,  16 > =  114
+   KEYS_TBL< 1,  17 > = 'F4'                       ; KEYS_TBL< 2,  17 > = 'K_F04'         ; KEYS_TBL< 3,  17 > = K_F04         ; KEYS_TBL< 4,  17 > =  115
+   KEYS_TBL< 1,  18 > = 'F5'                       ; KEYS_TBL< 2,  18 > = 'K_F05'         ; KEYS_TBL< 3,  18 > = K_F05         ; KEYS_TBL< 4,  18 > =  116
+   KEYS_TBL< 1,  19 > = 'F6'                       ; KEYS_TBL< 2,  19 > = 'K_F06'         ; KEYS_TBL< 3,  19 > = K_F06         ; KEYS_TBL< 4,  19 > =  117
+   KEYS_TBL< 1,  20 > = 'F7'                       ; KEYS_TBL< 2,  20 > = 'K_F07'         ; KEYS_TBL< 3,  20 > = K_F07         ; KEYS_TBL< 4,  20 > =  118
+   KEYS_TBL< 1,  21 > = 'F8'                       ; KEYS_TBL< 2,  21 > = 'K_F08'         ; KEYS_TBL< 3,  21 > = K_F08         ; KEYS_TBL< 4,  21 > =  119
+   KEYS_TBL< 1,  22 > = 'F9'                       ; KEYS_TBL< 2,  22 > = 'K_F09'         ; KEYS_TBL< 3,  22 > = K_F09         ; KEYS_TBL< 4,  22 > =  120
+   KEYS_TBL< 1,  23 > = 'F10'                      ; KEYS_TBL< 2,  23 > = 'K_F10'         ; KEYS_TBL< 3,  23 > = K_F10         ; KEYS_TBL< 4,  23 > =  121
+   KEYS_TBL< 1,  24 > = 'F11'                      ; KEYS_TBL< 2,  24 > = 'K_F11'         ; KEYS_TBL< 3,  24 > = K_F11         ; KEYS_TBL< 4,  24 > =  122
+   KEYS_TBL< 1,  25 > = 'F12'                      ; KEYS_TBL< 2,  25 > = 'K_F12'         ; KEYS_TBL< 3,  25 > = K_F12         ; KEYS_TBL< 4,  25 > =  123
+   KEYS_TBL< 1,  26 > = 'Shift+Up-arrow'           ; KEYS_TBL< 2,  26 > = 'KS_UP'         ; KEYS_TBL< 3,  26 > = KS_UP         ; KEYS_TBL< 4,  26 > = 1038
+   KEYS_TBL< 1,  27 > = 'Shift+Down-arrow'         ; KEYS_TBL< 2,  27 > = 'KS_DOWN'       ; KEYS_TBL< 3,  27 > = KS_DOWN       ; KEYS_TBL< 4,  27 > = 1040
+   KEYS_TBL< 1,  28 > = 'Shift+Right-arrow'        ; KEYS_TBL< 2,  28 > = 'KS_RIGHT'      ; KEYS_TBL< 3,  28 > = KS_RIGHT      ; KEYS_TBL< 4,  28 > = 1039
+   KEYS_TBL< 1,  29 > = 'Shift+Left-arrow'         ; KEYS_TBL< 2,  29 > = 'KS_LEFT'       ; KEYS_TBL< 3,  29 > = KS_LEFT       ; KEYS_TBL< 4,  29 > = 1037
+   KEYS_TBL< 1,  30 > = 'Shift+Page-up'            ; KEYS_TBL< 2,  30 > = 'KS_PAGE_UP'    ; KEYS_TBL< 3,  30 > = KS_PAGE_UP    ; KEYS_TBL< 4,  30 > = 1033
+   KEYS_TBL< 1,  31 > = 'Shift+Page-down'          ; KEYS_TBL< 2,  31 > = 'KS_PAGE_DOWN'  ; KEYS_TBL< 3,  31 > = KS_PAGE_DOWN  ; KEYS_TBL< 4,  31 > = 1034
+   KEYS_TBL< 1,  32 > = 'Shift+Home'               ; KEYS_TBL< 2,  32 > = 'KS_HOME'       ; KEYS_TBL< 3,  32 > = KS_HOME       ; KEYS_TBL< 4,  32 > = 1036
+   KEYS_TBL< 1,  33 > = 'Shift+End'                ; KEYS_TBL< 2,  33 > = 'KS_END'        ; KEYS_TBL< 3,  33 > = KS_END        ; KEYS_TBL< 4,  33 > = 1035
+   KEYS_TBL< 1,  34 > = 'Shift+Insert'             ; KEYS_TBL< 2,  34 > = 'KS_INSERT'     ; KEYS_TBL< 3,  34 > = KS_INSERT     ; KEYS_TBL< 4,  34 > = 1045
+   KEYS_TBL< 1,  35 > = 'Shift+Delete'             ; KEYS_TBL< 2,  35 > = 'KS_DELETE'     ; KEYS_TBL< 3,  35 > = KS_DELETE     ; KEYS_TBL< 4,  35 > = 1046
+   KEYS_TBL< 1,  36 > = 'Shift+Backspace'          ; KEYS_TBL< 2,  36 > = 'KS_BACKSPACE'  ; KEYS_TBL< 3,  36 > = KS_BACKSPACE  ; KEYS_TBL< 4,  36 > = 1008
+   KEYS_TBL< 1,  37 > = 'Shift+Enter'              ; KEYS_TBL< 2,  37 > = 'KS_ENTER'      ; KEYS_TBL< 3,  37 > = KS_ENTER      ; KEYS_TBL< 4,  37 > = 1013
+   KEYS_TBL< 1,  38 > = 'Shift+Tab'                ; KEYS_TBL< 2,  38 > = 'KS_TAB'        ; KEYS_TBL< 3,  38 > = KS_TAB        ; KEYS_TBL< 4,  38 > = 1009
+   KEYS_TBL< 1,  39 > = 'Shift+F1'                 ; KEYS_TBL< 2,  39 > = 'KS_F01'        ; KEYS_TBL< 3,  39 > = KS_F01        ; KEYS_TBL< 4,  39 > = 1112
+   KEYS_TBL< 1,  40 > = 'Shift+F2'                 ; KEYS_TBL< 2,  40 > = 'KS_F02'        ; KEYS_TBL< 3,  40 > = KS_F02        ; KEYS_TBL< 4,  40 > = 1113
+   KEYS_TBL< 1,  41 > = 'Shift+F3'                 ; KEYS_TBL< 2,  41 > = 'KS_F03'        ; KEYS_TBL< 3,  41 > = KS_F03        ; KEYS_TBL< 4,  41 > = 1114
+   KEYS_TBL< 1,  42 > = 'Shift+F4'                 ; KEYS_TBL< 2,  42 > = 'KS_F04'        ; KEYS_TBL< 3,  42 > = KS_F04        ; KEYS_TBL< 4,  42 > = 1115
+   KEYS_TBL< 1,  43 > = 'Shift+F5'                 ; KEYS_TBL< 2,  43 > = 'KS_F05'        ; KEYS_TBL< 3,  43 > = KS_F05        ; KEYS_TBL< 4,  43 > = 1116
+   KEYS_TBL< 1,  44 > = 'Shift+F6'                 ; KEYS_TBL< 2,  44 > = 'KS_F06'        ; KEYS_TBL< 3,  44 > = KS_F06        ; KEYS_TBL< 4,  44 > = 1117
+   KEYS_TBL< 1,  45 > = 'Shift+F7'                 ; KEYS_TBL< 2,  45 > = 'KS_F07'        ; KEYS_TBL< 3,  45 > = KS_F07        ; KEYS_TBL< 4,  45 > = 1118
+   KEYS_TBL< 1,  46 > = 'Shift+F8'                 ; KEYS_TBL< 2,  46 > = 'KS_F08'        ; KEYS_TBL< 3,  46 > = KS_F08        ; KEYS_TBL< 4,  46 > = 1119
+   KEYS_TBL< 1,  47 > = 'Shift+F9'                 ; KEYS_TBL< 2,  47 > = 'KS_F09'        ; KEYS_TBL< 3,  47 > = KS_F09        ; KEYS_TBL< 4,  47 > = 1120
+   KEYS_TBL< 1,  48 > = 'Shift+F10'                ; KEYS_TBL< 2,  48 > = 'KS_F10'        ; KEYS_TBL< 3,  48 > = KS_F10        ; KEYS_TBL< 4,  48 > = 1121
+   KEYS_TBL< 1,  49 > = 'Shift+F11'                ; KEYS_TBL< 2,  49 > = 'KS_F11'        ; KEYS_TBL< 3,  49 > = KS_F11        ; KEYS_TBL< 4,  49 > = 1122
+   KEYS_TBL< 1,  50 > = 'Shift+F12'                ; KEYS_TBL< 2,  50 > = 'KS_F12'        ; KEYS_TBL< 3,  50 > = KS_F12        ; KEYS_TBL< 4,  50 > = 1123
+   KEYS_TBL< 1,  51 > = 'Ctrl+Up-arrow'            ; KEYS_TBL< 2,  51 > = 'KC_UP'         ; KEYS_TBL< 3,  51 > = KC_UP         ; KEYS_TBL< 4,  51 > = 2038
+   KEYS_TBL< 1,  52 > = 'Ctrl+Down-arrow'          ; KEYS_TBL< 2,  52 > = 'KC_DOWN'       ; KEYS_TBL< 3,  52 > = KC_DOWN       ; KEYS_TBL< 4,  52 > = 2040
+   KEYS_TBL< 1,  53 > = 'Ctrl+Right-arrow'         ; KEYS_TBL< 2,  53 > = 'KC_RIGHT'      ; KEYS_TBL< 3,  53 > = KC_RIGHT      ; KEYS_TBL< 4,  53 > = 2039
+   KEYS_TBL< 1,  54 > = 'Ctrl+Left-arrow'          ; KEYS_TBL< 2,  54 > = 'KC_LEFT'       ; KEYS_TBL< 3,  54 > = KC_LEFT       ; KEYS_TBL< 4,  54 > = 2037
+   KEYS_TBL< 1,  55 > = 'Ctrl+Page-up'             ; KEYS_TBL< 2,  55 > = 'KC_PAGE_UP'    ; KEYS_TBL< 3,  55 > = KC_PAGE_UP    ; KEYS_TBL< 4,  55 > = 2033
+   KEYS_TBL< 1,  56 > = 'Ctrl+Page-down'           ; KEYS_TBL< 2,  56 > = 'KC_PAGE_DOWN'  ; KEYS_TBL< 3,  56 > = KC_PAGE_DOWN  ; KEYS_TBL< 4,  56 > = 2034
+   KEYS_TBL< 1,  57 > = 'Ctrl+Home'                ; KEYS_TBL< 2,  57 > = 'KC_HOME'       ; KEYS_TBL< 3,  57 > = KC_HOME       ; KEYS_TBL< 4,  57 > = 2036
+   KEYS_TBL< 1,  58 > = 'Ctrl+End'                 ; KEYS_TBL< 2,  58 > = 'KC_END'        ; KEYS_TBL< 3,  58 > = KC_END        ; KEYS_TBL< 4,  58 > = 2035
+   KEYS_TBL< 1,  59 > = 'Ctrl+Insert'              ; KEYS_TBL< 2,  59 > = 'KC_INSERT'     ; KEYS_TBL< 3,  59 > = KC_INSERT     ; KEYS_TBL< 4,  59 > = 2045
+   KEYS_TBL< 1,  60 > = 'Ctrl+Delete'              ; KEYS_TBL< 2,  60 > = 'KC_DELETE'     ; KEYS_TBL< 3,  60 > = KC_DELETE     ; KEYS_TBL< 4,  60 > = 2046
+   KEYS_TBL< 1,  61 > = 'Ctrl+Backspace'           ; KEYS_TBL< 2,  61 > = 'KC_BACKSPACE'  ; KEYS_TBL< 3,  61 > = KC_BACKSPACE  ; KEYS_TBL< 4,  61 > = 2008
+   KEYS_TBL< 1,  62 > = 'Ctrl+Enter'               ; KEYS_TBL< 2,  62 > = 'KC_ENTER'      ; KEYS_TBL< 3,  62 > = KC_ENTER      ; KEYS_TBL< 4,  62 > = 2013
+   KEYS_TBL< 1,  63 > = 'Ctrl+Space'               ; KEYS_TBL< 2,  63 > = 'KC_SPACE'      ; KEYS_TBL< 3,  63 > = KC_SPACE      ; KEYS_TBL< 4,  63 > = 2032
+   KEYS_TBL< 1,  64 > = 'Ctrl+F1'                  ; KEYS_TBL< 2,  64 > = 'KC_F01'        ; KEYS_TBL< 3,  64 > = KC_F01        ; KEYS_TBL< 4,  64 > = 2112
+   KEYS_TBL< 1,  65 > = 'Ctrl+F2'                  ; KEYS_TBL< 2,  65 > = 'KC_F02'        ; KEYS_TBL< 3,  65 > = KC_F02        ; KEYS_TBL< 4,  65 > = 2113
+   KEYS_TBL< 1,  66 > = 'Ctrl+F3'                  ; KEYS_TBL< 2,  66 > = 'KC_F03'        ; KEYS_TBL< 3,  66 > = KC_F03        ; KEYS_TBL< 4,  66 > = 2114
+   KEYS_TBL< 1,  67 > = 'Ctrl+F4'                  ; KEYS_TBL< 2,  67 > = 'KC_F04'        ; KEYS_TBL< 3,  67 > = KC_F04        ; KEYS_TBL< 4,  67 > = 2115
+   KEYS_TBL< 1,  68 > = 'Ctrl+F5'                  ; KEYS_TBL< 2,  68 > = 'KC_F05'        ; KEYS_TBL< 3,  68 > = KC_F05        ; KEYS_TBL< 4,  68 > = 2116
+   KEYS_TBL< 1,  69 > = 'Ctrl+F6'                  ; KEYS_TBL< 2,  69 > = 'KC_F06'        ; KEYS_TBL< 3,  69 > = KC_F06        ; KEYS_TBL< 4,  69 > = 2117
+   KEYS_TBL< 1,  70 > = 'Ctrl+F7'                  ; KEYS_TBL< 2,  70 > = 'KC_F07'        ; KEYS_TBL< 3,  70 > = KC_F07        ; KEYS_TBL< 4,  70 > = 2118
+   KEYS_TBL< 1,  71 > = 'Ctrl+F8'                  ; KEYS_TBL< 2,  71 > = 'KC_F08'        ; KEYS_TBL< 3,  71 > = KC_F08        ; KEYS_TBL< 4,  71 > = 2119
+   KEYS_TBL< 1,  72 > = 'Ctrl+F9'                  ; KEYS_TBL< 2,  72 > = 'KC_F09'        ; KEYS_TBL< 3,  72 > = KC_F09        ; KEYS_TBL< 4,  72 > = 2120
+   KEYS_TBL< 1,  73 > = 'Ctrl+F10'                 ; KEYS_TBL< 2,  73 > = 'KC_F10'        ; KEYS_TBL< 3,  73 > = KC_F10        ; KEYS_TBL< 4,  73 > = 2121
+   KEYS_TBL< 1,  74 > = 'Ctrl+F11'                 ; KEYS_TBL< 2,  74 > = 'KC_F11'        ; KEYS_TBL< 3,  74 > = KC_F11        ; KEYS_TBL< 4,  74 > = 2122
+   KEYS_TBL< 1,  75 > = 'Ctrl+F12'                 ; KEYS_TBL< 2,  75 > = 'KC_F12'        ; KEYS_TBL< 3,  75 > = KC_F12        ; KEYS_TBL< 4,  75 > = 2123
+   KEYS_TBL< 1,  76 > = 'Ctrl+A'                   ; KEYS_TBL< 2,  76 > = 'KC_A'          ; KEYS_TBL< 3,  76 > = KC_A          ; KEYS_TBL< 4,  76 > = 2065
+   KEYS_TBL< 1,  77 > = 'Ctrl+B'                   ; KEYS_TBL< 2,  77 > = 'KC_B'          ; KEYS_TBL< 3,  77 > = KC_B          ; KEYS_TBL< 4,  77 > = 2066
+   KEYS_TBL< 1,  78 > = 'Ctrl+C'                   ; KEYS_TBL< 2,  78 > = 'KC_C'          ; KEYS_TBL< 3,  78 > = KC_C          ; KEYS_TBL< 4,  78 > = 2067
+   KEYS_TBL< 1,  79 > = 'Ctrl+D'                   ; KEYS_TBL< 2,  79 > = 'KC_D'          ; KEYS_TBL< 3,  79 > = KC_D          ; KEYS_TBL< 4,  79 > = 2068
+   KEYS_TBL< 1,  80 > = 'Ctrl+E'                   ; KEYS_TBL< 2,  80 > = 'KC_E'          ; KEYS_TBL< 3,  80 > = KC_E          ; KEYS_TBL< 4,  80 > = 2069
+   KEYS_TBL< 1,  81 > = 'Ctrl+F'                   ; KEYS_TBL< 2,  81 > = 'KC_F'          ; KEYS_TBL< 3,  81 > = KC_F          ; KEYS_TBL< 4,  81 > = 2070
+   KEYS_TBL< 1,  82 > = 'Ctrl+G'                   ; KEYS_TBL< 2,  82 > = 'KC_G'          ; KEYS_TBL< 3,  82 > = KC_G          ; KEYS_TBL< 4,  82 > = 2071
+   KEYS_TBL< 1,  83 > = 'Ctrl+H'                   ; KEYS_TBL< 2,  83 > = 'KC_H'          ; KEYS_TBL< 3,  83 > = KC_H          ; KEYS_TBL< 4,  83 > = 2072
+   KEYS_TBL< 1,  84 > = 'Ctrl+I'                   ; KEYS_TBL< 2,  84 > = 'KC_I'          ; KEYS_TBL< 3,  84 > = KC_I          ; KEYS_TBL< 4,  84 > = 2073
+   KEYS_TBL< 1,  85 > = 'Ctrl+J'                   ; KEYS_TBL< 2,  85 > = 'KC_J'          ; KEYS_TBL< 3,  85 > = KC_J          ; KEYS_TBL< 4,  85 > = 2074
+   KEYS_TBL< 1,  86 > = 'Ctrl+K'                   ; KEYS_TBL< 2,  86 > = 'KC_K'          ; KEYS_TBL< 3,  86 > = KC_K          ; KEYS_TBL< 4,  86 > = 2075
+   KEYS_TBL< 1,  87 > = 'Ctrl+L'                   ; KEYS_TBL< 2,  87 > = 'KC_L'          ; KEYS_TBL< 3,  87 > = KC_L          ; KEYS_TBL< 4,  87 > = 2076
+   KEYS_TBL< 1,  88 > = 'Ctrl+M'                   ; KEYS_TBL< 2,  88 > = 'KC_M'          ; KEYS_TBL< 3,  88 > = KC_M          ; KEYS_TBL< 4,  88 > = 2077
+   KEYS_TBL< 1,  89 > = 'Ctrl+N'                   ; KEYS_TBL< 2,  89 > = 'KC_N'          ; KEYS_TBL< 3,  89 > = KC_N          ; KEYS_TBL< 4,  89 > = 2078
+   KEYS_TBL< 1,  90 > = 'Ctrl+O'                   ; KEYS_TBL< 2,  90 > = 'KC_O'          ; KEYS_TBL< 3,  90 > = KC_O          ; KEYS_TBL< 4,  90 > = 2079
+   KEYS_TBL< 1,  91 > = 'Ctrl+P'                   ; KEYS_TBL< 2,  91 > = 'KC_P'          ; KEYS_TBL< 3,  91 > = KC_P          ; KEYS_TBL< 4,  91 > = 2080
+   KEYS_TBL< 1,  92 > = 'Ctrl+Q'                   ; KEYS_TBL< 2,  92 > = 'KC_Q'          ; KEYS_TBL< 3,  92 > = KC_Q          ; KEYS_TBL< 4,  92 > = 2081
+   KEYS_TBL< 1,  93 > = 'Ctrl+R'                   ; KEYS_TBL< 2,  93 > = 'KC_R'          ; KEYS_TBL< 3,  93 > = KC_R          ; KEYS_TBL< 4,  93 > = 2082
+   KEYS_TBL< 1,  94 > = 'Ctrl+S'                   ; KEYS_TBL< 2,  94 > = 'KC_S'          ; KEYS_TBL< 3,  94 > = KC_S          ; KEYS_TBL< 4,  94 > = 2083
+   KEYS_TBL< 1,  95 > = 'Ctrl+T'                   ; KEYS_TBL< 2,  95 > = 'KC_T'          ; KEYS_TBL< 3,  95 > = KC_T          ; KEYS_TBL< 4,  95 > = 2084
+   KEYS_TBL< 1,  96 > = 'Ctrl+U'                   ; KEYS_TBL< 2,  96 > = 'KC_U'          ; KEYS_TBL< 3,  96 > = KC_U          ; KEYS_TBL< 4,  96 > = 2085
+   KEYS_TBL< 1,  97 > = 'Ctrl+V'                   ; KEYS_TBL< 2,  97 > = 'KC_V'          ; KEYS_TBL< 3,  97 > = KC_V          ; KEYS_TBL< 4,  97 > = 2086
+   KEYS_TBL< 1,  98 > = 'Ctrl+W'                   ; KEYS_TBL< 2,  98 > = 'KC_W'          ; KEYS_TBL< 3,  98 > = KC_W          ; KEYS_TBL< 4,  98 > = 2087
+   KEYS_TBL< 1,  99 > = 'Ctrl+X'                   ; KEYS_TBL< 2,  99 > = 'KC_X'          ; KEYS_TBL< 3,  99 > = KC_X          ; KEYS_TBL< 4,  99 > = 2088
+   KEYS_TBL< 1, 100 > = 'Ctrl+Y'                   ; KEYS_TBL< 2, 100 > = 'KC_Y'          ; KEYS_TBL< 3, 100 > = KC_Y          ; KEYS_TBL< 4, 100 > = 2089
+   KEYS_TBL< 1, 101 > = 'Ctrl+Z'                   ; KEYS_TBL< 2, 101 > = 'KC_Z'          ; KEYS_TBL< 3, 101 > = KC_Z          ; KEYS_TBL< 4, 101 > = 2090
+   KEYS_TBL< 1, 102 > = 'Ctrl+['                   ; KEYS_TBL< 2, 102 > = 'KC_LBRACKET'   ; KEYS_TBL< 3, 102 > = KC_LBRACKET   ; KEYS_TBL< 4, 102 > = 2219
+   KEYS_TBL< 1, 103 > = 'Ctrl+\'                   ; KEYS_TBL< 2, 103 > = 'KC_BACKSLASH'  ; KEYS_TBL< 3, 103 > = KC_BACKSLASH  ; KEYS_TBL< 4, 103 > = 2220
+   KEYS_TBL< 1, 104 > = 'Ctrl+]'                   ; KEYS_TBL< 2, 104 > = 'KC_RBRACKET'   ; KEYS_TBL< 3, 104 > = KC_RBRACKET   ; KEYS_TBL< 4, 104 > = 2221
+   KEYS_TBL< 1, 105 > = 'Ctrl+^'                   ; KEYS_TBL< 2, 105 > = 'KC_CARET'      ; KEYS_TBL< 3, 105 > = KC_CARET      ; KEYS_TBL< 4, 105 > = 3054
+   KEYS_TBL< 1, 106 > = 'Ctrl+_'                   ; KEYS_TBL< 2, 106 > = 'KC_UNDERSCORE' ; KEYS_TBL< 3, 106 > = KC_UNDERSCORE ; KEYS_TBL< 4, 106 > = 3189
+   KEYS_TBL< 1, 107 > = 'Alt+Up-arrow'             ; KEYS_TBL< 2, 107 > = 'KA_UP'         ; KEYS_TBL< 3, 107 > = KA_UP         ; KEYS_TBL< 4, 107 > = 4038
+   KEYS_TBL< 1, 108 > = 'Alt+Down-arrow'           ; KEYS_TBL< 2, 108 > = 'KA_DOWN'       ; KEYS_TBL< 3, 108 > = KA_DOWN       ; KEYS_TBL< 4, 108 > = 4040
+   KEYS_TBL< 1, 109 > = 'Alt+Right-arrow'          ; KEYS_TBL< 2, 109 > = 'KA_RIGHT'      ; KEYS_TBL< 3, 109 > = KA_RIGHT      ; KEYS_TBL< 4, 109 > = 4039
+   KEYS_TBL< 1, 110 > = 'Alt+Left-arrow'           ; KEYS_TBL< 2, 110 > = 'KA_LEFT'       ; KEYS_TBL< 3, 110 > = KA_LEFT       ; KEYS_TBL< 4, 110 > = 4037
+   KEYS_TBL< 1, 111 > = 'Alt+Page-up'              ; KEYS_TBL< 2, 111 > = 'KA_PAGE_UP'    ; KEYS_TBL< 3, 111 > = KA_PAGE_UP    ; KEYS_TBL< 4, 111 > = 4033
+   KEYS_TBL< 1, 112 > = 'Alt+Page-down'            ; KEYS_TBL< 2, 112 > = 'KA_PAGE_DOWN'  ; KEYS_TBL< 3, 112 > = KA_PAGE_DOWN  ; KEYS_TBL< 4, 112 > = 4034
+   KEYS_TBL< 1, 113 > = 'Alt+Home'                 ; KEYS_TBL< 2, 113 > = 'KA_HOME'       ; KEYS_TBL< 3, 113 > = KA_HOME       ; KEYS_TBL< 4, 113 > = 4036
+   KEYS_TBL< 1, 114 > = 'Alt+End'                  ; KEYS_TBL< 2, 114 > = 'KA_END'        ; KEYS_TBL< 3, 114 > = KA_END        ; KEYS_TBL< 4, 114 > = 4035
+   KEYS_TBL< 1, 115 > = 'Alt+Insert'               ; KEYS_TBL< 2, 115 > = 'KA_INSERT'     ; KEYS_TBL< 3, 115 > = KA_INSERT     ; KEYS_TBL< 4, 115 > = 4045
+   KEYS_TBL< 1, 116 > = 'Alt+Delete'               ; KEYS_TBL< 2, 116 > = 'KA_DELETE'     ; KEYS_TBL< 3, 116 > = KA_DELETE     ; KEYS_TBL< 4, 116 > = 4046
+   KEYS_TBL< 1, 117 > = 'Alt+Backspace'            ; KEYS_TBL< 2, 117 > = 'KA_BACKSPACE'  ; KEYS_TBL< 3, 117 > = KA_BACKSPACE  ; KEYS_TBL< 4, 117 > = 4008
+   KEYS_TBL< 1, 118 > = 'Alt+Enter'                ; KEYS_TBL< 2, 118 > = 'KA_ENTER'      ; KEYS_TBL< 3, 118 > = KA_ENTER      ; KEYS_TBL< 4, 118 > = 4013
+   KEYS_TBL< 1, 119 > = 'Alt+F1'                   ; KEYS_TBL< 2, 119 > = 'KA_F01'        ; KEYS_TBL< 3, 119 > = KA_F01        ; KEYS_TBL< 4, 119 > = 4112
+   KEYS_TBL< 1, 120 > = 'Alt+F2'                   ; KEYS_TBL< 2, 120 > = 'KA_F02'        ; KEYS_TBL< 3, 120 > = KA_F02        ; KEYS_TBL< 4, 120 > = 4113
+   KEYS_TBL< 1, 121 > = 'Alt+F3'                   ; KEYS_TBL< 2, 121 > = 'KA_F03'        ; KEYS_TBL< 3, 121 > = KA_F03        ; KEYS_TBL< 4, 121 > = 4114
+   KEYS_TBL< 1, 122 > = 'Alt+F4'                   ; KEYS_TBL< 2, 122 > = 'KA_F04'        ; KEYS_TBL< 3, 122 > = KA_F04        ; KEYS_TBL< 4, 122 > = 4115
+   KEYS_TBL< 1, 123 > = 'Alt+F5'                   ; KEYS_TBL< 2, 123 > = 'KA_F05'        ; KEYS_TBL< 3, 123 > = KA_F05        ; KEYS_TBL< 4, 123 > = 4116
+   KEYS_TBL< 1, 124 > = 'Alt+F6'                   ; KEYS_TBL< 2, 124 > = 'KA_F06'        ; KEYS_TBL< 3, 124 > = KA_F06        ; KEYS_TBL< 4, 124 > = 4117
+   KEYS_TBL< 1, 125 > = 'Alt+F7'                   ; KEYS_TBL< 2, 125 > = 'KA_F07'        ; KEYS_TBL< 3, 125 > = KA_F07        ; KEYS_TBL< 4, 125 > = 4118
+   KEYS_TBL< 1, 126 > = 'Alt+F8'                   ; KEYS_TBL< 2, 126 > = 'KA_F08'        ; KEYS_TBL< 3, 126 > = KA_F08        ; KEYS_TBL< 4, 126 > = 4119
+   KEYS_TBL< 1, 127 > = 'Alt+F9'                   ; KEYS_TBL< 2, 127 > = 'KA_F09'        ; KEYS_TBL< 3, 127 > = KA_F09        ; KEYS_TBL< 4, 127 > = 4120
+   KEYS_TBL< 1, 128 > = 'Alt+F10'                  ; KEYS_TBL< 2, 128 > = 'KA_F10'        ; KEYS_TBL< 3, 128 > = KA_F10        ; KEYS_TBL< 4, 128 > = 4121
+   KEYS_TBL< 1, 129 > = 'Alt+F11'                  ; KEYS_TBL< 2, 129 > = 'KA_F11'        ; KEYS_TBL< 3, 129 > = KA_F11        ; KEYS_TBL< 4, 129 > = 4122
+   KEYS_TBL< 1, 130 > = 'Alt+F12'                  ; KEYS_TBL< 2, 130 > = 'KA_F12'        ; KEYS_TBL< 3, 130 > = KA_F12        ; KEYS_TBL< 4, 130 > = 4123
+   KEYS_TBL< 1, 131 > = 'Alt+`'                    ; KEYS_TBL< 2, 131 > = 'KA_ACCENT'     ; KEYS_TBL< 3, 131 > = KA_ACCENT     ; KEYS_TBL< 4, 131 > = 4192
+   KEYS_TBL< 1, 132 > = 'Alt+1'                    ; KEYS_TBL< 2, 132 > = 'KA_1'          ; KEYS_TBL< 3, 132 > = KA_1          ; KEYS_TBL< 4, 132 > = 4049
+   KEYS_TBL< 1, 133 > = 'Alt+2'                    ; KEYS_TBL< 2, 133 > = 'KA_2'          ; KEYS_TBL< 3, 133 > = KA_2          ; KEYS_TBL< 4, 133 > = 4050
+   KEYS_TBL< 1, 134 > = 'Alt+3'                    ; KEYS_TBL< 2, 134 > = 'KA_3'          ; KEYS_TBL< 3, 134 > = KA_3          ; KEYS_TBL< 4, 134 > = 4051
+   KEYS_TBL< 1, 135 > = 'Alt+4'                    ; KEYS_TBL< 2, 135 > = 'KA_4'          ; KEYS_TBL< 3, 135 > = KA_4          ; KEYS_TBL< 4, 135 > = 4052
+   KEYS_TBL< 1, 136 > = 'Alt+5'                    ; KEYS_TBL< 2, 136 > = 'KA_5'          ; KEYS_TBL< 3, 136 > = KA_5          ; KEYS_TBL< 4, 136 > = 4053
+   KEYS_TBL< 1, 137 > = 'Alt+6'                    ; KEYS_TBL< 2, 137 > = 'KA_6'          ; KEYS_TBL< 3, 137 > = KA_6          ; KEYS_TBL< 4, 137 > = 4054
+   KEYS_TBL< 1, 138 > = 'Alt+7'                    ; KEYS_TBL< 2, 138 > = 'KA_7'          ; KEYS_TBL< 3, 138 > = KA_7          ; KEYS_TBL< 4, 138 > = 4055
+   KEYS_TBL< 1, 139 > = 'Alt+8'                    ; KEYS_TBL< 2, 139 > = 'KA_8'          ; KEYS_TBL< 3, 139 > = KA_8          ; KEYS_TBL< 4, 139 > = 4056
+   KEYS_TBL< 1, 140 > = 'Alt+9'                    ; KEYS_TBL< 2, 140 > = 'KA_9'          ; KEYS_TBL< 3, 140 > = KA_9          ; KEYS_TBL< 4, 140 > = 4057
+   KEYS_TBL< 1, 141 > = 'Alt+0'                    ; KEYS_TBL< 2, 141 > = 'KA_0'          ; KEYS_TBL< 3, 141 > = KA_0          ; KEYS_TBL< 4, 141 > = 4048
+   KEYS_TBL< 1, 142 > = 'Alt+A'                    ; KEYS_TBL< 2, 142 > = 'KA_A'          ; KEYS_TBL< 3, 142 > = KA_A          ; KEYS_TBL< 4, 142 > = 4065
+   KEYS_TBL< 1, 143 > = 'Alt+B'                    ; KEYS_TBL< 2, 143 > = 'KA_B'          ; KEYS_TBL< 3, 143 > = KA_B          ; KEYS_TBL< 4, 143 > = 4066
+   KEYS_TBL< 1, 144 > = 'Alt+C'                    ; KEYS_TBL< 2, 144 > = 'KA_C'          ; KEYS_TBL< 3, 144 > = KA_C          ; KEYS_TBL< 4, 144 > = 4067
+   KEYS_TBL< 1, 145 > = 'Alt+D'                    ; KEYS_TBL< 2, 145 > = 'KA_D'          ; KEYS_TBL< 3, 145 > = KA_D          ; KEYS_TBL< 4, 145 > = 4068
+   KEYS_TBL< 1, 146 > = 'Alt+E'                    ; KEYS_TBL< 2, 146 > = 'KA_E'          ; KEYS_TBL< 3, 146 > = KA_E          ; KEYS_TBL< 4, 146 > = 4069
+   KEYS_TBL< 1, 147 > = 'Alt+F'                    ; KEYS_TBL< 2, 147 > = 'KA_F'          ; KEYS_TBL< 3, 147 > = KA_F          ; KEYS_TBL< 4, 147 > = 4070
+   KEYS_TBL< 1, 148 > = 'Alt+G'                    ; KEYS_TBL< 2, 148 > = 'KA_G'          ; KEYS_TBL< 3, 148 > = KA_G          ; KEYS_TBL< 4, 148 > = 4071
+   KEYS_TBL< 1, 149 > = 'Alt+H'                    ; KEYS_TBL< 2, 149 > = 'KA_H'          ; KEYS_TBL< 3, 149 > = KA_H          ; KEYS_TBL< 4, 149 > = 4072
+   KEYS_TBL< 1, 150 > = 'Alt+I'                    ; KEYS_TBL< 2, 150 > = 'KA_I'          ; KEYS_TBL< 3, 150 > = KA_I          ; KEYS_TBL< 4, 150 > = 4073
+   KEYS_TBL< 1, 151 > = 'Alt+J'                    ; KEYS_TBL< 2, 151 > = 'KA_J'          ; KEYS_TBL< 3, 151 > = KA_J          ; KEYS_TBL< 4, 151 > = 4074
+   KEYS_TBL< 1, 152 > = 'Alt+K'                    ; KEYS_TBL< 2, 152 > = 'KA_K'          ; KEYS_TBL< 3, 152 > = KA_K          ; KEYS_TBL< 4, 152 > = 4075
+   KEYS_TBL< 1, 153 > = 'Alt+L'                    ; KEYS_TBL< 2, 153 > = 'KA_L'          ; KEYS_TBL< 3, 153 > = KA_L          ; KEYS_TBL< 4, 153 > = 4076
+   KEYS_TBL< 1, 154 > = 'Alt+M'                    ; KEYS_TBL< 2, 154 > = 'KA_M'          ; KEYS_TBL< 3, 154 > = KA_M          ; KEYS_TBL< 4, 154 > = 4077
+   KEYS_TBL< 1, 155 > = 'Alt+N'                    ; KEYS_TBL< 2, 155 > = 'KA_N'          ; KEYS_TBL< 3, 155 > = KA_N          ; KEYS_TBL< 4, 155 > = 4078
+   KEYS_TBL< 1, 156 > = 'Alt+O'                    ; KEYS_TBL< 2, 156 > = 'KA_O'          ; KEYS_TBL< 3, 156 > = KA_O          ; KEYS_TBL< 4, 156 > = 4079
+   KEYS_TBL< 1, 157 > = 'Alt+P'                    ; KEYS_TBL< 2, 157 > = 'KA_P'          ; KEYS_TBL< 3, 157 > = KA_P          ; KEYS_TBL< 4, 157 > = 4080
+   KEYS_TBL< 1, 158 > = 'Alt+Q'                    ; KEYS_TBL< 2, 158 > = 'KA_Q'          ; KEYS_TBL< 3, 158 > = KA_Q          ; KEYS_TBL< 4, 158 > = 4081
+   KEYS_TBL< 1, 159 > = 'Alt+R'                    ; KEYS_TBL< 2, 159 > = 'KA_R'          ; KEYS_TBL< 3, 159 > = KA_R          ; KEYS_TBL< 4, 159 > = 4082
+   KEYS_TBL< 1, 160 > = 'Alt+S'                    ; KEYS_TBL< 2, 160 > = 'KA_S'          ; KEYS_TBL< 3, 160 > = KA_S          ; KEYS_TBL< 4, 160 > = 4083
+   KEYS_TBL< 1, 161 > = 'Alt+T'                    ; KEYS_TBL< 2, 161 > = 'KA_T'          ; KEYS_TBL< 3, 161 > = KA_T          ; KEYS_TBL< 4, 161 > = 4084
+   KEYS_TBL< 1, 162 > = 'Alt+U'                    ; KEYS_TBL< 2, 162 > = 'KA_U'          ; KEYS_TBL< 3, 162 > = KA_U          ; KEYS_TBL< 4, 162 > = 4085
+   KEYS_TBL< 1, 163 > = 'Alt+V'                    ; KEYS_TBL< 2, 163 > = 'KA_V'          ; KEYS_TBL< 3, 163 > = KA_V          ; KEYS_TBL< 4, 163 > = 4086
+   KEYS_TBL< 1, 164 > = 'Alt+W'                    ; KEYS_TBL< 2, 164 > = 'KA_W'          ; KEYS_TBL< 3, 164 > = KA_W          ; KEYS_TBL< 4, 164 > = 4087
+   KEYS_TBL< 1, 165 > = 'Alt+X'                    ; KEYS_TBL< 2, 165 > = 'KA_X'          ; KEYS_TBL< 3, 165 > = KA_X          ; KEYS_TBL< 4, 165 > = 4088
+   KEYS_TBL< 1, 166 > = 'Alt+Y'                    ; KEYS_TBL< 2, 166 > = 'KA_Y'          ; KEYS_TBL< 3, 166 > = KA_Y          ; KEYS_TBL< 4, 166 > = 4089
+   KEYS_TBL< 1, 167 > = 'Alt+Z'                    ; KEYS_TBL< 2, 167 > = 'KA_Z'          ; KEYS_TBL< 3, 167 > = KA_Z          ; KEYS_TBL< 4, 167 > = 4090
+   KEYS_TBL< 1, 168 > = "Alt+'"                    ; KEYS_TBL< 2, 168 > = 'KA_SQUOTE'     ; KEYS_TBL< 3, 168 > = KA_SQUOTE     ; KEYS_TBL< 4, 168 > = 4222
+   KEYS_TBL< 1, 169 > = 'Alt+,'                    ; KEYS_TBL< 2, 169 > = 'KA_COMMA'      ; KEYS_TBL< 3, 169 > = KA_COMMA      ; KEYS_TBL< 4, 169 > = 4188
+   KEYS_TBL< 1, 170 > = 'Alt+.'                    ; KEYS_TBL< 2, 170 > = 'KA_PERIOD'     ; KEYS_TBL< 3, 170 > = KA_PERIOD     ; KEYS_TBL< 4, 170 > = 4190
+   KEYS_TBL< 1, 171 > = 'Alt+;'                    ; KEYS_TBL< 2, 171 > = 'KA_SCOLON'     ; KEYS_TBL< 3, 171 > = KA_SCOLON     ; KEYS_TBL< 4, 171 > = 4186
+   KEYS_TBL< 1, 172 > = 'Alt+='                    ; KEYS_TBL< 2, 172 > = 'KA_EQUAL'      ; KEYS_TBL< 3, 172 > = KA_EQUAL      ; KEYS_TBL< 4, 172 > = 4187
+   KEYS_TBL< 1, 173 > = 'Alt+/'                    ; KEYS_TBL< 2, 173 > = 'KA_SLASH'      ; KEYS_TBL< 3, 173 > = KA_SLASH      ; KEYS_TBL< 4, 173 > = 4191
+   KEYS_TBL< 1, 174 > = 'Alt+\'                    ; KEYS_TBL< 2, 174 > = 'KA_BACKSLASH'  ; KEYS_TBL< 3, 174 > = KA_BACKSLASH  ; KEYS_TBL< 4, 174 > = 4220
+   KEYS_TBL< 1, 175 > = 'Alt+['                    ; KEYS_TBL< 2, 175 > = 'KA_LBRACKET'   ; KEYS_TBL< 3, 175 > = KA_LBRACKET   ; KEYS_TBL< 4, 175 > = 4219
+   KEYS_TBL< 1, 176 > = 'Alt+]'                    ; KEYS_TBL< 2, 176 > = 'KA_RBRACKET'   ; KEYS_TBL< 3, 176 > = KA_RBRACKET   ; KEYS_TBL< 4, 176 > = 4221
+   KEYS_TBL< 1, 177 > = 'Shift+Ctrl+Up-arrow'      ; KEYS_TBL< 2, 177 > = 'KSC_UP'        ; KEYS_TBL< 3, 177 > = KSC_UP        ; KEYS_TBL< 4, 177 > = 3038
+   KEYS_TBL< 1, 178 > = 'Shift+Ctrl+Down-arrow'    ; KEYS_TBL< 2, 178 > = 'KSC_DOWN'      ; KEYS_TBL< 3, 178 > = KSC_DOWN      ; KEYS_TBL< 4, 178 > = 3040
+   KEYS_TBL< 1, 179 > = 'Shift+Ctrl+Right-arrow'   ; KEYS_TBL< 2, 179 > = 'KSC_RIGHT'     ; KEYS_TBL< 3, 179 > = KSC_RIGHT     ; KEYS_TBL< 4, 179 > = 3039
+   KEYS_TBL< 1, 180 > = 'Shift+Ctrl+Left-arrow'    ; KEYS_TBL< 2, 180 > = 'KSC_LEFT'      ; KEYS_TBL< 3, 180 > = KSC_LEFT      ; KEYS_TBL< 4, 180 > = 3037
+   KEYS_TBL< 1, 181 > = 'Shift+Ctrl+Page-up'       ; KEYS_TBL< 2, 181 > = 'KSC_PAGE_UP'   ; KEYS_TBL< 3, 181 > = KSC_PAGE_UP   ; KEYS_TBL< 4, 181 > = 3033
+   KEYS_TBL< 1, 182 > = 'Shift+Ctrl+Page-down'     ; KEYS_TBL< 2, 182 > = 'KSC_PAGE_DOWN' ; KEYS_TBL< 3, 182 > = KSC_PAGE_DOWN ; KEYS_TBL< 4, 182 > = 3034
+   KEYS_TBL< 1, 183 > = 'Shift+Ctrl+Home'          ; KEYS_TBL< 2, 183 > = 'KSC_HOME'      ; KEYS_TBL< 3, 183 > = KSC_HOME      ; KEYS_TBL< 4, 183 > = 3036
+   KEYS_TBL< 1, 184 > = 'Shift+Ctrl+End'           ; KEYS_TBL< 2, 184 > = 'KSC_END'       ; KEYS_TBL< 3, 184 > = KSC_END       ; KEYS_TBL< 4, 184 > = 3035
+   KEYS_TBL< 1, 185 > = 'Shift+Ctrl+Insert'        ; KEYS_TBL< 2, 185 > = 'KSC_INSERT'    ; KEYS_TBL< 3, 185 > = KSC_INSERT    ; KEYS_TBL< 4, 185 > = 3045
+   KEYS_TBL< 1, 186 > = 'Shift+Ctrl+Delete'        ; KEYS_TBL< 2, 186 > = 'KSC_DELETE'    ; KEYS_TBL< 3, 186 > = KSC_DELETE    ; KEYS_TBL< 4, 186 > = 3046
+   KEYS_TBL< 1, 187 > = 'Shift+Ctrl+Backspace'     ; KEYS_TBL< 2, 187 > = 'KSC_BACKSPACE' ; KEYS_TBL< 3, 187 > = KSC_BACKSPACE ; KEYS_TBL< 4, 187 > = 3008
+   KEYS_TBL< 1, 188 > = 'Shift+Ctrl+Enter'         ; KEYS_TBL< 2, 188 > = 'KSC_ENTER'     ; KEYS_TBL< 3, 188 > = KSC_ENTER     ; KEYS_TBL< 4, 188 > = 3013
+   KEYS_TBL< 1, 189 > = 'Shift+Ctrl+Space'         ; KEYS_TBL< 2, 189 > = 'KSC_SPACE'     ; KEYS_TBL< 3, 189 > = KSC_SPACE     ; KEYS_TBL< 4, 189 > = 3032
+   KEYS_TBL< 1, 190 > = 'Shift+Ctrl+F1'            ; KEYS_TBL< 2, 190 > = 'KSC_F01'       ; KEYS_TBL< 3, 190 > = KSC_F01       ; KEYS_TBL< 4, 190 > = 3112
+   KEYS_TBL< 1, 191 > = 'Shift+Ctrl+F2'            ; KEYS_TBL< 2, 191 > = 'KSC_F02'       ; KEYS_TBL< 3, 191 > = KSC_F02       ; KEYS_TBL< 4, 191 > = 3113
+   KEYS_TBL< 1, 192 > = 'Shift+Ctrl+F3'            ; KEYS_TBL< 2, 192 > = 'KSC_F03'       ; KEYS_TBL< 3, 192 > = KSC_F03       ; KEYS_TBL< 4, 192 > = 3114
+   KEYS_TBL< 1, 193 > = 'Shift+Ctrl+F4'            ; KEYS_TBL< 2, 193 > = 'KSC_F04'       ; KEYS_TBL< 3, 193 > = KSC_F04       ; KEYS_TBL< 4, 193 > = 3115
+   KEYS_TBL< 1, 194 > = 'Shift+Ctrl+F5'            ; KEYS_TBL< 2, 194 > = 'KSC_F05'       ; KEYS_TBL< 3, 194 > = KSC_F05       ; KEYS_TBL< 4, 194 > = 3116
+   KEYS_TBL< 1, 195 > = 'Shift+Ctrl+F6'            ; KEYS_TBL< 2, 195 > = 'KSC_F06'       ; KEYS_TBL< 3, 195 > = KSC_F06       ; KEYS_TBL< 4, 195 > = 3117
+   KEYS_TBL< 1, 196 > = 'Shift+Ctrl+F7'            ; KEYS_TBL< 2, 196 > = 'KSC_F07'       ; KEYS_TBL< 3, 196 > = KSC_F07       ; KEYS_TBL< 4, 196 > = 3118
+   KEYS_TBL< 1, 197 > = 'Shift+Ctrl+F8'            ; KEYS_TBL< 2, 197 > = 'KSC_F08'       ; KEYS_TBL< 3, 197 > = KSC_F08       ; KEYS_TBL< 4, 197 > = 3119
+   KEYS_TBL< 1, 198 > = 'Shift+Ctrl+F9'            ; KEYS_TBL< 2, 198 > = 'KSC_F09'       ; KEYS_TBL< 3, 198 > = KSC_F09       ; KEYS_TBL< 4, 198 > = 3120
+   KEYS_TBL< 1, 199 > = 'Shift+Ctrl+F10'           ; KEYS_TBL< 2, 199 > = 'KSC_F10'       ; KEYS_TBL< 3, 199 > = KSC_F10       ; KEYS_TBL< 4, 199 > = 3121
+   KEYS_TBL< 1, 200 > = 'Shift+Ctrl+F11'           ; KEYS_TBL< 2, 200 > = 'KSC_F11'       ; KEYS_TBL< 3, 200 > = KSC_F11       ; KEYS_TBL< 4, 200 > = 3122
+   KEYS_TBL< 1, 201 > = 'Shift+Ctrl+F12'           ; KEYS_TBL< 2, 201 > = 'KSC_F12'       ; KEYS_TBL< 3, 201 > = KSC_F12       ; KEYS_TBL< 4, 201 > = 3123
+   KEYS_TBL< 1, 202 > = 'Shift+Alt+Up-arrow'       ; KEYS_TBL< 2, 202 > = 'KSA_UP'        ; KEYS_TBL< 3, 202 > = KSA_UP        ; KEYS_TBL< 4, 202 > = 5038
+   KEYS_TBL< 1, 203 > = 'Shift+Alt+Down-arrow'     ; KEYS_TBL< 2, 203 > = 'KSA_DOWN'      ; KEYS_TBL< 3, 203 > = KSA_DOWN      ; KEYS_TBL< 4, 203 > = 5040
+   KEYS_TBL< 1, 204 > = 'Shift+Alt+Right-arrow'    ; KEYS_TBL< 2, 204 > = 'KSA_RIGHT'     ; KEYS_TBL< 3, 204 > = KSA_RIGHT     ; KEYS_TBL< 4, 204 > = 5039
+   KEYS_TBL< 1, 205 > = 'Shift+Alt+Left-arrow'     ; KEYS_TBL< 2, 205 > = 'KSA_LEFT'      ; KEYS_TBL< 3, 205 > = KSA_LEFT      ; KEYS_TBL< 4, 205 > = 5037
+   KEYS_TBL< 1, 206 > = 'Shift+Alt+Page-up'        ; KEYS_TBL< 2, 206 > = 'KSA_PAGE_UP'   ; KEYS_TBL< 3, 206 > = KSA_PAGE_UP   ; KEYS_TBL< 4, 206 > = 5033
+   KEYS_TBL< 1, 207 > = 'Shift+Alt+Page-down'      ; KEYS_TBL< 2, 207 > = 'KSA_PAGE_DOWN' ; KEYS_TBL< 3, 207 > = KSA_PAGE_DOWN ; KEYS_TBL< 4, 207 > = 5034
+   KEYS_TBL< 1, 208 > = 'Shift+Alt+Home'           ; KEYS_TBL< 2, 208 > = 'KSA_HOME'      ; KEYS_TBL< 3, 208 > = KSA_HOME      ; KEYS_TBL< 4, 208 > = 5036
+   KEYS_TBL< 1, 209 > = 'Shift+Alt+End'            ; KEYS_TBL< 2, 209 > = 'KSA_END'       ; KEYS_TBL< 3, 209 > = KSA_END       ; KEYS_TBL< 4, 209 > = 5035
+   KEYS_TBL< 1, 210 > = 'Shift+Alt+Insert'         ; KEYS_TBL< 2, 210 > = 'KSA_INSERT'    ; KEYS_TBL< 3, 210 > = KSA_INSERT    ; KEYS_TBL< 4, 210 > = 5045
+   KEYS_TBL< 1, 211 > = 'Shift+Alt+Delete'         ; KEYS_TBL< 2, 211 > = 'KSA_DELETE'    ; KEYS_TBL< 3, 211 > = KSA_DELETE    ; KEYS_TBL< 4, 211 > = 5046
+   KEYS_TBL< 1, 212 > = 'Shift+Alt+Backspace'      ; KEYS_TBL< 2, 212 > = 'KSA_BACKSPACE' ; KEYS_TBL< 3, 212 > = KSA_BACKSPACE ; KEYS_TBL< 4, 212 > = 5008
+   KEYS_TBL< 1, 213 > = 'Shift+Alt+Enter'          ; KEYS_TBL< 2, 213 > = 'KSA_ENTER'     ; KEYS_TBL< 3, 213 > = KSA_ENTER     ; KEYS_TBL< 4, 213 > = 5013
+   KEYS_TBL< 1, 214 > = 'Shift+Alt+F1'             ; KEYS_TBL< 2, 214 > = 'KSA_F01'       ; KEYS_TBL< 3, 214 > = KSA_F01       ; KEYS_TBL< 4, 214 > = 5112
+   KEYS_TBL< 1, 215 > = 'Shift+Alt+F2'             ; KEYS_TBL< 2, 215 > = 'KSA_F02'       ; KEYS_TBL< 3, 215 > = KSA_F02       ; KEYS_TBL< 4, 215 > = 5113
+   KEYS_TBL< 1, 216 > = 'Shift+Alt+F3'             ; KEYS_TBL< 2, 216 > = 'KSA_F03'       ; KEYS_TBL< 3, 216 > = KSA_F03       ; KEYS_TBL< 4, 216 > = 5114
+   KEYS_TBL< 1, 217 > = 'Shift+Alt+F4'             ; KEYS_TBL< 2, 217 > = 'KSA_F04'       ; KEYS_TBL< 3, 217 > = KSA_F04       ; KEYS_TBL< 4, 217 > = 5115
+   KEYS_TBL< 1, 218 > = 'Shift+Alt+F5'             ; KEYS_TBL< 2, 218 > = 'KSA_F05'       ; KEYS_TBL< 3, 218 > = KSA_F05       ; KEYS_TBL< 4, 218 > = 5116
+   KEYS_TBL< 1, 219 > = 'Shift+Alt+F6'             ; KEYS_TBL< 2, 219 > = 'KSA_F06'       ; KEYS_TBL< 3, 219 > = KSA_F06       ; KEYS_TBL< 4, 219 > = 5117
+   KEYS_TBL< 1, 220 > = 'Shift+Alt+F7'             ; KEYS_TBL< 2, 220 > = 'KSA_F07'       ; KEYS_TBL< 3, 220 > = KSA_F07       ; KEYS_TBL< 4, 220 > = 5118
+   KEYS_TBL< 1, 221 > = 'Shift+Alt+F8'             ; KEYS_TBL< 2, 221 > = 'KSA_F08'       ; KEYS_TBL< 3, 221 > = KSA_F08       ; KEYS_TBL< 4, 221 > = 5119
+   KEYS_TBL< 1, 222 > = 'Shift+Alt+F9'             ; KEYS_TBL< 2, 222 > = 'KSA_F09'       ; KEYS_TBL< 3, 222 > = KSA_F09       ; KEYS_TBL< 4, 222 > = 5120
+   KEYS_TBL< 1, 223 > = 'Shift+Alt+F10'            ; KEYS_TBL< 2, 223 > = 'KSA_F10'       ; KEYS_TBL< 3, 223 > = KSA_F10       ; KEYS_TBL< 4, 223 > = 5121
+   KEYS_TBL< 1, 224 > = 'Shift+Alt+F11'            ; KEYS_TBL< 2, 224 > = 'KSA_F11'       ; KEYS_TBL< 3, 224 > = KSA_F11       ; KEYS_TBL< 4, 224 > = 5122
+   KEYS_TBL< 1, 225 > = 'Shift+Alt+F12'            ; KEYS_TBL< 2, 225 > = 'KSA_F12'       ; KEYS_TBL< 3, 225 > = KSA_F12       ; KEYS_TBL< 4, 225 > = 5123
+   KEYS_TBL< 1, 226 > = 'Alt+~'                    ; KEYS_TBL< 2, 226 > = 'KA_TILDE'      ; KEYS_TBL< 3, 226 > = KA_TILDE      ; KEYS_TBL< 4, 226 > = 5192
+   KEYS_TBL< 1, 227 > = 'Alt+!'                    ; KEYS_TBL< 2, 227 > = 'KA_BANG'       ; KEYS_TBL< 3, 227 > = KA_BANG       ; KEYS_TBL< 4, 227 > = 5049
+   KEYS_TBL< 1, 228 > = 'Alt+@'                    ; KEYS_TBL< 2, 228 > = 'KA_AT'         ; KEYS_TBL< 3, 228 > = KA_AT         ; KEYS_TBL< 4, 228 > = 5050
+   KEYS_TBL< 1, 229 > = 'Alt+#'                    ; KEYS_TBL< 2, 229 > = 'KA_POUND'      ; KEYS_TBL< 3, 229 > = KA_POUND      ; KEYS_TBL< 4, 229 > = 5051
+   KEYS_TBL< 1, 230 > = 'Alt+$'                    ; KEYS_TBL< 2, 230 > = 'KA_DOLLAR'     ; KEYS_TBL< 3, 230 > = KA_DOLLAR     ; KEYS_TBL< 4, 230 > = 5052
+   KEYS_TBL< 1, 231 > = 'Alt+%'                    ; KEYS_TBL< 2, 231 > = 'KA_PERCENT'    ; KEYS_TBL< 3, 231 > = KA_PERCENT    ; KEYS_TBL< 4, 231 > = 5053
+   KEYS_TBL< 1, 232 > = 'Alt+^'                    ; KEYS_TBL< 2, 232 > = 'KA_CARET'      ; KEYS_TBL< 3, 232 > = KA_CARET      ; KEYS_TBL< 4, 232 > = 5054
+   KEYS_TBL< 1, 233 > = 'Alt+&'                    ; KEYS_TBL< 2, 233 > = 'KA_AMPERSAND'  ; KEYS_TBL< 3, 233 > = KA_AMPERSAND  ; KEYS_TBL< 4, 233 > = 5055
+   KEYS_TBL< 1, 234 > = 'Alt+*'                    ; KEYS_TBL< 2, 234 > = 'KA_STAR'       ; KEYS_TBL< 3, 234 > = KA_STAR       ; KEYS_TBL< 4, 234 > = 5056
+   KEYS_TBL< 1, 235 > = 'Alt+('                    ; KEYS_TBL< 2, 235 > = 'KA_LPAREN'     ; KEYS_TBL< 3, 235 > = KA_LPAREN     ; KEYS_TBL< 4, 235 > = 5057
+   KEYS_TBL< 1, 236 > = 'Alt+)'                    ; KEYS_TBL< 2, 236 > = 'KA_RPAREN'     ; KEYS_TBL< 3, 236 > = KA_RPAREN     ; KEYS_TBL< 4, 236 > = 5048
+   KEYS_TBL< 1, 237 > = 'Alt+"'                    ; KEYS_TBL< 2, 237 > = 'KA_DQUOTE'     ; KEYS_TBL< 3, 237 > = KA_DQUOTE     ; KEYS_TBL< 4, 237 > = 5222
+   KEYS_TBL< 1, 238 > = 'Alt+<'                    ; KEYS_TBL< 2, 238 > = 'KA_LANGLE'     ; KEYS_TBL< 3, 238 > = KA_LANGLE     ; KEYS_TBL< 4, 238 > = 5188
+   KEYS_TBL< 1, 239 > = 'Alt+>'                    ; KEYS_TBL< 2, 239 > = 'KA_RANGLE'     ; KEYS_TBL< 3, 239 > = KA_RANGLE     ; KEYS_TBL< 4, 239 > = 5190
+   KEYS_TBL< 1, 240 > = 'Alt+:'                    ; KEYS_TBL< 2, 240 > = 'KA_COLON'      ; KEYS_TBL< 3, 240 > = KA_COLON      ; KEYS_TBL< 4, 240 > = 5186
+   KEYS_TBL< 1, 241 > = 'Alt+?'                    ; KEYS_TBL< 2, 241 > = 'KA_QUERY'      ; KEYS_TBL< 3, 241 > = KA_QUERY      ; KEYS_TBL< 4, 241 > = 5191
+   KEYS_TBL< 1, 242 > = 'Alt+{'                    ; KEYS_TBL< 2, 242 > = 'KA_LBRACE'     ; KEYS_TBL< 3, 242 > = KA_LBRACE     ; KEYS_TBL< 4, 242 > = 5219
+   KEYS_TBL< 1, 243 > = 'Alt+}'                    ; KEYS_TBL< 2, 243 > = 'KA_RBRACE'     ; KEYS_TBL< 3, 243 > = KA_RBRACE     ; KEYS_TBL< 4, 243 > = 5221
+   KEYS_TBL< 1, 244 > = 'Alt++'                    ; KEYS_TBL< 2, 244 > = 'KA_PLUS'       ; KEYS_TBL< 3, 244 > = KA_PLUS       ; KEYS_TBL< 4, 244 > = 5187
+   KEYS_TBL< 1, 245 > = 'Alt+_'                    ; KEYS_TBL< 2, 245 > = 'KA_UNDERSCORE' ; KEYS_TBL< 3, 245 > = KA_UNDERSCORE ; KEYS_TBL< 4, 245 > = 5189
+!  KEYS_TBL< 1, 246 > = 'Mouse single left click'  ; KEYS_TBL< 2, 246 > = 'KM_L1'         ; KEYS_TBL< 3, 246 > = KM_L1
+!  KEYS_TBL< 1, 247 > = 'Mouse double left click'  ; KEYS_TBL< 2, 247 > = 'KM_L2'         ; KEYS_TBL< 3, 247 > = KM_L2
+!  KEYS_TBL< 1, 248 > = 'Mouse single right click' ; KEYS_TBL< 2, 248 > = 'KM_R1'         ; KEYS_TBL< 3, 248 > = KM_R1
+!  KEYS_TBL< 1, 249 > = 'Mouse double right click' ; KEYS_TBL< 2, 249 > = 'KM_R2'         ; KEYS_TBL< 3, 249 > = KM_R2
+
+   PRMPT_1L  = @( 0 ) : 'Press ' : @( -5 ) : @( -13 )
+   PRMPT_1R  = @( -14 ) : @( -6 ) : ' ('
+   PRMPT_1R := @( -13 ) : 'N' : @( -14 ) : 'ext, if no response, '
+   PRMPT_1R := @( -13 ) : 'B' : @( -14 ) : 'ackup, '
+   PRMPT_1R := @( -13 ) : 'R' : @( -14 ) : 'etry, '
+   PRMPT_1R := @( -13 ) : 'Q' : @( -14 ) : 'uit)' : @( -4 )
+
+RETURN
+
+MOUNT.THE.FILE:
+
+   OPEN FILENAME TO KEY_FILE THEN
+
+      OPEN 'DICT ' : FILENAME TO KEY_DICT ELSE
+
+         CRT 'Couldn`t open DICT ' : FILENAME : '!'
+
+         ALLSWELL  = @FALSE
+
+      END
+
+   END ELSE
+
+      CRT 'Couldn`t open ' : FILENAME : '!'
+
+      ALLSWELL  = @FALSE
+
+   END
+
+   OPEN 'EMV,DEV' TO SRC_FILE ELSE
+
+      CRT 'Couldn`t open EMV,DEV!'
+
+      ALLSWELL  = @FALSE
+
+   END
+
+RETURN
+
+WRITE.CUR.DEFINITIONS:
+
+   ! Renumber, then parse ANY_KEY_TBL, and write its definitions  to  the
+   ! file.
+
+   EXECUTE 'ANY_KEY_NUM'
+
+   READ TBL_PROG FROM SRC_FILE, 'ANY_KEY_TBL' THEN
+
+      KEY_ITEM  = ''
+      LINE_MAX  = DCOUNT( TBL_PROG, @AM )
+
+      FOR LINE_IDX = 1 TO LINE_MAX
+
+         THE_LINE  = TBL_PROG< LINE_IDX >
+
+         KEY_HEAD  = TRIM( THE_LINE[   4,  8 ] ) EQ 'OLD_KEYS'
+         CODE_STR  = TRIM( THE_LINE[  23, 24 ] )
+         KEY_LINE  = TRIM( THE_LINE[  51,  8 ] ) EQ 'NEW_KEYS'
+         EQU_NAME  = TRIM( THE_LINE[  73, 13 ] )
+         KEYB_TYP  = TRIM( THE_LINE[ 112,  3 ] )
+         KEY_STRG  = TRIM( THE_LINE[ 120, 25 ] )
+         ATW_KNUM  = TRIM( THE_LINE[ 145,  4 ] )
+         KEYB_LST  = TRIM( THE_LINE[ 150, 99 ] )
+         CRT_NAME  = ''
+         EMV_CODE  = ''
+         CODE_STR  = FIELD( CODE_STR, "'", 1 )
+         KEYB_LST  = CHANGE( KEYB_LST, ' ', @SM )
+
+         IF KEY_LINE THEN
+
+            LOCATE EQU_NAME IN KEYS_TBL< 2 > SETTING VALU_IDX THEN
+
+               CRT_NAME  = KEYS_TBL< 1, VALU_IDX >
+               EMV_CODE  = KEYS_TBL< 3, VALU_IDX >
+               ATW_KNUM  = KEYS_TBL< 4, VALU_IDX >
+
+            END ELSE
+
+               ! Add a new key?
+
+            END
+
+            IF KEY_HEAD THEN
+
+               ! Starting a new record, so save any previous record
+               ! first.
+
+               IF KEY_ITEM NE '' THEN
+
+                  GOSUB STORE.KEY.ITEM
+
+               END
+
+               KEY_CODE  = CODE_STR
+
+!              READU KEY_ITEM FROM KEY_FILE, KEY_CODE ELSE
+               READ KEY_ITEM FROM KEY_FILE, KEY_CODE ELSE
+
+                  KEY_ITEM  = ''
+
+               END
+
+            END
+GOSUB PAINT.THE.KEY
+            IF KEYB_TYP EQ '' THEN
+
+               IF KEY_HEAD THEN
+
+                  KEY_ITEM< 1, 1 > = EMV_CODE
+                  KEY_ITEM< 2, 1 > = KEYB_TYP
+                  KEY_ITEM< 3, 1 > = EQU_NAME
+                  KEY_ITEM< 4, 1 > = ATW_KNUM
+
+               END ELSE
+
+                  VALU_MAX  = DCOUNT( KEY_ITEM< 2 >, @VM ) + 1
+
+                  KEY_ITEM< 1, VALU_MAX > = EMV_CODE
+                  KEY_ITEM< 2, VALU_MAX > = KEYB_LST
+                  KEY_ITEM< 3, VALU_MAX > = EQU_NAME
+                  KEY_ITEM< 4, VALU_MAX > = ATW_KNUM
+
+               END
+
+            END ELSE
+
+               LOCATE KEYB_TYP IN KEY_ITEM< 2 > SETTING VALU_IDX THEN
+
+                  KEY_ITEM< 1, VALU_IDX > = EMV_CODE
+!                 KEY_ITEM< 2, VALU_IDX > = KEYB_TYP
+                  KEY_ITEM< 3, VALU_IDX > = EQU_NAME
+                  KEY_ITEM< 4, VALU_IDX > = ATW_KNUM
+
+               END ELSE
+
+                  KEY_ITEM  = INSERT( KEY_ITEM, 1, VALU_IDX; EMV_CODE )
+                  KEY_ITEM  = INSERT( KEY_ITEM, 2, VALU_IDX; KEYB_TYP )
+                  KEY_ITEM  = INSERT( KEY_ITEM, 3, VALU_IDX; EQU_NAME )
+                  KEY_ITEM  = INSERT( KEY_ITEM, 4, VALU_IDX; ATW_KNUM )
+
+               END
+
+            END
+INPUT DUMMY
+         END
+
+      NEXT LINE_IDX
+
+   END
+
+RETURN
+
+CHECK.FOR.RESUME:
+
+   READ LAST_RUN FROM KEY_DICT, RUN_NAME THEN
+
+      FRST_KEY  = LAST_RUN< 1 > + 1
+
+   END ELSE
+
+      FRST_KEY  = 1
+
+   END
+
+   KEY_CODE  = ''
+
+RETURN
+
+PARSE.THE.TABLE:
+
+   LAST_KEY  = DCOUNT( KEYS_TBL< 1 >, @VM )
+
+   FOR VALU_IDX = FRST_KEY TO LAST_KEY
+
+      CRT_NAME  = KEYS_TBL< 1, VALU_IDX >
+      EQU_NAME  = KEYS_TBL< 2, VALU_IDX >
+      EMV_CODE  = KEYS_TBL< 3, VALU_IDX >
+      ATW_KNUM  = KEYS_TBL< 4, VALU_IDX >
+
+      ! Skip any known unavailable keys.  What's an unavailable key?  Any
+      ! key that is known to be watched by the OS/Desktop environment for
+      ! its own uses, such as F1 (mostly  on  Windows),  Alt+F4,  Shift+-
+      ! Insert, etc.
+
+      BEGIN CASE
+
+         CASE EQU_NAME EQ 'KC_C'                               ; GOSUB SKIP.THIS.ONE
+         CASE KEYB_TYP EQ 'GTM' AND EQU_NAME EQ 'KS_INSERT'    ; GOSUB SKIP.THIS.ONE
+         CASE KEYB_TYP EQ 'GTM' AND EQU_NAME EQ 'KSC_INSERT'   ; GOSUB SKIP.THIS.ONE
+         CASE KEYB_TYP EQ 'GTM' AND EQU_NAME EQ 'KSA_INSERT'   ; GOSUB SKIP.THIS.ONE
+         CASE KEYB_TYP EQ 'XTM' AND EQU_NAME EQ 'KS_INSERT'    ; GOSUB SKIP.THIS.ONE
+         CASE KEYB_TYP EQ 'XTM' AND EQU_NAME EQ 'KA_F04'       ; GOSUB SKIP.THIS.ONE
+         CASE KEYB_TYP EQ 'XTM' AND EQU_NAME EQ 'KSC_INSERT'   ; GOSUB SKIP.THIS.ONE
+         CASE KEYB_TYP EQ 'XTM' AND EQU_NAME EQ 'KSA_INSERT'   ; GOSUB SKIP.THIS.ONE
+         CASE 1                                                ; GOSUB ENTER.THE.KEY
+
+      END CASE
+
+   NEXT VALU_IDX
+
+RETURN
+
+ENTER.THE.KEY:
+
+   KEY_CODE  = ''
+
+   CRT PRMPT_1L : CRT_NAME : PRMPT_1R :
+
+   ! Wait for a key to be pressed.
+
+   LOOP
+
+      IN CHAR_NUM FOR 30 THEN
+
+         EXIT
+
+      END
+
+   REPEAT
+
+   KEY_CODE := CHAR_NUM 'R%3'
+
+   ! Get any extra characters for that key.
+
+   LOOP
+
+      INPUT KEY_IN_Q, -1 :
+
+   WHILE KEY_IN_Q DO
+
+      IN CHAR_NUM
+
+      KEY_CODE := CHAR_NUM 'R%3'
+
+   REPEAT
+
+   RESPONSE  = OCONV( CHAR( KEY_CODE[ 1, 3 ] ), 'MCU' )
+
+   BEGIN CASE
+
+      CASE RESPONSE EQ 'N' ; GOSUB SKIP.THIS.ONE
+      CASE RESPONSE EQ 'B' ; GOSUB RE.ENTER.PREV.KEY
+      CASE RESPONSE EQ 'R' ; GOSUB RE.ENTER.LAST.KEY
+      CASE RESPONSE EQ 'Q' ; GOSUB ABORT.THE.MISSION
+      CASE 1               ; GOSUB UDATE.THE.KEY
+
+   END CASE
+
+RETURN
+
+RE.ENTER.LAST.KEY:
+
+   VALU_IDX -= 1
+
+   GOSUB RESET.THE.KEY
+
+   VALU_IDX -= 1
+
+   CRT @( -10 ) : @( 0 ) : @( -4 ) :
+
+RETURN
+
+RE.ENTER.PREV.KEY:
+
+   VALU_IDX -= 2
+
+   GOSUB RESET.THE.KEY
+
+   VALU_IDX -= 1
+
+   CRT @( -10 ) : @( -10 ) : @( 0 ) : @( -4 ) :
+
+RETURN
+
+RESET.THE.KEY:
+
+   IF VALU_IDX LT 1 THEN
+
+      VALU_IDX  = 1
+
+   END
+
+   CRT_NAME  = KEYS_TBL< 1, VALU_IDX >
+   EQU_NAME  = KEYS_TBL< 2, VALU_IDX >
+   EMV_CODE  = KEYS_TBL< 3, VALU_IDX >
+   ATW_KNUM  = KEYS_TBL< 4, VALU_IDX >
+
+   READU KEY_ITEM FROM KEY_FILE, KEY_CODE ELSE
+
+      KEY_ITEM  = ''
+
+   END
+
+   ! KEY 027091049126
+   ! 001 !}]!%]!}]!}]!}
+   ! 002 ANS]BBS]NTC]PTY]XTM
+   ! 003 K_HOME]K_END]K_HOME]K_HOME]K_HOME
+   ! 004 36]35]36]36]36
+   ! 005 ^[[1~
+
+   LOCATE KEYB_TYP IN KEY_ITEM< 2 > BY 'AL' SETTING VALU_IDX THEN
+
+      DEL KEY_ITEM< 1, VALU_IDX >
+      DEL KEY_ITEM< 2, VALU_IDX >
+      DEL KEY_ITEM< 3, VALU_IDX >
+      DEL KEY_ITEM< 4, VALU_IDX >
+
+      GOSUB STORE.KEY.ITEM
+
+   END ELSE
+
+      RELEASE KEY_FILE, KEY_CODE
+
+   END
+
+RETURN
+
+UDATE.THE.KEY:
+
+   READU KEY_ITEM FROM KEY_FILE, KEY_CODE ELSE
+
+      KEY_ITEM  = ''
+
+   END
+
+   ! KEY 027091049126
+   ! 001 !}]!%]!}]!}]!}
+   ! 002 ANS]BBS]NTC]PTY]XTM
+   ! 003 K_HOME]K_END]K_HOME]K_HOME]K_HOME
+   ! 004 36]35]36]36]36
+   ! 005 ^[[1~
+
+   LOCATE KEYB_TYP IN KEY_ITEM< 2 > BY 'AL' SETTING VALU_IDX THEN
+
+      IF KEY_ITEM< 3, VALU_IDX > EQ EQU_NAME THEN
+
+         ! This key has already been defined for this terminal/emulator.
+
+         RELEASE KEY_FILE, KEY_CODE
+
+         GOSUB PAINT.THE.KEY
+
+      END ELSE
+
+         LOCATE KEY_ITEM< 3, VALU_IDX > IN KEYS_TBL< 2 > SETTING TBL_VALU THEN
+
+            LOOP
+
+               OLD_NAME  = KEYS_TBL< 1, TBL_VALU >
+
+               PRMT_STR  = @( 0 ) : @( -5 ) : 'ALERT!!!' : @( -6 ) : '  '
+               PRMT_STR := KEYB_TYP : '`s key-code '
+               PRMT_STR := KEY_CODE : ' is already assigned to '
+               PRMT_STR := OLD_NAME : '!  Change to '
+               PRMT_STR := CRT_NAME : ' instead?  ('
+               PRMT_STR := @( -13 ) : 'N' : @( -14 ) : '/'
+               PRMT_STR := @( -13 ) : 'y' : @( -14 ) : ')  '
+
+               CRT PRMT_STR :
+
+               INPUT RESPONSE, 1 :
+
+               RESPONSE  = OCONV( RESPONSE, 'MCU' )
+
+            UNTIL RESPONSE EQ 'Y' OR RESPONSE EQ 'N' OR RESPONSE EQ '' DO REPEAT
+
+            IF RESPONSE EQ 'Y' THEN
+
+               GOSUB STORE.KEY.ITEM
+
+            END ELSE
+
+               GOSUB SKIP.THIS.ONE
+
+            END
+
+         END ELSE
+
+            ! No longer used.  Remove it.
+
+            DEL KEY_ITEM< 1, VALU_IDX >
+            DEL KEY_ITEM< 2, VALU_IDX >
+            DEL KEY_ITEM< 3, VALU_IDX >
+            DEL KEY_ITEM< 4, VALU_IDX >
+
+            GOSUB STORE.KEY.ITEM
+            GOSUB UDATE.THE.KEY
+
+         END
+
+      END
+
+   END ELSE
+
+      GOSUB STORE.KEY.ITEM
+
+   END
+
+RETURN
+
+SKIP.THIS.ONE:
+
+   RELEASE KEY_FILE, KEY_CODE
+
+   KEY_CODE  = 'SKIPPED!'
+
+   GOSUB PAINT.THE.KEY
+
+RETURN
+
+STORE.KEY.ITEM:
+
+   IF KEYB_TYP EQ '' ELSE
+
+      LOCATE KEYB_TYP IN KEY_ITEM< 2 > BY 'AL' SETTING VALU_IDX ELSE
+
+         KEY_ITEM  = INSERT( KEY_ITEM, 1, VALU_IDX; EMV_CODE )
+         KEY_ITEM  = INSERT( KEY_ITEM, 2, VALU_IDX; KEYB_TYP )
+         KEY_ITEM  = INSERT( KEY_ITEM, 3, VALU_IDX; EQU_NAME )
+         KEY_ITEM  = INSERT( KEY_ITEM, 4, VALU_IDX; ATW_KNUM )
+
+      END
+
+   END
+
+   IF KEY_ITEM< 5 > EQ '' THEN
+
+      KEY_STRG  = ''
+      CODE_LEN  = LEN( KEY_CODE )
+
+      FOR CHAR_POS  = 1 TO CODE_LEN STEP 3
+
+         CHAR_NUM  = KEY_CODE[ CHAR_POS, 3 ] + 0
+
+         BEGIN CASE
+
+            CASE CHAR_NUM LT  32 ; KEY_STRG := '^' : CHAR( CHAR_NUM + 64 )
+            CASE CHAR_NUM GT 126 ; KEY_STRG := '{' :       CHAR_NUM 'R%3}'
+            CASE @TRUE           ; KEY_STRG :=       CHAR( CHAR_NUM )
+
+         END CASE
+
+      NEXT CHAR_POS
+
+   END ELSE
+
+      KEY_STRG  = KEY_ITEM< 5 >
+
+   END
+
+!  WRITE KEY_ITEM ON KEY_FILE, KEY_CODE
+!IF KEY_CODE EQ '001' THEN
+   GOSUB PAINT.THE.KEY
+!END
+RETURN
+
+PAINT.THE.KEY:
+
+   PRMT_STR  = @( 0 )
+   PRMT_STR := ( KEY_CODE : DASHLINE ) 'L#47> '
+   PRMT_STR := ( EMV_CODE : DASHLINE ) 'L#20 '
+   PRMT_STR := ( KEYB_TYP : DASHLINE ) 'L#12> '
+   PRMT_STR := ( EQU_NAME : DASHLINE ) 'L#15> '
+   PRMT_STR :=   ATW_KNUM              'R#4 '
+   PRMT_STR := ( KEY_STRG : DASHLINE ) 'L#25> '
+   PRMT_STR :=   CRT_NAME
+   PRMT_STR := @( -4 )
+
+   CRT PRMT_STR
+
+   IF VALU_IDX LT LAST_KEY THEN
+
+      WRITE VALU_IDX ON KEY_DICT, RUN_NAME
+
+   END ELSE
+
+      DELETE KEY_DICT, RUN_NAME
+
+   END
+
+   KEY_ITEM  = ''
+   EQU_NAME  = ''
+
+RETURN
+
+ABORT.THE.MISSION:
+
+   VALU_IDX = LAST_KEY
+
+RETURN

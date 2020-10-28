@@ -6,7 +6,7 @@ SUBROUTINE ANY_KEY_TBL
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 09/15/2020 11:06:09 by Marcus
+! Modified: 10/26/2020 01:45:11 by Marcus
 
 ! Platform: Any Pick; Any OS; Any emulator; Any emulation
 
@@ -81,6 +81,10 @@ SUBROUTINE ANY_KEY_TBL
 !           Done!  XP's CMD.EXE is very limited, but adding compatibility
 !           didn't interfere with 7's or 10's, so why not add it?
 
+! Upcoming: Improve Co*Star/CUEmulate support.
+
+!           Done!  09/19/2020 21:42 by Marcus
+
 ! Upcoming: A universal file-creation step to create a  file  (ANY_KEYS?)
 !           into which to write this data, if empty, and  from  which  to
 !           attempt to read this data before defaulting to  this  routine
@@ -90,6 +94,38 @@ SUBROUTINE ANY_KEY_TBL
 
 !           It's the CIIIrcle of LIIIfe!
 
+! Upcoming: Improve suppord for  alternate  character  sets.  We  already
+!           cover UTF-8, but need  to  cover  DEC multinational,  DEC ISO
+!           Latin-1, and Windows.
+
+! Upcoming: Redesign the arrays and ANY_KEYS file into 3D arrays:
+
+!           ANY_KEYS<1>=...  ;ANY_KEYS<2>=...     ;ANY_KEYS<3>=...
+!           ----------------- -------------------- ----------------------
+!           OLD_KEYS<2>='001';NEW_KEYS<2,1>=K_HOME;KEYBOARD<2,1, 1>='MDS'
+!                                                  KEYBOARD<2,1, 2>='PV6'
+!                                                  KEYBOARD<2,1, 3>='VP6'
+!                                                  KEYBOARD<2,1, 4>='VPT'
+!                             NEW_KEYS<2,2>=KC_A  ;KEYBOARD<2,2, 1>='ANS'
+!                                                  KEYBOARD<2,2, 2>='BBS'
+!                                                  KEYBOARD<2,2, 3>='GTM'
+!                                                  KEYBOARD<2,2, 4>='LNX'
+!                                                  KEYBOARD<2,2, 5>='LVT'
+!                                                  KEYBOARD<2,2, 6>='NTC'
+!                                                  KEYBOARD<2,2, 7>='PCK'
+!                                                  KEYBOARD<2,2, 8>='PTY'
+!                                                  KEYBOARD<2,2, 9>='SCO'
+!                                                  KEYBOARD<2,2,10>='TTY'
+!                                                  KEYBOARD<2,2,11>='VT0'
+!                                                  KEYBOARD<2,2,12>='VT1'
+!                                                  KEYBOARD<2,2,13>='VT2'
+!                                                  KEYBOARD<2,2,14>='VT3'
+!                                                  KEYBOARD<2,2,15>='VT4'
+!                                                  KEYBOARD<2,2,16>='WYS'
+!                                                  KEYBOARD<2,2,17>='XTM'
+
+!           This will mandate the use of @TM, RAISE, and LOWER.
+
 !           Change is the only constant. -- Heraclitus
 
 ! Old name: N/A
@@ -98,8 +134,8 @@ SUBROUTINE ANY_KEY_TBL
 
 ! Catalog : ANY_KEY_TBL
 
-!           VT100, VT220, VT320, VT420, ANSI BBS, Linux Console,
-!           SCO Console
+!           VT100, VT220, VT320, VT420, ANSI BBS, Linux Console, SCO
+!           Console
 
 !           {194}{155}101~{194}{155}yyy;xxxR - Left  Single-Click (8-bit)
 !           {194}{155}102~{194}{155}yyy;xxxR - Right Single-Click (8-bit)
@@ -124,13 +160,13 @@ SUBROUTINE ANY_KEY_TBL
 
    INCLUDE ANY_KEY_EQU
 
-   !                  Key code-sequence                                 EQU name                    Keyboard group     ATW key                  ATW# Terminals issuing the key code-sequence
-
-   OLD_KEYS        = '000'                      ; NEW_KEYS            = KC_AT         ; KEYBOARD            = ''    ;! ^@                       3050 Ctrl+Tab on NTC10
+   !                  Key_sequence_decoded_____                         EQU_name_____                Keyboard_group    Key_sequence_encoded____ ATW# Terminals_issuing_the_key-code-sequence...
+   OLD_KEYS        = '000'                      ; NEW_KEYS            = KC_TAB        ; KEYBOARD            = 'NTC' ;! ^@                       2009 NTC10
+                                                  NEW_KEYS<   1,  2 > = KC_AT                                       ;!                          3050
    OLD_KEYS<   2 > = '001'                      ; NEW_KEYS<   2     > = K_HOME        ; KEYBOARD<   2     > = 'MDS' ;! ^A                         36
-                                                  NEW_KEYS<   2,  2 > = K_HOME        ; KEYBOARD<   2,  2 > = 'PV6'
-                                                  NEW_KEYS<   2,  3 > = K_HOME        ; KEYBOARD<   2,  3 > = 'VP6'
-                                                  NEW_KEYS<   2,  4 > = K_HOME        ; KEYBOARD<   2,  4 > = 'VPT'
+                                                  NEW_KEYS<   2,  2 > = K_HOME        ; KEYBOARD<   2,  2 > = 'PV6' ;!                            36
+                                                  NEW_KEYS<   2,  3 > = K_HOME        ; KEYBOARD<   2,  3 > = 'VP6' ;!                            36
+                                                  NEW_KEYS<   2,  4 > = K_HOME        ; KEYBOARD<   2,  4 > = 'VPT' ;!                            36
                                                   NEW_KEYS<   2,  5 > = KC_A                                        ;!                          2065 ANS BBS GTM LNX LVT NTC PCK PTY SCO TTY VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS<   3 > = '001072013'                ; NEW_KEYS<   3     > = K_F09                                       ;! ^AH^M                     120 WYS
    OLD_KEYS<   4 > = '001073013'                ; NEW_KEYS<   4     > = K_F10                                       ;! ^AI^M                     121 WYS
@@ -202,9 +238,9 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS<  61 > = '002057013'                ; NEW_KEYS<  61     > = K_F09                                       ;! ^B9^M                     120 PV6 VP6 VPT
    OLD_KEYS<  62 > = '002058'                   ; NEW_KEYS<  62     > = KA_F11                                      ;! ^B:                      4122 PCK
    OLD_KEYS<  63 > = '002058013'                ; NEW_KEYS<  63     > = K_F10                                       ;! ^B:^M                     121 PV6 VP6 VPT
-   OLD_KEYS<  64 > = '002059'                   ; NEW_KEYS<  64     > = KA_F12        ; KEYBOARD<  64     > = 'PCK' ;! ^B
+   OLD_KEYS<  64 > = '002059'                   ; NEW_KEYS<  64     > = KA_F12        ; KEYBOARD<  64     > = 'PCK' ;! ^B                       4123
                                                   NEW_KEYS<  64,  2 > = K_F11                                       ;!                           122 MDS VP6 VPT
-   OLD_KEYS<  65 > = '002059013'                ; NEW_KEYS<  65     > = K_F11                                       ;! ^B
+   OLD_KEYS<  65 > = '002059013'                ; NEW_KEYS<  65     > = K_F11                                       ;! ^B                        122
    OLD_KEYS<  66 > = '002060013'                ; NEW_KEYS<  66     > = K_F12                                       ;! ^B<^M                     123 PV6 VP6 VPT
    OLD_KEYS<  67 > = '002064'                   ; NEW_KEYS<  67     > = K_F01                                       ;! ^B@                       112 PCK
    OLD_KEYS<  68 > = '002065'                   ; NEW_KEYS<  68     > = K_F02                                       ;! ^BA                       113 PCK
@@ -238,63 +274,69 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS<  96 > = '004'                      ; NEW_KEYS<  96     > = KC_D                                        ;! ^D                       2068 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS<  97 > = '005'                      ; NEW_KEYS<  97     > = KC_E                                        ;! ^E                       2069 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS<  98 > = '006'                      ; NEW_KEYS<  98     > = K_RIGHT       ; KEYBOARD<  98     > = 'MDS' ;! ^F                         39
-                                                  NEW_KEYS<  98,  2 > = K_RIGHT       ; KEYBOARD<  98,  2 > = 'PCK'
-                                                  NEW_KEYS<  98,  3 > = KS_RIGHT      ; KEYBOARD<  98,  3 > = 'PCK'
-                                                  NEW_KEYS<  98,  4 > = K_RIGHT       ; KEYBOARD<  98,  4 > = 'PV6'
-                                                  NEW_KEYS<  98,  5 > = K_RIGHT       ; KEYBOARD<  98,  5 > = 'VP6'
-                                                  NEW_KEYS<  98,  6 > = K_RIGHT       ; KEYBOARD<  98,  6 > = 'VPT'
+                                                  NEW_KEYS<  98,  2 > = K_RIGHT       ; KEYBOARD<  98,  2 > = 'PCK' ;!                            39
+                                                  NEW_KEYS<  98,  3 > = KS_RIGHT      ; KEYBOARD<  98,  3 > = 'PCK' ;!                           139
+                                                  NEW_KEYS<  98,  4 > = K_RIGHT       ; KEYBOARD<  98,  4 > = 'PV6' ;!                            39
+                                                  NEW_KEYS<  98,  5 > = K_RIGHT       ; KEYBOARD<  98,  5 > = 'VP6' ;!                            39
+                                                  NEW_KEYS<  98,  6 > = K_RIGHT       ; KEYBOARD<  98,  6 > = 'VPT' ;!                            39
                                                   NEW_KEYS<  98,  7 > = KC_F                                        ;!                          2070 ANS BBS GTM LNX LVT NTC PTY SCO TTY VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS<  99 > = '007'                      ; NEW_KEYS<  99     > = KC_G                                        ;! ^G                       2071 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 100 > = '008'                      ; NEW_KEYS< 100     > = K_BACKSPACE   ; KEYBOARD< 100     > = 'ANS' ;! ^H                          8
-                                                  NEW_KEYS< 100,  2 > = K_BACKSPACE   ; KEYBOARD< 100,  2 > = 'BBS'
-                                                  NEW_KEYS< 100,  3 > = K_BACKSPACE   ; KEYBOARD< 100,  3 > = 'GTM'
-                                                  NEW_KEYS< 100,  4 > = K_BACKSPACE   ; KEYBOARD< 100,  4 > = 'LNX'
-                                                  NEW_KEYS< 100,  5 > = KC_BACKSPACE  ; KEYBOARD< 100,  5 > = 'LVT'
-                                                  NEW_KEYS< 100,  6 > = K_BACKSPACE   ; KEYBOARD< 100,  6 > = 'MDS'
-                                                  NEW_KEYS< 100,  7 > = K_BACKSPACE   ; KEYBOARD< 100,  7 > = 'NTC'
-                                                  NEW_KEYS< 100,  8 > = K_BACKSPACE   ; KEYBOARD< 100,  8 > = 'PCK'
-                                                  NEW_KEYS< 100,  9 > = K_BACKSPACE   ; KEYBOARD< 100,  9 > = 'PTY'
-                                                  NEW_KEYS< 100, 10 > = K_BACKSPACE   ; KEYBOARD< 100, 10 > = 'PV6'
-                                                  NEW_KEYS< 100, 11 > = K_BACKSPACE   ; KEYBOARD< 100, 11 > = 'SCO'
-                                                  NEW_KEYS< 100, 12 > = K_BACKSPACE   ; KEYBOARD< 100, 12 > = 'TTY'
-                                                  NEW_KEYS< 100, 13 > = K_LEFT        ; KEYBOARD< 100, 13 > = 'TTY'
-                                                  NEW_KEYS< 100, 14 > = K_BACKSPACE   ; KEYBOARD< 100, 14 > = 'VP6'
-                                                  NEW_KEYS< 100, 15 > = K_BACKSPACE   ; KEYBOARD< 100, 15 > = 'VPT'
-                                                  NEW_KEYS< 100, 16 > = K_BACKSPACE   ; KEYBOARD< 100, 16 > = 'VT0'
-                                                  NEW_KEYS< 100, 17 > = K_BACKSPACE   ; KEYBOARD< 100, 17 > = 'VT1'
-                                                  NEW_KEYS< 100, 18 > = K_BACKSPACE   ; KEYBOARD< 100, 18 > = 'VT2'
-                                                  NEW_KEYS< 100, 19 > = K_BACKSPACE   ; KEYBOARD< 100, 19 > = 'VT3'
-                                                  NEW_KEYS< 100, 20 > = K_BACKSPACE   ; KEYBOARD< 100, 20 > = 'VT4'
-                                                  NEW_KEYS< 100, 21 > = K_BACKSPACE   ; KEYBOARD< 100, 21 > = 'WYS'
-                                                  NEW_KEYS< 100, 22 > = KC_BACKSPACE  ; KEYBOARD< 100, 22 > = 'XTM'
-                                                  NEW_KEYS< 100, 23 > = KC_H                                        ;!                          2072 NTC
+                                                  NEW_KEYS< 100,  2 > = K_BACKSPACE   ; KEYBOARD< 100,  2 > = 'BBS' ;!                             8
+                                                  NEW_KEYS< 100,  3 > = K_BACKSPACE   ; KEYBOARD< 100,  3 > = 'CUO' ;!                             8
+                                                  NEW_KEYS< 100,  4 > = K_BACKSPACE   ; KEYBOARD< 100,  4 > = 'CUQ' ;!                             8
+                                                  NEW_KEYS< 100,  5 > = K_BACKSPACE   ; KEYBOARD< 100,  5 > = 'GTM' ;!                             8
+                                                  NEW_KEYS< 100,  6 > = K_BACKSPACE   ; KEYBOARD< 100,  6 > = 'LNX' ;!                             8
+                                                  NEW_KEYS< 100,  7 > = KC_BACKSPACE  ; KEYBOARD< 100,  7 > = 'LVT' ;!                          2008
+                                                  NEW_KEYS< 100,  8 > = K_BACKSPACE   ; KEYBOARD< 100,  8 > = 'MDS' ;!                             8
+                                                  NEW_KEYS< 100,  9 > = K_BACKSPACE   ; KEYBOARD< 100,  9 > = 'NTC' ;!                             8
+                                                  NEW_KEYS< 100, 10 > = K_BACKSPACE   ; KEYBOARD< 100, 10 > = 'PCK' ;!                             8
+                                                  NEW_KEYS< 100, 11 > = K_BACKSPACE   ; KEYBOARD< 100, 11 > = 'PTY' ;!                             8
+                                                  NEW_KEYS< 100, 12 > = K_BACKSPACE   ; KEYBOARD< 100, 12 > = 'PV6' ;!                             8
+                                                  NEW_KEYS< 100, 13 > = K_BACKSPACE   ; KEYBOARD< 100, 13 > = 'SCO' ;!                             8
+                                                  NEW_KEYS< 100, 14 > = K_BACKSPACE   ; KEYBOARD< 100, 14 > = 'TTY' ;!                             8
+                                                  NEW_KEYS< 100, 15 > = K_LEFT        ; KEYBOARD< 100, 15 > = 'TTY' ;!                            37
+                                                  NEW_KEYS< 100, 16 > = K_BACKSPACE   ; KEYBOARD< 100, 16 > = 'VP6' ;!                             8
+                                                  NEW_KEYS< 100, 17 > = K_BACKSPACE   ; KEYBOARD< 100, 17 > = 'VPT' ;!                             8
+                                                  NEW_KEYS< 100, 18 > = K_BACKSPACE   ; KEYBOARD< 100, 18 > = 'VT0' ;!                             8
+                                                  NEW_KEYS< 100, 19 > = K_BACKSPACE   ; KEYBOARD< 100, 19 > = 'VT1' ;!                             8
+                                                  NEW_KEYS< 100, 20 > = K_BACKSPACE   ; KEYBOARD< 100, 20 > = 'VT2' ;!                             8
+                                                  NEW_KEYS< 100, 21 > = K_BACKSPACE   ; KEYBOARD< 100, 21 > = 'VT3' ;!                             8
+                                                  NEW_KEYS< 100, 22 > = K_BACKSPACE   ; KEYBOARD< 100, 22 > = 'VT4' ;!                             8
+                                                  NEW_KEYS< 100, 23 > = K_BACKSPACE   ; KEYBOARD< 100, 23 > = 'WYS' ;!                             8
+                                                  NEW_KEYS< 100, 24 > = KC_BACKSPACE  ; KEYBOARD< 100, 24 > = 'XTM' ;!                          2008
+                                                  NEW_KEYS< 100, 25 > = KC_H                                        ;!                          2072 NTC
    OLD_KEYS< 101 > = '009'                      ; NEW_KEYS< 101     > = K_TAB                                       ;! ^I                          9 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 102 > = '010'                      ; NEW_KEYS< 102     > = KC_ENTER      ; KEYBOARD< 102     > = 'ANS' ;! ^J                       2013
-                                                  NEW_KEYS< 102,  2 > = KC_ENTER      ; KEYBOARD< 102,  2 > = 'BBS'
-                                                  NEW_KEYS< 102,  3 > = KC_ENTER      ; KEYBOARD< 102,  3 > = 'LNX'
-                                                  NEW_KEYS< 102,  4 > = K_DOWN        ; KEYBOARD< 102,  4 > = 'MDS'
-                                                  NEW_KEYS< 102,  5 > = KC_ENTER      ; KEYBOARD< 102,  5 > = 'NTC'
-                                                  NEW_KEYS< 102,  6 > = K_DOWN        ; KEYBOARD< 102,  6 > = 'PCK'
-                                                  NEW_KEYS< 102,  7 > = KS_DOWN       ; KEYBOARD< 102,  7 > = 'PCK'
-                                                  NEW_KEYS< 102,  8 > = K_DOWN        ; KEYBOARD< 102,  8 > = 'PV6'
-                                                  NEW_KEYS< 102,  9 > = KC_ENTER      ; KEYBOARD< 102,  9 > = 'SCO'
-                                                  NEW_KEYS< 102, 10 > = K_DOWN        ; KEYBOARD< 102, 10 > = 'TTY'
-                                                  NEW_KEYS< 102, 11 > = K_DOWN        ; KEYBOARD< 102, 11 > = 'VP6'
-                                                  NEW_KEYS< 102, 12 > = K_DOWN        ; KEYBOARD< 102, 12 > = 'VPT'
-                                                  NEW_KEYS< 102, 13 > = K_ENTER       ; KEYBOARD< 102, 13 > = 'VT0'
-                                                  NEW_KEYS< 102, 14 > = K_ENTER       ; KEYBOARD< 102, 14 > = 'VT1'
-                                                  NEW_KEYS< 102, 15 > = K_ENTER       ; KEYBOARD< 102, 15 > = 'VT2'
-                                                  NEW_KEYS< 102, 16 > = K_ENTER       ; KEYBOARD< 102, 16 > = 'VT3'
-                                                  NEW_KEYS< 102, 17 > = K_ENTER       ; KEYBOARD< 102, 17 > = 'VT4'
-                                                  NEW_KEYS< 102, 18 > = KC_J                                        ;!                          2074 GTM LVT PTY VT0 VT2 VT3 XTM
+                                                  NEW_KEYS< 102,  2 > = KC_ENTER      ; KEYBOARD< 102,  2 > = 'BBS' ;!                          2013
+                                                  NEW_KEYS< 102,  3 > = K_ENTER       ; KEYBOARD< 102,  3 > = 'CUO' ;!                            13
+                                                  NEW_KEYS< 102,  4 > = K_ENTER       ; KEYBOARD< 102,  4 > = 'CUQ' ;!                            13
+                                                  NEW_KEYS< 102,  5 > = KC_ENTER      ; KEYBOARD< 102,  5 > = 'LNX' ;!                          2013
+                                                  NEW_KEYS< 102,  6 > = K_DOWN        ; KEYBOARD< 102,  6 > = 'MDS' ;!                            40
+                                                  NEW_KEYS< 102,  7 > = KC_ENTER      ; KEYBOARD< 102,  7 > = 'NTC' ;!                          2013
+                                                  NEW_KEYS< 102,  8 > = K_DOWN        ; KEYBOARD< 102,  8 > = 'PCK' ;!                            40
+                                                  NEW_KEYS< 102,  9 > = KS_DOWN       ; KEYBOARD< 102,  9 > = 'PTY' ;!                           140
+                                                  NEW_KEYS< 102, 10 > = K_DOWN        ; KEYBOARD< 102, 10 > = 'PV6' ;!                            40
+                                                  NEW_KEYS< 102, 11 > = KC_ENTER      ; KEYBOARD< 102, 11 > = 'SCO' ;!                          2013
+                                                  NEW_KEYS< 102, 12 > = K_DOWN        ; KEYBOARD< 102, 12 > = 'TTY' ;!                            40
+                                                  NEW_KEYS< 102, 13 > = K_DOWN        ; KEYBOARD< 102, 13 > = 'VP6' ;!                            40
+                                                  NEW_KEYS< 102, 14 > = K_DOWN        ; KEYBOARD< 102, 14 > = 'VPT' ;!                            40
+                                                  NEW_KEYS< 102, 15 > = K_ENTER       ; KEYBOARD< 102, 15 > = 'VT0' ;!                            13
+                                                  NEW_KEYS< 102, 16 > = K_ENTER       ; KEYBOARD< 102, 16 > = 'VT1' ;!                            13
+                                                  NEW_KEYS< 102, 17 > = K_ENTER       ; KEYBOARD< 102, 17 > = 'VT2' ;!                            13
+                                                  NEW_KEYS< 102, 18 > = K_ENTER       ; KEYBOARD< 102, 18 > = 'VT3' ;!                            13
+                                                  NEW_KEYS< 102, 19 > = K_ENTER       ; KEYBOARD< 102, 19 > = 'VT4' ;!                            13
+                                                  NEW_KEYS< 102, 20 > = KS_DOWN       ; KEYBOARD< 102, 20 > = 'WYS' ;!                           140
+                                                  NEW_KEYS< 102, 21 > = KC_J                                        ;!                          2074 GTM LVT PTY VT0 VT2 VT3 XTM
    OLD_KEYS< 103 > = '011'                      ; NEW_KEYS< 103     > = K_UP          ; KEYBOARD< 103     > = 'VPT' ;! ^K                         38
-                                                  NEW_KEYS< 103,  2 > = KS_UP         ; KEYBOARD< 103,  2 > = 'WYS'
+                                                  NEW_KEYS< 103,  2 > = KS_UP         ; KEYBOARD< 103,  2 > = 'WYS' ;!                          1038
                                                   NEW_KEYS< 103,  3 > = KC_K                                        ;!                          2075 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VT0 VT1 VT2 VT3 VT4 XTM
    OLD_KEYS< 104 > = '012'                      ; NEW_KEYS< 104     > = K_INSERT      ; KEYBOARD< 104     > = 'MDS' ;! ^L                         45
-                                                  NEW_KEYS< 104,  2 > = K_RIGHT       ; KEYBOARD< 104,  2 > = 'VPT'
-                                                  NEW_KEYS< 104,  3 > = KS_RIGHT      ; KEYBOARD< 104,  3 > = 'WYS'
+                                                  NEW_KEYS< 104,  2 > = K_RIGHT       ; KEYBOARD< 104,  2 > = 'VPT' ;!                            39
+                                                  NEW_KEYS< 104,  3 > = KS_RIGHT      ; KEYBOARD< 104,  3 > = 'WYS' ;!                           139
                                                   NEW_KEYS< 104,  4 > = KC_L                                        ;!                          2076 ANS BBS GTM LNX LVT NTC PCK PTY PV6 SCO TTY VP6 VT0 VT1 VT2 VT3 VT4 XTM
-   OLD_KEYS< 105 > = '013'                      ; NEW_KEYS< 105     > = K_ENTER                                     ;! ^M                         13 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
+   OLD_KEYS< 105 > = '013'                      ; NEW_KEYS< 105     > = KS_ENTER      ; KEYBOARD< 105     > = 'PTY' ;! ^M                        113
+                                                  NEW_KEYS< 105,  2 > = K_ENTER                                     ;!                            13 ANS BBS GTM LNX LVT MDS NTC PCK PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 106 > = '014'                      ; NEW_KEYS< 106     > = KC_N                                        ;! ^N                       2078 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 107 > = '015'                      ; NEW_KEYS< 107     > = KC_O                                        ;! ^O                       2079 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 108 > = '016'                      ; NEW_KEYS< 108     > = KC_P                                        ;! ^P                       2080 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
@@ -303,27 +345,28 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 111 > = '019'                      ; NEW_KEYS< 111     > = KC_S                                        ;! ^S                       2083 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 112 > = '020'                      ; NEW_KEYS< 112     > = KC_T                                        ;! ^T                       2084 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 113 > = '021'                      ; NEW_KEYS< 113     > = K_LEFT        ; KEYBOARD< 113     > = 'MDS' ;! ^U                         37
-                                                  NEW_KEYS< 113,  2 > = K_LEFT        ; KEYBOARD< 113,  2 > = 'PCK'
-                                                  NEW_KEYS< 113,  3 > = K_LEFT        ; KEYBOARD< 113,  3 > = 'PV6'
-                                                  NEW_KEYS< 113,  4 > = K_LEFT        ; KEYBOARD< 113,  4 > = 'VP6'
-                                                  NEW_KEYS< 113,  5 > = K_LEFT        ; KEYBOARD< 113,  5 > = 'VPT'
-                                                  NEW_KEYS< 113,  6 > = K_LEFT        ; KEYBOARD< 113,  6 > = 'VT0'
-                                                  NEW_KEYS< 113,  7 > = K_LEFT        ; KEYBOARD< 113,  7 > = 'VT1'
-                                                  NEW_KEYS< 113,  8 > = K_LEFT        ; KEYBOARD< 113,  8 > = 'VT2'
-                                                  NEW_KEYS< 113,  9 > = K_LEFT        ; KEYBOARD< 113,  9 > = 'VT4'
-                                                  NEW_KEYS< 113, 10 > = K_LEFT        ; KEYBOARD< 113, 10 > = 'WYS'
-                                                  NEW_KEYS< 113, 11 > = KC_U                                        ;!                          2085 ANS BBS GTM LNX LVT NTC PTY SCO TTY VT3 VT4 VT4 XTM
+                                                  NEW_KEYS< 113,  2 > = K_LEFT        ; KEYBOARD< 113,  2 > = 'PCK' ;!                            37
+                                                  NEW_KEYS< 113,  3 > = K_LEFT        ; KEYBOARD< 113,  3 > = 'PV6' ;!                            37
+                                                  NEW_KEYS< 113,  4 > = K_LEFT        ; KEYBOARD< 113,  4 > = 'VP6' ;!                            37
+                                                  NEW_KEYS< 113,  5 > = K_LEFT        ; KEYBOARD< 113,  5 > = 'VPT' ;!                            37
+                                                  NEW_KEYS< 113,  6 > = K_LEFT        ; KEYBOARD< 113,  6 > = 'VT0' ;!                            37
+                                                  NEW_KEYS< 113,  7 > = K_LEFT        ; KEYBOARD< 113,  7 > = 'VT1' ;!                            37
+                                                  NEW_KEYS< 113,  8 > = K_LEFT        ; KEYBOARD< 113,  8 > = 'VT2' ;!                            37
+                                                  NEW_KEYS< 113,  9 > = K_LEFT        ; KEYBOARD< 113,  9 > = 'VT4' ;!                            37
+                                                  NEW_KEYS< 113, 10 > = K_LEFT        ; KEYBOARD< 113, 10 > = 'VT4' ;!                            37
+                                                  NEW_KEYS< 113, 11 > = K_LEFT        ; KEYBOARD< 113, 11 > = 'WYS' ;!                            37
+                                                  NEW_KEYS< 113, 12 > = KC_U                                        ;!                          2085 ANS BBS GTM LNX LVT NTC PTY SCO TTY VT3 VT4 VT4 XTM
    OLD_KEYS< 114 > = '022'                      ; NEW_KEYS< 114     > = KC_V                                        ;! ^V                       2086 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 115 > = '023'                      ; NEW_KEYS< 115     > = KC_W                                        ;! ^W                       2087 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 116 > = '024'                      ; NEW_KEYS< 116     > = KC_X                                        ;! ^X                       2088 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 117 > = '025'                      ; NEW_KEYS< 117     > = KS_TAB        ; KEYBOARD< 117     > = 'MDS' ;! ^Y                       1009
                                                   NEW_KEYS< 117,  2 > = KC_Y                                        ;!                          2089 ANS BBS GTM LNX LVT NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 118 > = '026'                      ; NEW_KEYS< 118     > = K_UP          ; KEYBOARD< 118     > = 'MDS' ;! ^Z                         38
-                                                  NEW_KEYS< 118,  2 > = K_UP          ; KEYBOARD< 118,  2 > = 'PCK'
-                                                  NEW_KEYS< 118,  3 > = KS_UP         ; KEYBOARD< 118,  3 > = 'PCK'
-                                                  NEW_KEYS< 118,  4 > = K_UP          ; KEYBOARD< 118,  4 > = 'PV6'
-                                                  NEW_KEYS< 118,  5 > = K_UP          ; KEYBOARD< 118,  5 > = 'VP6'
-                                                  NEW_KEYS< 118,  6 > = K_UP          ; KEYBOARD< 118,  6 > = 'VPT'
+                                                  NEW_KEYS< 118,  2 > = K_UP          ; KEYBOARD< 118,  2 > = 'PCK' ;!                            38
+                                                  NEW_KEYS< 118,  3 > = KS_UP         ; KEYBOARD< 118,  3 > = 'PCK' ;!                          1038
+                                                  NEW_KEYS< 118,  4 > = K_UP          ; KEYBOARD< 118,  4 > = 'PV6' ;!                            38
+                                                  NEW_KEYS< 118,  5 > = K_UP          ; KEYBOARD< 118,  5 > = 'VP6' ;!                            38
+                                                  NEW_KEYS< 118,  6 > = K_UP          ; KEYBOARD< 118,  6 > = 'VPT' ;!                            38
                                                   NEW_KEYS< 118,  7 > = KC_Z                                        ;!                          2090 ANS BBS GTM LNX LVT NTC PTY SCO TTY VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 119 > = '027'                      ; NEW_KEYS< 119     > = K_ESCAPE                                    ;! ^[                         27 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 120 > = '027008'                   ; NEW_KEYS< 120     > = KA_BACKSPACE                                ;! ^[^H                     4008 GTM PTY
@@ -350,14 +393,14 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 140 > = '027027091050054126'       ; NEW_KEYS< 140     > = KSA_F04                                     ;! ^[^[[26~                 5115 NTC
    OLD_KEYS< 141 > = '027027091050056126'       ; NEW_KEYS< 141     > = KSA_F05                                     ;! ^[^[[28~                 5116 NTC
    OLD_KEYS< 142 > = '027027091050057126'       ; NEW_KEYS< 142     > = KSA_F06                                     ;! ^[^[[29~                 5117 NTC
-   OLD_KEYS< 143 > = '027027091050059050126'    ; NEW_KEYS< 143     > = KSA_INSERT                                  ;! ^[^[[2
+   OLD_KEYS< 143 > = '027027091050059050126'    ; NEW_KEYS< 143     > = KSA_INSERT                                  ;! ^[^[[2                   5045
    OLD_KEYS< 144 > = '027027091050126'          ; NEW_KEYS< 144     > = KA_INSERT     ; KEYBOARD< 144     > = 'NTC' ;! ^[^[[2~                  4045
                                                   NEW_KEYS< 144,  2 > = KA_HOME                                     ;!                          4036 PTY
    OLD_KEYS< 145 > = '027027091051049126'       ; NEW_KEYS< 145     > = KSA_F07                                     ;! ^[^[[31~                 5118 NTC
    OLD_KEYS< 146 > = '027027091051050126'       ; NEW_KEYS< 146     > = KSA_F08                                     ;! ^[^[[32~                 5119 NTC
    OLD_KEYS< 147 > = '027027091051051126'       ; NEW_KEYS< 147     > = KSA_F09                                     ;! ^[^[[33~                 5120 NTC
    OLD_KEYS< 148 > = '027027091051052126'       ; NEW_KEYS< 148     > = KSA_F10                                     ;! ^[^[[34~                 5121 NTC
-   OLD_KEYS< 149 > = '027027091051059050126'    ; NEW_KEYS< 149     > = KSA_DELETE                                  ;! ^[^[[3
+   OLD_KEYS< 149 > = '027027091051059050126'    ; NEW_KEYS< 149     > = KSA_DELETE                                  ;! ^[^[[3                   5046
    OLD_KEYS< 150 > = '027027091051126'          ; NEW_KEYS< 150     > = KA_PAGE_UP    ; KEYBOARD< 150     > = 'PTY' ;! ^[^[[3~                  4033
                                                   NEW_KEYS< 150,  2 > = KA_DELETE                                   ;!                          4046 NTC
    OLD_KEYS< 151 > = '027027091052126'          ; NEW_KEYS< 151     > = KA_END        ; KEYBOARD< 151     > = 'NTC' ;! ^[^[[4~                  4035
@@ -405,8 +448,8 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 191 > = '027062'                   ; NEW_KEYS< 191     > = KA_RANGLE                                   ;! ^[>                      5190 GTM LVT NTC PTY
    OLD_KEYS< 192 > = '027063'                   ; NEW_KEYS< 192     > = KA_QUERY                                    ;! ^[?                      5191 GTM LVT NTC PTY
    OLD_KEYS< 193 > = '027064'                   ; NEW_KEYS< 193     > = KA_AT                                       ;! ^[@                      5050 GTM LVT NTC PTY
-   OLD_KEYS< 194 > = '027065'                   ; NEW_KEYS< 194     > = KS_UP         ; KEYBOARD< 194     > = 'VT0' ;! ^[A                      1038
-                                                  NEW_KEYS< 194,  2 > = K_F12         ; KEYBOARD< 194,  2 > = 'VTX'
+   OLD_KEYS< 194 > = '027065'                   ; NEW_KEYS< 194     > = K_F12         ; KEYBOARD< 194     > = 'CUQ' ;! ^[A                       123
+                                                  NEW_KEYS< 194,  2 > = KS_UP         ; KEYBOARD< 194,  2 > = 'VT0' ;!                          1038
                                                   NEW_KEYS< 194,  3 > = KA_A                                        ;!                          4065 GTM PTY
    OLD_KEYS< 195 > = '027065066083'             ; NEW_KEYS< 195     > = KA_BACKSPACE                                ;! ^[ABS                    4008 ATW (AnyKey)
    OLD_KEYS< 196 > = '027066'                   ; NEW_KEYS< 196     > = KS_DOWN       ; KEYBOARD< 196     > = 'VT0' ;! ^[B                      1040
@@ -425,33 +468,40 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 205 > = '027073'                   ; NEW_KEYS< 205     > = KS_TAB        ; KEYBOARD< 205     > = 'WYS' ;! ^[I                      1009
                                                   NEW_KEYS< 205,  2 > = KA_I                                        ;!                          4073 GTM PTY
    OLD_KEYS< 206 > = '027074'                   ; NEW_KEYS< 206     > = KA_J          ; KEYBOARD< 206     > = 'GTM' ;! ^[J                      4074
-                                                  NEW_KEYS< 206,  2 > = KA_J          ; KEYBOARD< 206,  2 > = 'PTY'
-                                                  NEW_KEYS< 206,  3 > = KS_PAGE_UP    ; KEYBOARD< 206,  3 > = 'WYS'
+                                                  NEW_KEYS< 206,  2 > = KA_J          ; KEYBOARD< 206,  2 > = 'PTY' ;!                          4074
+                                                  NEW_KEYS< 206,  3 > = KS_PAGE_UP    ; KEYBOARD< 206,  3 > = 'WYS' ;!                          1033
                                                   NEW_KEYS< 206,  4 > = K_PAGE_UP                                   ;!                            33 MDS PV6 VP6 VPT
    OLD_KEYS< 207 > = '027075'                   ; NEW_KEYS< 207     > = KA_K          ; KEYBOARD< 207     > = 'GTM' ;! ^[K                      4075
-                                                  NEW_KEYS< 207,  2 > = KA_K          ; KEYBOARD< 207,  2 > = 'PTY'
-                                                  NEW_KEYS< 207,  3 > = KS_PAGE_DOWN  ; KEYBOARD< 207,  3 > = 'WYS'
+                                                  NEW_KEYS< 207,  2 > = KA_K          ; KEYBOARD< 207,  2 > = 'PTY' ;!                          4075
+                                                  NEW_KEYS< 207,  3 > = KS_PAGE_DOWN  ; KEYBOARD< 207,  3 > = 'WYS' ;!                          1034
                                                   NEW_KEYS< 207,  4 > = K_END                                       ;!                            35 MDS PV6 VP6 VPT
    OLD_KEYS< 208 > = '027076'                   ; NEW_KEYS< 208     > = KA_L                                        ;! ^[L                      4076 GTM PTY
    OLD_KEYS< 209 > = '027077'                   ; NEW_KEYS< 209     > = KA_M                                        ;! ^[M                      4077 GTM PTY
    OLD_KEYS< 210 > = '027078'                   ; NEW_KEYS< 210     > = KA_N                                        ;! ^[N                      4078 GTM PTY
-   OLD_KEYS< 211 > = '027079'                   ; NEW_KEYS< 211     > = KA_O          ; KEYBOARD< 211     > = 'GTM' ;! ^[O                      4079
-                                                  NEW_KEYS< 211,  2 > = K_F05         ; KEYBOARD< 211,  2 > = 'NTC'
-                                                  NEW_KEYS< 211,  3 > = KA_O          ; KEYBOARD< 211,  3 > = 'PTY'
-                                                  NEW_KEYS< 211,  4 > = K_F05         ; KEYBOARD< 211,  4 > = 'VTX'
-                                                  NEW_KEYS< 211,  5 > = KS_TAB                                      ;!                          1009 PV6 VP6 VPT
-   OLD_KEYS< 212 > = '027079065'                ; NEW_KEYS< 212     > = K_F12         ; KEYBOARD< 212     > = 'NTC' ;!                           123
-                                                  NEW_KEYS< 212,  2 > = KS_UP         ; KEYBOARD< 212,  2 > = 'VTX'
-                                                  NEW_KEYS< 212,  3 > = KC_UP                                       ;! ^[OA                     2038 PTY
+   OLD_KEYS< 211 > = '027079'                   ; NEW_KEYS< 211     > = K_F05         ; KEYBOARD< 211     > = 'CUO' ;! ^[O                       116
+                                                  NEW_KEYS< 211,  2 > = K_F05         ; KEYBOARD< 211,  2 > = 'CUQ' ;!                           116
+                                                  NEW_KEYS< 211,  3 > = KA_O          ; KEYBOARD< 211,  3 > = 'GTM' ;!                            79
+                                                  NEW_KEYS< 211,  4 > = K_F05         ; KEYBOARD< 211,  4 > = 'NTC' ;!                           116
+                                                  NEW_KEYS< 211,  5 > = KA_O          ; KEYBOARD< 211,  5 > = 'PTY' ;!                            79
+                                                  NEW_KEYS< 211,  6 > = KS_TAB                                      ;!                          1009 PV6 VP6 VPT
+   OLD_KEYS< 212 > = '027079065'                ; NEW_KEYS< 212     > = KS_UP         ; KEYBOARD< 212     > = 'CUO' ;! ^[OA                     1038
+                                                  NEW_KEYS< 212,  2 > = KS_UP         ; KEYBOARD< 212,  2 > = 'CUQ' ;!                          1038
+                                                  NEW_KEYS< 212,  3 > = K_F12         ; KEYBOARD< 212,  3 > = 'NTC' ;!                           123
+                                                  NEW_KEYS< 212,  4 > = KS_UP         ; KEYBOARD< 212,  4 > = 'PTY' ;!                          1038
+                                                  NEW_KEYS< 212,  5 > = K_UP          ; KEYBOARD< 212,  5 > = 'VT1' ;!                            38
+                                                  NEW_KEYS< 212,  6 > = KC_UP                                       ;!                          2038 PTY
    OLD_KEYS< 213 > = '027079066'                ; NEW_KEYS< 213     > = K_DOWN        ; KEYBOARD< 213     > = 'NTC' ;! ^[OB                       40
-                                                ; NEW_KEYS< 213,  2 > = KC_DOWN       ; KEYBOARD< 213,  2 > = 'PTY' ;!                          2040
-                                                  NEW_KEYS< 213,  3 > = KS_DOWN                                     ;!                          1040 VTX
+                                                  NEW_KEYS< 213,  2 > = KC_DOWN       ; KEYBOARD< 213,  2 > = 'PTY' ;!                          2040
+                                                  NEW_KEYS< 213,  3 > = K_DOWN        ; KEYBOARD< 213,  3 > = 'VT1' ;!                            40
+                                                  NEW_KEYS< 213,  4 > = KS_DOWN                                     ;!                          1040 VTX
    OLD_KEYS< 214 > = '027079067'                ; NEW_KEYS< 214     > = K_RIGHT       ; KEYBOARD< 214     > = 'NTC' ;! ^[OC                       39
-                                                ; NEW_KEYS< 214,  2 > = KC_RIGHT      ; KEYBOARD< 214,  2 > = 'PTY' ;!                          2039
-                                                  NEW_KEYS< 214,  3 > = KS_RIGHT                                    ;!                          1039 VTX
+                                                  NEW_KEYS< 214,  2 > = KC_RIGHT      ; KEYBOARD< 214,  2 > = 'PTY' ;!                          2039
+                                                  NEW_KEYS< 214,  3 > = K_RIGHT       ; KEYBOARD< 214,  3 > = 'VT1' ;!                            39
+                                                  NEW_KEYS< 214,  4 > = KS_RIGHT                                    ;!                          1039 VTX
    OLD_KEYS< 215 > = '027079068'                ; NEW_KEYS< 215     > = K_LEFT        ; KEYBOARD< 215     > = 'NTC' ;! ^[OD                       37
-                                                ; NEW_KEYS< 215,  2 > = KC_LEFT       ; KEYBOARD< 215,  2 > = 'PTY' ;!                          2037
-                                                  NEW_KEYS< 215,  3 > = KS_LEFT                                     ;!                          1037 VTX
+                                                  NEW_KEYS< 215,  2 > = KC_LEFT       ; KEYBOARD< 215,  2 > = 'PTY' ;!                          2037
+                                                  NEW_KEYS< 215,  3 > = K_LEFT        ; KEYBOARD< 215,  3 > = 'VT1' ;!                            37
+                                                  NEW_KEYS< 215,  4 > = KS_LEFT                                     ;!                          1037 VTX
    OLD_KEYS< 216 > = '027079077'                ; NEW_KEYS< 216     > = KS_F08        ; KEYBOARD< 216     > = 'BBS' ;! ^[OM                     1119
                                                   NEW_KEYS< 216,  2 > = K_F05                                       ;!                           116 ANS LNX MDS PCK VP6 VPT VT0 VT1 VT2 VT4 WYS
    OLD_KEYS< 217 > = '027079080'                ; NEW_KEYS< 217     > = K_F01                                       ;! ^[OP                      112 ANS BBS LNX MDS NTC PCK VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
@@ -463,8 +513,8 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 221 > = '027079108'                ; NEW_KEYS< 221     > = KS_F06                                      ;! ^[Ol                     1117 BBS
    OLD_KEYS< 222 > = '027079109'                ; NEW_KEYS< 222     > = KS_F04                                      ;! ^[Om                     1115 BBS
    OLD_KEYS< 223 > = '027079110'                ; NEW_KEYS< 223     > = KS_F09                                      ;! ^[On                     1120 BBS
-   OLD_KEYS< 224 > = '027079113'                ; NEW_KEYS< 224     > = KS_F02        ; KEYBOARD< 224     > = 'NTC' ;! ^[Oq                     1113 NEW
-                                                  NEW_KEYS< 224,  2 > = K_END         ; KEYBOARD< 224,  2 > = 'VTX'
+   OLD_KEYS< 224 > = '027079113'                ; NEW_KEYS< 224     > = K_END         ; KEYBOARD< 224     > = 'CUQ' ;! ^[Oq                       35
+                                                  NEW_KEYS< 224,  2 > = KS_F02        ; KEYBOARD< 224,  2 > = 'NTC' ;!                          1113
                                                   NEW_KEYS< 224,  3 > = K_F07                                       ;!                           118 BBS
    OLD_KEYS< 225 > = '027079114'                ; NEW_KEYS< 225     > = KS_F03        ; KEYBOARD< 225     > = 'NTC' ;! ^[Or                     1114 NEW
                                                   NEW_KEYS< 225,  2 > = K_F08                                       ;!                           119 BBS
@@ -480,14 +530,14 @@ SUBROUTINE ANY_KEY_TBL
                                                   NEW_KEYS< 230,  2 > = K_F03                                       ;!                           114 BBS PTY
    OLD_KEYS< 231 > = '027079120'                ; NEW_KEYS< 231     > = KS_F09        ; KEYBOARD< 231     > = 'NTC' ;! ^[Ox                     1120 NEW
                                                   NEW_KEYS< 231,  2 > = K_F04                                       ;!                           115 BBS
-   OLD_KEYS< 232 > = '027079121'                ; NEW_KEYS< 232     > = KS_F10        ; KEYBOARD< 232     > = 'NTC' ;! ^[Oy                     1114 NEW
+   OLD_KEYS< 232 > = '027079121'                ; NEW_KEYS< 232     > = KS_F10        ; KEYBOARD< 232     > = 'NTC' ;! ^[Oy                     1121 NEW
                                                   NEW_KEYS< 232,  2 > = KS_F03                                      ;!                          1114 BBS
    OLD_KEYS< 233 > = '027080'                   ; NEW_KEYS< 233     > = KS_F01        ; KEYBOARD< 233     > = 'VT0' ;! ^[P                      1112
                                                   NEW_KEYS< 233,  2 > = KA_P                                        ;!                          4080 GTM PTY
    OLD_KEYS< 234 > = '027081'                   ; NEW_KEYS< 234     > = KS_F02        ; KEYBOARD< 234     > = 'VT0' ;! ^[Q                      1113
                                                   NEW_KEYS< 234,  2 > = KA_Q                                        ;!                          4081 GTM PTY
    OLD_KEYS< 235 > = '027082'                   ; NEW_KEYS< 235     > = KS_F03        ; KEYBOARD< 235     > = 'VT0' ;! ^[R                      1114
-                                                  NEW_KEYS< 235,  2 > = KS_DELETE     ; KEYBOARD< 235,  2 > = 'WYS'
+                                                  NEW_KEYS< 235,  2 > = KS_DELETE     ; KEYBOARD< 235,  2 > = 'WYS' ;!                          1046
                                                   NEW_KEYS< 235,  3 > = KA_R                                        ;!                          4082 GTM PTY
    OLD_KEYS< 236 > = '027083'                   ; NEW_KEYS< 236     > = KS_F04        ; KEYBOARD< 236     > = 'VT0' ;! ^[S                      1115
                                                   NEW_KEYS< 236,  2 > = KA_S                                        ;!                          4083 GTM PTY
@@ -498,22 +548,23 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 241 > = '027083067032'             ; NEW_KEYS< 241     > = KSC_SPACE                                   ;! ^[SCS                    3032 ATW (AnyKey)
    OLD_KEYS< 242 > = '027083067066083'          ; NEW_KEYS< 242     > = KSC_BACKSPACE                               ;! ^[SCBS                   3008 ATW (AnyKey)
    OLD_KEYS< 243 > = '027084'                   ; NEW_KEYS< 243     > = K_END         ; KEYBOARD< 243     > = 'VPT' ;! ^[T                        35
-                                                  NEW_KEYS< 243,  2 > = K_END         ; KEYBOARD< 243,  2 > = 'WYS'
+                                                  NEW_KEYS< 243,  2 > = K_END         ; KEYBOARD< 243,  2 > = 'WYS' ;!                            35
                                                   NEW_KEYS< 243,  3 > = KA_T                                        ;!                          4084 GTM PTY
    OLD_KEYS< 244 > = '027085'                   ; NEW_KEYS< 244     > = KS_PAGE_DOWN  ; KEYBOARD< 244     > = 'VT0' ;! ^[U                      1034
                                                   NEW_KEYS< 244,  2 > = KA_U                                        ;!                          4085 GTM PTY
    OLD_KEYS< 245 > = '027086'                   ; NEW_KEYS< 245     > = KS_PAGE_UP    ; KEYBOARD< 245     > = 'VT0' ;! ^[V                      1033
                                                   NEW_KEYS< 245,  2 > = KA_V                                        ;!                          4086 GTM PTY
    OLD_KEYS< 246 > = '027087'                   ; NEW_KEYS< 246     > = KA_W          ; KEYBOARD< 246     > = 'GTM' ;! ^[W                      4087
-                                                  NEW_KEYS< 246,  2 > = KA_W          ; KEYBOARD< 246,  2 > = 'PTY'
+                                                  NEW_KEYS< 246,  2 > = KA_W          ; KEYBOARD< 246,  2 > = 'PTY' ;!                            87
                                                   NEW_KEYS< 246,  3 > = K_DELETE                                    ;!                            46 PV6 VP6 VPT WYS
    OLD_KEYS< 247 > = '027088'                   ; NEW_KEYS< 247     > = KA_X                                        ;! ^[X                      4088 GTM PTY
    OLD_KEYS< 248 > = '027089'                   ; NEW_KEYS< 248     > = KS_END        ; KEYBOARD< 248     > = 'WYS' ;! ^[Y                      1035
                                                   NEW_KEYS< 248,  2 > = KA_Y                                        ;!                          4089 GTM PTY
    OLD_KEYS< 249 > = '027090'                   ; NEW_KEYS< 249     > = KS_TAB        ; KEYBOARD< 249     > = 'VT0' ;! ^[Z                      1009
                                                   NEW_KEYS< 249,  2 > = KA_Z                                        ;!                          4090 GTM PTY
-   OLD_KEYS< 250 > = '027091'                   ; NEW_KEYS< 250     > = K_END         ; KEYBOARD< 250     > = 'VTX' ;! ^[[
-                                                  NEW_KEYS< 250,  2 > = KA_LBRACKET                                 ;!                          4219 GTM LVT NTC PTY
+   OLD_KEYS< 250 > = '027091'                   ; NEW_KEYS< 250     > = K_END         ; KEYBOARD< 250     > = 'CUO' ;! ^[[                        35
+                                                  NEW_KEYS< 250,  2 > = KS_END        ; KEYBOARD< 250,  2 > = 'CUQ' ;!                          1035
+                                                  NEW_KEYS< 250,  3 > = KA_LBRACKET                                 ;!                          4219 GTM LVT NTC PTY
    OLD_KEYS< 251 > = '027091049048049126027091' ; NEW_KEYS< 251     > = KM_L1                                       ;! ^[[101~^[[
    OLD_KEYS< 252 > = '027091049048050126027091' ; NEW_KEYS< 252     > = KM_R1                                       ;! ^[[102~^[[
    OLD_KEYS< 253 > = '027091049049049126027091' ; NEW_KEYS< 253     > = KM_L2                                       ;! ^[[111~^[[
@@ -526,222 +577,220 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 260 > = '027091049051126'          ; NEW_KEYS< 260     > = K_F03                                       ;! ^[[13~                    114 PTY
    OLD_KEYS< 261 > = '027091049052094'          ; NEW_KEYS< 261     > = KC_F04                                      ;! ^[[14^                   2115 NTC
    OLD_KEYS< 262 > = '027091049052126'          ; NEW_KEYS< 262     > = K_F04                                       ;! ^[[14~                    115 PTY
-   OLD_KEYS< 263 > = '027091049053059050126'    ; NEW_KEYS< 263     > = KS_F05                                      ;! ^[[15
-   OLD_KEYS< 264 > = '027091049053059051126'    ; NEW_KEYS< 264     > = KA_F05                                      ;! ^[[15
-   OLD_KEYS< 265 > = '027091049053059052126'    ; NEW_KEYS< 265     > = KSA_F05                                     ;! ^[[15
-   OLD_KEYS< 266 > = '027091049053059053126'    ; NEW_KEYS< 266     > = KC_F05                                      ;! ^[[15
-   OLD_KEYS< 267 > = '027091049053059054126'    ; NEW_KEYS< 267     > = KSC_F05                                     ;! ^[[15
+   OLD_KEYS< 263 > = '027091049053059050126'    ; NEW_KEYS< 263     > = KS_F05                                      ;! ^[[15                    1116
+   OLD_KEYS< 264 > = '027091049053059051126'    ; NEW_KEYS< 264     > = KA_F05                                      ;! ^[[15                    4116
+   OLD_KEYS< 265 > = '027091049053059052126'    ; NEW_KEYS< 265     > = KSA_F05                                     ;! ^[[15                    5116
+   OLD_KEYS< 266 > = '027091049053059053126'    ; NEW_KEYS< 266     > = KC_F05                                      ;! ^[[15                    2116
+   OLD_KEYS< 267 > = '027091049053059054126'    ; NEW_KEYS< 267     > = KSC_F05                                     ;! ^[[15                    3116
    OLD_KEYS< 268 > = '027091049053094'          ; NEW_KEYS< 268     > = KC_F05                                      ;! ^[[15^                   2116 NTC
    OLD_KEYS< 269 > = '027091049053126'          ; NEW_KEYS< 269     > = K_F05                                       ;! ^[[15~                    116 GTM NTC PTY XTM
-   OLD_KEYS< 270 > = '027091049055059050126'    ; NEW_KEYS< 270     > = KS_F06                                      ;! ^[[17
-   OLD_KEYS< 271 > = '027091049055059051126'    ; NEW_KEYS< 271     > = KA_F06                                      ;! ^[[17
-   OLD_KEYS< 272 > = '027091049055059052126'    ; NEW_KEYS< 272     > = KSA_F06                                     ;! ^[[17
-   OLD_KEYS< 273 > = '027091049055059053126'    ; NEW_KEYS< 273     > = KC_F06                                      ;! ^[[17
-   OLD_KEYS< 274 > = '027091049055059054126'    ; NEW_KEYS< 274     > = KSC_F06                                     ;! ^[[17
+   OLD_KEYS< 270 > = '027091049055059050126'    ; NEW_KEYS< 270     > = KS_F06                                      ;! ^[[17                    1117
+   OLD_KEYS< 271 > = '027091049055059051126'    ; NEW_KEYS< 271     > = KA_F06                                      ;! ^[[17                    4117
+   OLD_KEYS< 272 > = '027091049055059052126'    ; NEW_KEYS< 272     > = KSA_F06                                     ;! ^[[17                    5117
+   OLD_KEYS< 273 > = '027091049055059053126'    ; NEW_KEYS< 273     > = KC_F06                                      ;! ^[[17                    2117
+   OLD_KEYS< 274 > = '027091049055059054126'    ; NEW_KEYS< 274     > = KSC_F06                                     ;! ^[[17                    3117
    OLD_KEYS< 275 > = '027091049055094'          ; NEW_KEYS< 275     > = KC_F06                                      ;! ^[[17^                   2117 NTC
    OLD_KEYS< 276 > = '027091049055126'          ; NEW_KEYS< 276     > = K_F06                                       ;! ^[[17~                    117 ANS GTM LNX LVT MDS NTC PCK PTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
-   OLD_KEYS< 277 > = '027091049056059050126'    ; NEW_KEYS< 277     > = KS_F07                                      ;! ^[[18
-   OLD_KEYS< 278 > = '027091049056059051126'    ; NEW_KEYS< 278     > = KA_F07                                      ;! ^[[18
-   OLD_KEYS< 279 > = '027091049056059052126'    ; NEW_KEYS< 279     > = KSA_F07                                     ;! ^[[18
-   OLD_KEYS< 280 > = '027091049056059053126'    ; NEW_KEYS< 280     > = KC_F07                                      ;! ^[[18
-   OLD_KEYS< 281 > = '027091049056059054126'    ; NEW_KEYS< 281     > = KSC_F07                                     ;! ^[[18
+   OLD_KEYS< 277 > = '027091049056059050126'    ; NEW_KEYS< 277     > = KS_F07                                      ;! ^[[18                    1118
+   OLD_KEYS< 278 > = '027091049056059051126'    ; NEW_KEYS< 278     > = KA_F07                                      ;! ^[[18                    4118
+   OLD_KEYS< 279 > = '027091049056059052126'    ; NEW_KEYS< 279     > = KSA_F07                                     ;! ^[[18                    5118
+   OLD_KEYS< 280 > = '027091049056059053126'    ; NEW_KEYS< 280     > = KC_F07                                      ;! ^[[18                    2118
+   OLD_KEYS< 281 > = '027091049056059054126'    ; NEW_KEYS< 281     > = KSC_F07                                     ;! ^[[18                    3118
    OLD_KEYS< 282 > = '027091049056094'          ; NEW_KEYS< 282     > = KC_F07                                      ;! ^[[18^                   2118 NTC
    OLD_KEYS< 283 > = '027091049056126'          ; NEW_KEYS< 283     > = K_F07                                       ;! ^[[18~                    118 ANS GTM LNX LVT MDS NTC PCK PTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
-   OLD_KEYS< 284 > = '027091049057059050126'    ; NEW_KEYS< 284     > = KS_F08                                      ;! ^[[19
-   OLD_KEYS< 285 > = '027091049057059051126'    ; NEW_KEYS< 285     > = KA_F08                                      ;! ^[[19
-   OLD_KEYS< 286 > = '027091049057059052126'    ; NEW_KEYS< 286     > = KSA_F08                                     ;! ^[[19
-   OLD_KEYS< 287 > = '027091049057059053126'    ; NEW_KEYS< 287     > = KC_F08                                      ;! ^[[19
-   OLD_KEYS< 288 > = '027091049057059054126'    ; NEW_KEYS< 288     > = KSC_F08                                     ;! ^[[19
+   OLD_KEYS< 284 > = '027091049057059050126'    ; NEW_KEYS< 284     > = KS_F08                                      ;! ^[[19                    1119
+   OLD_KEYS< 285 > = '027091049057059051126'    ; NEW_KEYS< 285     > = KA_F08                                      ;! ^[[19                    4119
+   OLD_KEYS< 286 > = '027091049057059052126'    ; NEW_KEYS< 286     > = KSA_F08                                     ;! ^[[19                    5119
+   OLD_KEYS< 287 > = '027091049057059053126'    ; NEW_KEYS< 287     > = KC_F08                                      ;! ^[[19                    2119
+   OLD_KEYS< 288 > = '027091049057059054126'    ; NEW_KEYS< 288     > = KSC_F08                                     ;! ^[[19                    3119
    OLD_KEYS< 289 > = '027091049057094'          ; NEW_KEYS< 289     > = KC_F08                                      ;! ^[[19^                   2119 NTC
    OLD_KEYS< 290 > = '027091049057126'          ; NEW_KEYS< 290     > = K_F08                                       ;! ^[[19~                    119 ANS GTM LNX LVT MDS NTC PCK PTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
-   OLD_KEYS< 291 > = '027091049059050065'       ; NEW_KEYS< 291     > = KS_UP                                       ;! ^[[1
-   OLD_KEYS< 292 > = '027091049059050066'       ; NEW_KEYS< 292     > = KS_DOWN                                     ;! ^[[1
-   OLD_KEYS< 293 > = '027091049059050067'       ; NEW_KEYS< 293     > = KS_RIGHT                                    ;! ^[[1
-   OLD_KEYS< 294 > = '027091049059050068'       ; NEW_KEYS< 294     > = KS_LEFT                                     ;! ^[[1
-   OLD_KEYS< 295 > = '027091049059050070'       ; NEW_KEYS< 295     > = KS_END                                      ;! ^[[1
-   OLD_KEYS< 296 > = '027091049059050072'       ; NEW_KEYS< 296     > = KS_HOME                                     ;! ^[[1
-   OLD_KEYS< 297 > = '027091049059050080'       ; NEW_KEYS< 297     > = KS_F01                                      ;! ^[[1
-   OLD_KEYS< 298 > = '027091049059050081'       ; NEW_KEYS< 298     > = KS_F02                                      ;! ^[[1
-   OLD_KEYS< 299 > = '027091049059050082'       ; NEW_KEYS< 299     > = KS_F03                                      ;! ^[[1
-   OLD_KEYS< 300 > = '027091049059050083'       ; NEW_KEYS< 300     > = KS_F04                                      ;! ^[[1
-   OLD_KEYS< 301 > = '027091049059050126'       ; NEW_KEYS< 301     > = KS_HOME                                     ;! ^[[1
-   OLD_KEYS< 302 > = '027091049059051065'       ; NEW_KEYS< 302     > = KA_UP                                       ;! ^[[1
-   OLD_KEYS< 303 > = '027091049059051066'       ; NEW_KEYS< 303     > = KA_DOWN                                     ;! ^[[1
-   OLD_KEYS< 304 > = '027091049059051067'       ; NEW_KEYS< 304     > = KA_RIGHT                                    ;! ^[[1
-   OLD_KEYS< 305 > = '027091049059051068'       ; NEW_KEYS< 305     > = KA_LEFT                                     ;! ^[[1
-   OLD_KEYS< 306 > = '027091049059051070'       ; NEW_KEYS< 306     > = KA_END                                      ;! ^[[1
-   OLD_KEYS< 307 > = '027091049059051072'       ; NEW_KEYS< 307     > = KA_HOME                                     ;! ^[[1
-   OLD_KEYS< 308 > = '027091049059051080'       ; NEW_KEYS< 308     > = KA_F01                                      ;! ^[[1
-   OLD_KEYS< 309 > = '027091049059051081'       ; NEW_KEYS< 309     > = KA_F02                                      ;! ^[[1
-   OLD_KEYS< 310 > = '027091049059051082'       ; NEW_KEYS< 310     > = KA_F03                                      ;! ^[[1
-   OLD_KEYS< 311 > = '027091049059051083'       ; NEW_KEYS< 311     > = KA_F04                                      ;! ^[[1
-   OLD_KEYS< 312 > = '027091049059052065'       ; NEW_KEYS< 312     > = KSA_UP                                      ;! ^[[1
-   OLD_KEYS< 313 > = '027091049059052066'       ; NEW_KEYS< 313     > = KSA_DOWN                                    ;! ^[[1
-   OLD_KEYS< 314 > = '027091049059052067'       ; NEW_KEYS< 314     > = KSA_RIGHT                                   ;! ^[[1
-   OLD_KEYS< 315 > = '027091049059052068'       ; NEW_KEYS< 315     > = KSA_LEFT                                    ;! ^[[1
-   OLD_KEYS< 316 > = '027091049059052070'       ; NEW_KEYS< 316     > = KSA_END                                     ;! ^[[1
-   OLD_KEYS< 317 > = '027091049059052072'       ; NEW_KEYS< 317     > = KSA_HOME                                    ;! ^[[1
-   OLD_KEYS< 318 > = '027091049059052080'       ; NEW_KEYS< 318     > = KSA_F01                                     ;! ^[[1
-   OLD_KEYS< 319 > = '027091049059052081'       ; NEW_KEYS< 319     > = KSA_F02                                     ;! ^[[1
-   OLD_KEYS< 320 > = '027091049059052082'       ; NEW_KEYS< 320     > = KSA_F03                                     ;! ^[[1
-   OLD_KEYS< 321 > = '027091049059052083'       ; NEW_KEYS< 321     > = KSA_F04                                     ;! ^[[1
-   OLD_KEYS< 322 > = '027091049059053065'       ; NEW_KEYS< 322     > = KC_UP                                       ;! ^[[1
-   OLD_KEYS< 323 > = '027091049059053066'       ; NEW_KEYS< 323     > = KC_DOWN                                     ;! ^[[1
-   OLD_KEYS< 324 > = '027091049059053067'       ; NEW_KEYS< 324     > = KC_RIGHT                                    ;! ^[[1
-   OLD_KEYS< 325 > = '027091049059053068'       ; NEW_KEYS< 325     > = KC_LEFT                                     ;! ^[[1
-   OLD_KEYS< 326 > = '027091049059053070'       ; NEW_KEYS< 326     > = KC_END                                      ;! ^[[1
-   OLD_KEYS< 327 > = '027091049059053072'       ; NEW_KEYS< 327     > = KC_HOME                                     ;! ^[[1
-   OLD_KEYS< 328 > = '027091049059053080'       ; NEW_KEYS< 328     > = KC_F01                                      ;! ^[[1
-   OLD_KEYS< 329 > = '027091049059053081'       ; NEW_KEYS< 329     > = KC_F02                                      ;! ^[[1
-   OLD_KEYS< 330 > = '027091049059053082'       ; NEW_KEYS< 330     > = KC_F03                                      ;! ^[[1
-   OLD_KEYS< 331 > = '027091049059053083'       ; NEW_KEYS< 331     > = KC_F04                                      ;! ^[[1
-   OLD_KEYS< 332 > = '027091049059053126'       ; NEW_KEYS< 332     > = KC_HOME                                     ;! ^[[1
-   OLD_KEYS< 333 > = '027091049059054065'       ; NEW_KEYS< 333     > = KSC_UP                                      ;! ^[[1
-   OLD_KEYS< 334 > = '027091049059054066'       ; NEW_KEYS< 334     > = KSC_DOWN                                    ;! ^[[1
-   OLD_KEYS< 335 > = '027091049059054067'       ; NEW_KEYS< 335     > = KSC_RIGHT                                   ;! ^[[1
-   OLD_KEYS< 336 > = '027091049059054068'       ; NEW_KEYS< 336     > = KSC_LEFT                                    ;! ^[[1
-   OLD_KEYS< 337 > = '027091049059054070'       ; NEW_KEYS< 337     > = KSC_END                                     ;! ^[[1
-   OLD_KEYS< 338 > = '027091049059054072'       ; NEW_KEYS< 338     > = KSC_HOME                                    ;! ^[[1
-   OLD_KEYS< 339 > = '027091049059054080'       ; NEW_KEYS< 339     > = KSC_F01                                     ;! ^[[1
-   OLD_KEYS< 340 > = '027091049059054081'       ; NEW_KEYS< 340     > = KSC_F02                                     ;! ^[[1
-   OLD_KEYS< 341 > = '027091049059054082'       ; NEW_KEYS< 341     > = KSC_F03                                     ;! ^[[1
-   OLD_KEYS< 342 > = '027091049059054083'       ; NEW_KEYS< 342     > = KSC_F04                                     ;! ^[[1
-   OLD_KEYS< 343 > = '027091049059054126'       ; NEW_KEYS< 343     > = KSC_HOME                                    ;! ^[[1
-   OLD_KEYS< 344 > = '027091049126'             ; NEW_KEYS< 344     > = K_HOME        ; KEYBOARD< 344     > = 'LVT' ;! ^[[1~                      36
-                                                  NEW_KEYS< 344,  2 > = K_HOME        ; KEYBOARD< 344,  2 > = 'NTC'
-                                                  NEW_KEYS< 344,  3 > = K_INSERT      ; KEYBOARD< 344,  3 > = 'PTY'
-                                                  NEW_KEYS< 344,  4 > = KS_PAGE_UP    ; KEYBOARD< 344,  4 > = 'VTX'
+   OLD_KEYS< 291 > = '027091049059050065'       ; NEW_KEYS< 291     > = KS_UP                                       ;! ^[[1                     1038
+   OLD_KEYS< 292 > = '027091049059050066'       ; NEW_KEYS< 292     > = KS_DOWN                                     ;! ^[[1                     1040
+   OLD_KEYS< 293 > = '027091049059050067'       ; NEW_KEYS< 293     > = KS_RIGHT                                    ;! ^[[1                     2039
+   OLD_KEYS< 294 > = '027091049059050068'       ; NEW_KEYS< 294     > = KS_LEFT                                     ;! ^[[1                     1037
+   OLD_KEYS< 295 > = '027091049059050070'       ; NEW_KEYS< 295     > = KS_END                                      ;! ^[[1                     1035
+   OLD_KEYS< 296 > = '027091049059050072'       ; NEW_KEYS< 296     > = KS_HOME                                     ;! ^[[1                     1036
+   OLD_KEYS< 297 > = '027091049059050080'       ; NEW_KEYS< 297     > = KS_F01                                      ;! ^[[1                     1112
+   OLD_KEYS< 298 > = '027091049059050081'       ; NEW_KEYS< 298     > = KS_F02                                      ;! ^[[1                     1113
+   OLD_KEYS< 299 > = '027091049059050082'       ; NEW_KEYS< 299     > = KS_F03                                      ;! ^[[1                     1114
+   OLD_KEYS< 300 > = '027091049059050083'       ; NEW_KEYS< 300     > = KS_F04                                      ;! ^[[1                     1115
+   OLD_KEYS< 301 > = '027091049059050126'       ; NEW_KEYS< 301     > = KS_HOME                                     ;! ^[[1                     1036
+   OLD_KEYS< 302 > = '027091049059051065'       ; NEW_KEYS< 302     > = KA_UP                                       ;! ^[[1                     4038
+   OLD_KEYS< 303 > = '027091049059051066'       ; NEW_KEYS< 303     > = KA_DOWN                                     ;! ^[[1                     4040
+   OLD_KEYS< 304 > = '027091049059051067'       ; NEW_KEYS< 304     > = KA_RIGHT                                    ;! ^[[1                     4039
+   OLD_KEYS< 305 > = '027091049059051068'       ; NEW_KEYS< 305     > = KA_LEFT                                     ;! ^[[1                     4037
+   OLD_KEYS< 306 > = '027091049059051070'       ; NEW_KEYS< 306     > = KA_END                                      ;! ^[[1                     4035
+   OLD_KEYS< 307 > = '027091049059051072'       ; NEW_KEYS< 307     > = KA_HOME                                     ;! ^[[1                     4036
+   OLD_KEYS< 308 > = '027091049059051080'       ; NEW_KEYS< 308     > = KA_F01                                      ;! ^[[1                     4112
+   OLD_KEYS< 309 > = '027091049059051081'       ; NEW_KEYS< 309     > = KA_F02                                      ;! ^[[1                     4113
+   OLD_KEYS< 310 > = '027091049059051082'       ; NEW_KEYS< 310     > = KA_F03                                      ;! ^[[1                     4115
+   OLD_KEYS< 311 > = '027091049059051083'       ; NEW_KEYS< 311     > = KA_F04                                      ;! ^[[1                     4116
+   OLD_KEYS< 312 > = '027091049059052065'       ; NEW_KEYS< 312     > = KSA_UP                                      ;! ^[[1                     5038
+   OLD_KEYS< 313 > = '027091049059052066'       ; NEW_KEYS< 313     > = KSA_DOWN                                    ;! ^[[1                     5040
+   OLD_KEYS< 314 > = '027091049059052067'       ; NEW_KEYS< 314     > = KSA_RIGHT                                   ;! ^[[1                     5039
+   OLD_KEYS< 315 > = '027091049059052068'       ; NEW_KEYS< 315     > = KSA_LEFT                                    ;! ^[[1                     5037
+   OLD_KEYS< 316 > = '027091049059052070'       ; NEW_KEYS< 316     > = KSA_END                                     ;! ^[[1                     5035
+   OLD_KEYS< 317 > = '027091049059052072'       ; NEW_KEYS< 317     > = KSA_HOME                                    ;! ^[[1                     5036
+   OLD_KEYS< 318 > = '027091049059052080'       ; NEW_KEYS< 318     > = KSA_F01                                     ;! ^[[1                     4112
+   OLD_KEYS< 319 > = '027091049059052081'       ; NEW_KEYS< 319     > = KSA_F02                                     ;! ^[[1                     4113
+   OLD_KEYS< 320 > = '027091049059052082'       ; NEW_KEYS< 320     > = KSA_F03                                     ;! ^[[1                     4114
+   OLD_KEYS< 321 > = '027091049059052083'       ; NEW_KEYS< 321     > = KSA_F04                                     ;! ^[[1                     4115
+   OLD_KEYS< 322 > = '027091049059053065'       ; NEW_KEYS< 322     > = KC_UP                                       ;! ^[[1                     2038
+   OLD_KEYS< 323 > = '027091049059053066'       ; NEW_KEYS< 323     > = KC_DOWN                                     ;! ^[[1                     2040
+   OLD_KEYS< 324 > = '027091049059053067'       ; NEW_KEYS< 324     > = KC_RIGHT                                    ;! ^[[1                     2039
+   OLD_KEYS< 325 > = '027091049059053068'       ; NEW_KEYS< 325     > = KC_LEFT                                     ;! ^[[1                     2037
+   OLD_KEYS< 326 > = '027091049059053070'       ; NEW_KEYS< 326     > = KC_END                                      ;! ^[[1                     2035
+   OLD_KEYS< 327 > = '027091049059053072'       ; NEW_KEYS< 327     > = KC_HOME                                     ;! ^[[1                     2036
+   OLD_KEYS< 328 > = '027091049059053080'       ; NEW_KEYS< 328     > = KC_F01                                      ;! ^[[1                     2112
+   OLD_KEYS< 329 > = '027091049059053081'       ; NEW_KEYS< 329     > = KC_F02                                      ;! ^[[1                     2113
+   OLD_KEYS< 330 > = '027091049059053082'       ; NEW_KEYS< 330     > = KC_F03                                      ;! ^[[1                     2114
+   OLD_KEYS< 331 > = '027091049059053083'       ; NEW_KEYS< 331     > = KC_F04                                      ;! ^[[1                     2115
+   OLD_KEYS< 332 > = '027091049059053126'       ; NEW_KEYS< 332     > = KC_HOME                                     ;! ^[[1                     2036
+   OLD_KEYS< 333 > = '027091049059054065'       ; NEW_KEYS< 333     > = KSC_UP                                      ;! ^[[1                     3038
+   OLD_KEYS< 334 > = '027091049059054066'       ; NEW_KEYS< 334     > = KSC_DOWN                                    ;! ^[[1                     3040
+   OLD_KEYS< 335 > = '027091049059054067'       ; NEW_KEYS< 335     > = KSC_RIGHT                                   ;! ^[[1                     3039
+   OLD_KEYS< 336 > = '027091049059054068'       ; NEW_KEYS< 336     > = KSC_LEFT                                    ;! ^[[1                     3037
+   OLD_KEYS< 337 > = '027091049059054070'       ; NEW_KEYS< 337     > = KSC_END                                     ;! ^[[1                     3035
+   OLD_KEYS< 338 > = '027091049059054072'       ; NEW_KEYS< 338     > = KSC_HOME                                    ;! ^[[1                     3036
+   OLD_KEYS< 339 > = '027091049059054080'       ; NEW_KEYS< 339     > = KSC_F01                                     ;! ^[[1                     3112
+   OLD_KEYS< 340 > = '027091049059054081'       ; NEW_KEYS< 340     > = KSC_F02                                     ;! ^[[1                     3113
+   OLD_KEYS< 341 > = '027091049059054082'       ; NEW_KEYS< 341     > = KSC_F03                                     ;! ^[[1                     3114
+   OLD_KEYS< 342 > = '027091049059054083'       ; NEW_KEYS< 342     > = KSC_F04                                     ;! ^[[1                     3115
+   OLD_KEYS< 343 > = '027091049059054126'       ; NEW_KEYS< 343     > = KSC_HOME                                    ;! ^[[1                     3036
+   OLD_KEYS< 344 > = '027091049126'             ; NEW_KEYS< 344     > = KS_PAGE_UP    ; KEYBOARD< 344     > = 'CUQ' ;! ^[[1~                    1033
+                                                  NEW_KEYS< 344,  2 > = K_HOME        ; KEYBOARD< 344,  2 > = 'LVT' ;!                            36
+                                                  NEW_KEYS< 344,  3 > = K_HOME        ; KEYBOARD< 344,  3 > = 'NTC' ;!                            36
+                                                  NEW_KEYS< 344,  4 > = K_HOME        ; KEYBOARD< 344,  4 > = 'PTY' ;!                            36
                                                   NEW_KEYS< 344,  5 > = K_END                                       ;!                            35 ANS LNX MDS PCK VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS
-   OLD_KEYS< 345 > = '027091050048059050126'    ; NEW_KEYS< 345     > = KS_F09                                      ;! ^[[20
-   OLD_KEYS< 346 > = '027091050048059051126'    ; NEW_KEYS< 346     > = KA_F09                                      ;! ^[[20
-   OLD_KEYS< 347 > = '027091050048059052126'    ; NEW_KEYS< 347     > = KSA_F09                                     ;! ^[[20
-   OLD_KEYS< 348 > = '027091050048059053126'    ; NEW_KEYS< 348     > = KC_F09                                      ;! ^[[20
-   OLD_KEYS< 349 > = '027091050048059054126'    ; NEW_KEYS< 349     > = KSC_F09                                     ;! ^[[20
+   OLD_KEYS< 345 > = '027091050048059050126'    ; NEW_KEYS< 345     > = KS_F09                                      ;! ^[[20                    1120
+   OLD_KEYS< 346 > = '027091050048059051126'    ; NEW_KEYS< 346     > = KA_F09                                      ;! ^[[20                    4120
+   OLD_KEYS< 347 > = '027091050048059052126'    ; NEW_KEYS< 347     > = KSA_F09                                     ;! ^[[20                    5120
+   OLD_KEYS< 348 > = '027091050048059053126'    ; NEW_KEYS< 348     > = KC_F09                                      ;! ^[[20                    2120
+   OLD_KEYS< 349 > = '027091050048059054126'    ; NEW_KEYS< 349     > = KSC_F09                                     ;! ^[[20                    3120
    OLD_KEYS< 350 > = '027091050048094'          ; NEW_KEYS< 350     > = KC_F09                                      ;! ^[[20^                   2120 NTC
    OLD_KEYS< 351 > = '027091050048126'          ; NEW_KEYS< 351     > = K_F09                                       ;! ^[[20~                    120 GTM LNX LVT NTC PTY VT1 VT2 VT3 VT4 XTM
-   OLD_KEYS< 352 > = '027091050049059050126'    ; NEW_KEYS< 352     > = KS_F10                                      ;! ^[[21
-   OLD_KEYS< 353 > = '027091050049059051126'    ; NEW_KEYS< 353     > = KA_F10                                      ;! ^[[21
-   OLD_KEYS< 354 > = '027091050049059052126'    ; NEW_KEYS< 354     > = KSA_F10                                     ;! ^[[21
-   OLD_KEYS< 355 > = '027091050049059053126'    ; NEW_KEYS< 355     > = KC_F10                                      ;! ^[[21
-   OLD_KEYS< 356 > = '027091050049059054126'    ; NEW_KEYS< 356     > = KSC_F10                                     ;! ^[[21
+   OLD_KEYS< 352 > = '027091050049059050126'    ; NEW_KEYS< 352     > = KS_F10                                      ;! ^[[21                    1121
+   OLD_KEYS< 353 > = '027091050049059051126'    ; NEW_KEYS< 353     > = KA_F10                                      ;! ^[[21                    4121
+   OLD_KEYS< 354 > = '027091050049059052126'    ; NEW_KEYS< 354     > = KSA_F10                                     ;! ^[[21                    5121
+   OLD_KEYS< 355 > = '027091050049059053126'    ; NEW_KEYS< 355     > = KC_F10                                      ;! ^[[21                    2121
+   OLD_KEYS< 356 > = '027091050049059054126'    ; NEW_KEYS< 356     > = KSC_F10                                     ;! ^[[21                    3121
    OLD_KEYS< 357 > = '027091050049094'          ; NEW_KEYS< 357     > = KC_F10                                      ;! ^[[21^                   2121 NTC
    OLD_KEYS< 358 > = '027091050049126'          ; NEW_KEYS< 358     > = K_F10                                       ;! ^[[21~                    121 GTM LNX LVT NTC PTY VT1 VT2 VT3 VT4 XTM
    OLD_KEYS< 359 > = '027091050051036'          ; NEW_KEYS< 359     > = KS_F11                                      ;! ^[[23$                   1122 NTC
-   OLD_KEYS< 360 > = '027091050051059050126'    ; NEW_KEYS< 360     > = KS_F11                                      ;! ^[[23
-   OLD_KEYS< 361 > = '027091050051059051126'    ; NEW_KEYS< 361     > = KA_F11                                      ;! ^[[23
-   OLD_KEYS< 362 > = '027091050051059052126'    ; NEW_KEYS< 362     > = KSA_F11                                     ;! ^[[23
-   OLD_KEYS< 363 > = '027091050051059053126'    ; NEW_KEYS< 363     > = KC_F11                                      ;! ^[[23
-   OLD_KEYS< 364 > = '027091050051059054126'    ; NEW_KEYS< 364     > = KSC_F11                                     ;! ^[[23
+   OLD_KEYS< 360 > = '027091050051059050126'    ; NEW_KEYS< 360     > = KS_F11                                      ;! ^[[23                    1122
+   OLD_KEYS< 361 > = '027091050051059051126'    ; NEW_KEYS< 361     > = KA_F11                                      ;! ^[[23                    4122
+   OLD_KEYS< 362 > = '027091050051059052126'    ; NEW_KEYS< 362     > = KSA_F11                                     ;! ^[[23                    5122
+   OLD_KEYS< 363 > = '027091050051059053126'    ; NEW_KEYS< 363     > = KC_F11                                      ;! ^[[23                    2122
+   OLD_KEYS< 364 > = '027091050051059054126'    ; NEW_KEYS< 364     > = KSC_F11                                     ;! ^[[23                    3122
    OLD_KEYS< 365 > = '027091050051064'          ; NEW_KEYS< 365     > = KSC_F11                                     ;! ^[[23@                   3122 NTC
    OLD_KEYS< 366 > = '027091050051094'          ; NEW_KEYS< 366     > = KC_F11                                      ;! ^[[23^                   2122 NTC
    OLD_KEYS< 367 > = '027091050051126'          ; NEW_KEYS< 367     > = K_F11                                       ;! ^[[23~                    122 ANS LNX LVT MDS NTC PCK PTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 368 > = '027091050052036'          ; NEW_KEYS< 368     > = KS_F12                                      ;! ^[[24$                   1123 NTC
-   OLD_KEYS< 369 > = '027091050052059050126'    ; NEW_KEYS< 369     > = KS_F12                                      ;! ^[[24
-   OLD_KEYS< 370 > = '027091050052059051126'    ; NEW_KEYS< 370     > = KA_F12                                      ;! ^[[24
-   OLD_KEYS< 371 > = '027091050052059052126'    ; NEW_KEYS< 371     > = KSA_F12                                     ;! ^[[24
-   OLD_KEYS< 372 > = '027091050052059053126'    ; NEW_KEYS< 372     > = KC_F12                                      ;! ^[[24
-   OLD_KEYS< 373 > = '027091050052059054126'    ; NEW_KEYS< 373     > = KSC_F12                                     ;! ^[[24
+   OLD_KEYS< 369 > = '027091050052059050126'    ; NEW_KEYS< 369     > = KS_F12                                      ;! ^[[24                    1123
+   OLD_KEYS< 370 > = '027091050052059051126'    ; NEW_KEYS< 370     > = KA_F12                                      ;! ^[[24                    4123
+   OLD_KEYS< 371 > = '027091050052059052126'    ; NEW_KEYS< 371     > = KSA_F12                                     ;! ^[[24                    5123
+   OLD_KEYS< 372 > = '027091050052059053126'    ; NEW_KEYS< 372     > = KC_F12                                      ;! ^[[24                    2123
+   OLD_KEYS< 373 > = '027091050052059054126'    ; NEW_KEYS< 373     > = KSC_F12                                     ;! ^[[24                    3123
    OLD_KEYS< 374 > = '027091050052064'          ; NEW_KEYS< 374     > = KSC_F12                                     ;! ^[[24@                   3123 NTC
    OLD_KEYS< 375 > = '027091050052094'          ; NEW_KEYS< 375     > = KC_F12                                      ;! ^[[24^                   2123 NTC
    OLD_KEYS< 376 > = '027091050052126'          ; NEW_KEYS< 376     > = K_F12                                       ;! ^[[24~                    123 GTM LNX LVT NTC PTY VT2 VT3 VT4 XTM
    OLD_KEYS< 377 > = '027091050053094'          ; NEW_KEYS< 377     > = KSC_F03                                     ;! ^[[25^                   3114 NTC
    OLD_KEYS< 378 > = '027091050053126'          ; NEW_KEYS< 378     > = KS_F01        ; KEYBOARD< 378     > = 'LNX' ;! ^[[25~                   1112
-                                                  NEW_KEYS< 378,  2 > = KS_F01        ; KEYBOARD< 378,  2 > = 'LVT'
-                                                  NEW_KEYS< 378,  3 > = KS_F03        ; KEYBOARD< 378,  3 > = 'NTC'
-                                                  NEW_KEYS< 378,  4 > = KS_F03        ; KEYBOARD< 378,  4 > = 'PTY'
+                                                  NEW_KEYS< 378,  2 > = KS_F01        ; KEYBOARD< 378,  2 > = 'LVT' ;!                          1112
+                                                  NEW_KEYS< 378,  3 > = KS_F03        ; KEYBOARD< 378,  3 > = 'NTC' ;!                          1114
+                                                  NEW_KEYS< 378,  4 > = KS_F03        ; KEYBOARD< 378,  4 > = 'PTY' ;!                          1114
                                                   NEW_KEYS< 378,  5 > = KC_F03                                      ;!                          2114 VT1 VT2 VT3 VT4
    OLD_KEYS< 379 > = '027091050054094'          ; NEW_KEYS< 379     > = KSC_F04                                     ;! ^[[26^                   3115 NTC
-   OLD_KEYS< 380 > = '027091050054126'          ; NEW_KEYS< 380     > = KS_F02        ; KEYBOARD< 380     > = 'LNX' ;! ^[[26~                   1113
-                                                  NEW_KEYS< 380,  2 > = KS_F02        ; KEYBOARD< 380,  2 > = 'LVT'
-                                                  NEW_KEYS< 380,  3 > = KS_F04        ; KEYBOARD< 380,  3 > = 'NTC'
-                                                  NEW_KEYS< 380,  4 > = KS_F04        ; KEYBOARD< 380,  4 > = 'PTY'
-                                                  NEW_KEYS< 380,  5 > = KS_F04        ; KEYBOARD< 380,  5 > = 'VTX'
+   OLD_KEYS< 380 > = '027091050054126'          ; NEW_KEYS< 380     > = KS_F04        ; KEYBOARD< 380     > = 'CUQ' ;! ^[[26~                   1115
+                                                  NEW_KEYS< 380,  2 > = KS_F02        ; KEYBOARD< 380,  2 > = 'LNX' ;!                          1113
+                                                  NEW_KEYS< 380,  3 > = KS_F02        ; KEYBOARD< 380,  3 > = 'LVT' ;!                          1113
+                                                  NEW_KEYS< 380,  4 > = KS_F04        ; KEYBOARD< 380,  4 > = 'NTC' ;!                          1115
+                                                  NEW_KEYS< 380,  5 > = KS_F04        ; KEYBOARD< 380,  5 > = 'PTY' ;!                          1115
                                                   NEW_KEYS< 380,  6 > = KC_F04                                      ;!                          2115 VT1 VT2 VT3 VT4
    OLD_KEYS< 381 > = '027091050056094'          ; NEW_KEYS< 381     > = KSC_F05                                     ;! ^[[28^                   3116 NTC
-   OLD_KEYS< 382 > = '027091050056126'          ; NEW_KEYS< 382     > = KS_F03        ; KEYBOARD< 382     > = 'LNX' ;! ^[[28~                   1114
-                                                  NEW_KEYS< 382,  2 > = KS_F03        ; KEYBOARD< 382,  2 > = 'LVT'
-                                                  NEW_KEYS< 382,  3 > = KS_F05        ; KEYBOARD< 382,  3 > = 'NTC'
-                                                  NEW_KEYS< 382,  4 > = KS_F05        ; KEYBOARD< 382,  4 > = 'PTY'
-                                                  NEW_KEYS< 382,  5 > = KS_F05        ; KEYBOARD< 382,  5 > = 'VTX'
+   OLD_KEYS< 382 > = '027091050056126'          ; NEW_KEYS< 382     > = KS_F05        ; KEYBOARD< 382     > = 'CUQ' ;! ^[[28~                   1116
+                                                  NEW_KEYS< 382,  2 > = KS_F03        ; KEYBOARD< 382,  2 > = 'LNX' ;!                          1113
+                                                  NEW_KEYS< 382,  3 > = KS_F03        ; KEYBOARD< 382,  3 > = 'LVT' ;!                          1113
+                                                  NEW_KEYS< 382,  4 > = KS_F05        ; KEYBOARD< 382,  4 > = 'NTC' ;!                          1116
+                                                  NEW_KEYS< 382,  5 > = KS_F05        ; KEYBOARD< 382,  5 > = 'PTY' ;!                          1116
                                                   NEW_KEYS< 382,  6 > = KC_F05                                      ;!                          2116 VT1 VT2 VT3 VT4
    OLD_KEYS< 383 > = '027091050057094'          ; NEW_KEYS< 383     > = KSC_F06                                     ;! ^[[29^                   3117 NTC
-   OLD_KEYS< 384 > = '027091050057126'          ; NEW_KEYS< 384     > = KS_F04        ; KEYBOARD< 384     > = 'LNX' ;! ^[[29~                   1115
-                                                  NEW_KEYS< 384,  2 > = KS_F04        ; KEYBOARD< 384,  2 > = 'LVT'
-                                                  NEW_KEYS< 384,  3 > = KS_F06        ; KEYBOARD< 384,  3 > = 'NTC'
-                                                  NEW_KEYS< 384,  4 > = KS_F06        ; KEYBOARD< 384,  4 > = 'PTY'
-                                                  NEW_KEYS< 384,  5 > = KS_F06        ; KEYBOARD< 384,  5 > = 'VTX'
+   OLD_KEYS< 384 > = '027091050057126'          ; NEW_KEYS< 384     > = KS_F06        ; KEYBOARD< 384     > = 'CUQ' ;! ^[[29~                   1117
+                                                  NEW_KEYS< 384,  2 > = KS_F04        ; KEYBOARD< 384,  2 > = 'LNX' ;!                          1115
+                                                  NEW_KEYS< 384,  3 > = KS_F04        ; KEYBOARD< 384,  3 > = 'LVT' ;!                          1115
+                                                  NEW_KEYS< 384,  4 > = KS_F06        ; KEYBOARD< 384,  4 > = 'NTC' ;!                          1117
+                                                  NEW_KEYS< 384,  5 > = KS_F06        ; KEYBOARD< 384,  5 > = 'PTY' ;!                          1117
                                                   NEW_KEYS< 384,  6 > = KC_F06                                      ;!                          2117 VT1 VT2 VT3 VT4
-   OLD_KEYS< 385 > = '027091050059050126'       ; NEW_KEYS< 385     > = KS_INSERT                                   ;! ^[[2
-   OLD_KEYS< 386 > = '027091050059051126'       ; NEW_KEYS< 386     > = KA_INSERT                                   ;! ^[[2
-   OLD_KEYS< 387 > = '027091050059052126'       ; NEW_KEYS< 387     > = KSA_INSERT                                  ;! ^[[2
-   OLD_KEYS< 388 > = '027091050059053126'       ; NEW_KEYS< 388     > = KC_INSERT                                   ;! ^[[2
-   OLD_KEYS< 389 > = '027091050059054126'       ; NEW_KEYS< 389     > = KSC_INSERT                                  ;! ^[[2
-   OLD_KEYS< 390 > = '027091050126'             ; NEW_KEYS< 390     > = K_HOME        ; KEYBOARD< 390     > = 'PTY' ;! ^[[2~                      36
-                                                  NEW_KEYS< 390,  2 > = K_INSERT                                    ;!                            45 ANS GTM LNX LVT MDS NTC PCK VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
+   OLD_KEYS< 385 > = '027091050059050126'       ; NEW_KEYS< 385     > = KS_INSERT                                   ;! ^[[2                     1045
+   OLD_KEYS< 386 > = '027091050059051126'       ; NEW_KEYS< 386     > = KA_INSERT                                   ;! ^[[2                     4045
+   OLD_KEYS< 387 > = '027091050059052126'       ; NEW_KEYS< 387     > = KSA_INSERT                                  ;! ^[[2                     5045
+   OLD_KEYS< 388 > = '027091050059053126'       ; NEW_KEYS< 388     > = KC_INSERT                                   ;! ^[[2                     2045
+   OLD_KEYS< 389 > = '027091050059054126'       ; NEW_KEYS< 389     > = KSC_INSERT                                  ;! ^[[2                     3045
+   OLD_KEYS< 390 > = '027091050126'             ; NEW_KEYS< 390     > = K_HOME        ; KEYBOARD< 390     > = 'PTY' ;! ^[[2~                      36 ANS GTM LNX LVT MDS NTC PCK VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
+                                                  NEW_KEYS< 390,  2 > = K_INSERT                                    ;!                            45
    OLD_KEYS< 391 > = '027091051049094'          ; NEW_KEYS< 391     > = KSC_F07                                     ;! ^[[31^                   3118 NTC
-   OLD_KEYS< 392 > = '027091051049126'          ; NEW_KEYS< 392     > = KS_F05        ; KEYBOARD< 392     > = 'LNX' ;! ^[[31~                   1116
-                                                  NEW_KEYS< 392,  2 > = KS_F05        ; KEYBOARD< 392,  2 > = 'LVT'
-                                                  NEW_KEYS< 392,  3 > = KS_F07        ; KEYBOARD< 392,  3 > = 'NTC'
-                                                  NEW_KEYS< 392,  4 > = KS_F07        ; KEYBOARD< 392,  4 > = 'PTY'
-                                                  NEW_KEYS< 392,  5 > = KS_F07        ; KEYBOARD< 392,  5 > = 'VTX'
+   OLD_KEYS< 392 > = '027091051049126'          ; NEW_KEYS< 392     > = KS_F07        ; KEYBOARD< 392     > = 'CUQ' ;! ^[[31~                   1118
+                                                  NEW_KEYS< 392,  2 > = KS_F05        ; KEYBOARD< 392,  2 > = 'LNX' ;!                          1116
+                                                  NEW_KEYS< 392,  3 > = KS_F05        ; KEYBOARD< 392,  3 > = 'LVT' ;!                          1116
+                                                  NEW_KEYS< 392,  4 > = KS_F07        ; KEYBOARD< 392,  4 > = 'NTC' ;!                          1118
+                                                  NEW_KEYS< 392,  5 > = KS_F07        ; KEYBOARD< 392,  5 > = 'PTY' ;!                          1118
                                                   NEW_KEYS< 392,  6 > = KC_F07                                      ;!                          2118 VT1 VT2 VT3 VT4
    OLD_KEYS< 393 > = '027091051050094'          ; NEW_KEYS< 393     > = KSC_F08                                     ;! ^[[32^                   3119 NTC
-   OLD_KEYS< 394 > = '027091051050126'          ; NEW_KEYS< 394     > = KS_F06        ; KEYBOARD< 394     > = 'LNX' ;! ^[[32~                   1117
-                                                  NEW_KEYS< 394,  2 > = KS_F06        ; KEYBOARD< 394,  2 > = 'LVT'
-                                                  NEW_KEYS< 394,  3 > = KS_F08        ; KEYBOARD< 394,  3 > = 'NTC'
-                                                  NEW_KEYS< 394,  4 > = KS_F08        ; KEYBOARD< 394,  4 > = 'PTY'
-                                                  NEW_KEYS< 394,  5 > = KS_F08        ; KEYBOARD< 394,  5 > = 'VTX'
+   OLD_KEYS< 394 > = '027091051050126'          ; NEW_KEYS< 394     > = KS_F08        ; KEYBOARD< 394     > = 'CUQ' ;! ^[[32~                   1119
+                                                  NEW_KEYS< 394,  2 > = KS_F06        ; KEYBOARD< 394,  2 > = 'LNX' ;!                          1117
+                                                  NEW_KEYS< 394,  3 > = KS_F06        ; KEYBOARD< 394,  3 > = 'LVT' ;!                          1117
+                                                  NEW_KEYS< 394,  4 > = KS_F08        ; KEYBOARD< 394,  4 > = 'NTC' ;!                          1119
+                                                  NEW_KEYS< 394,  5 > = KS_F08        ; KEYBOARD< 394,  5 > = 'PTY' ;!                          1119
                                                   NEW_KEYS< 394,  6 > = KC_F08                                      ;!                          2119 VT1 VT2 VT3 VT4
    OLD_KEYS< 395 > = '027091051051094'          ; NEW_KEYS< 395     > = KSC_F09                                     ;! ^[[33^                   3120 NTC
-   OLD_KEYS< 396 > = '027091051051126'          ; NEW_KEYS< 396     > = KS_F07        ; KEYBOARD< 396     > = 'LNX' ;! ^[[33~                   1118
-                                                  NEW_KEYS< 396,  2 > = KS_F07        ; KEYBOARD< 396,  2 > = 'LVT'
-                                                  NEW_KEYS< 396,  3 > = KS_F09        ; KEYBOARD< 396,  3 > = 'NTC'
-                                                  NEW_KEYS< 396,  4 > = KS_F09        ; KEYBOARD< 396,  4 > = 'PTY'
-                                                  NEW_KEYS< 396,  5 > = KS_F09        ; KEYBOARD< 396,  5 > = 'VTX'
+   OLD_KEYS< 396 > = '027091051051126'          ; NEW_KEYS< 396     > = KS_F09        ; KEYBOARD< 396     > = 'CUQ' ;! ^[[33~                   1120
+                                                  NEW_KEYS< 396,  2 > = KS_F07        ; KEYBOARD< 396,  2 > = 'LNX' ;!                          1118
+                                                  NEW_KEYS< 396,  3 > = KS_F07        ; KEYBOARD< 396,  3 > = 'LVT' ;!                          1118
+                                                  NEW_KEYS< 396,  4 > = KS_F09        ; KEYBOARD< 396,  4 > = 'NTC' ;!                          1120
+                                                  NEW_KEYS< 396,  5 > = KS_F09        ; KEYBOARD< 396,  5 > = 'PTY' ;!                          1120
                                                   NEW_KEYS< 396,  6 > = KC_F09                                      ;!                          2120 VT1 VT2 VT3 VT4
    OLD_KEYS< 397 > = '027091051052094'          ; NEW_KEYS< 397     > = KSC_F10                                     ;! ^[[34^                   3121 NTC
-   OLD_KEYS< 398 > = '027091051052126'          ; NEW_KEYS< 398     > = KS_F08        ; KEYBOARD< 398     > = 'LNX' ;! ^[[34~                   1119
-                                                  NEW_KEYS< 398,  2 > = KS_F08        ; KEYBOARD< 398,  2 > = 'LVT'
-                                                  NEW_KEYS< 398,  3 > = KS_F10        ; KEYBOARD< 398,  3 > = 'NTC'
-                                                  NEW_KEYS< 398,  4 > = KS_F10        ; KEYBOARD< 398,  4 > = 'PTY'
-                                                  NEW_KEYS< 398,  5 > = KS_F10        ; KEYBOARD< 398,  5 > = 'VTX'
+   OLD_KEYS< 398 > = '027091051052126'          ; NEW_KEYS< 398     > = KS_F10        ; KEYBOARD< 398     > = 'CUQ' ;! ^[[34~                   1121
+                                                  NEW_KEYS< 398,  2 > = KS_F08        ; KEYBOARD< 398,  2 > = 'LNX' ;!                          1119
+                                                  NEW_KEYS< 398,  3 > = KS_F08        ; KEYBOARD< 398,  3 > = 'LVT' ;!                          1119
+                                                  NEW_KEYS< 398,  4 > = KS_F10        ; KEYBOARD< 398,  4 > = 'NTC' ;!                          1121
+                                                  NEW_KEYS< 398,  5 > = KS_F10        ; KEYBOARD< 398,  5 > = 'PTY' ;!                          1121
                                                   NEW_KEYS< 398,  6 > = KC_F10                                      ;!                          2121 VT1 VT2 VT3 VT4
-   OLD_KEYS< 399 > = '027091051059050126'       ; NEW_KEYS< 399     > = KS_DELETE                                   ;! ^[[3
-   OLD_KEYS< 400 > = '027091051059051126'       ; NEW_KEYS< 400     > = KA_DELETE                                   ;! ^[[3
-   OLD_KEYS< 401 > = '027091051059052126'       ; NEW_KEYS< 401     > = KSA_DELETE                                  ;! ^[[3
-   OLD_KEYS< 402 > = '027091051059053126'       ; NEW_KEYS< 402     > = KC_DELETE                                   ;! ^[[3
-   OLD_KEYS< 403 > = '027091051059054126'       ; NEW_KEYS< 403     > = KSC_DELETE                                  ;! ^[[3
+   OLD_KEYS< 399 > = '027091051059050126'       ; NEW_KEYS< 399     > = KS_DELETE                                   ;! ^[[3                     1046
+   OLD_KEYS< 400 > = '027091051059051126'       ; NEW_KEYS< 400     > = KA_DELETE                                   ;! ^[[3                     4046
+   OLD_KEYS< 401 > = '027091051059052126'       ; NEW_KEYS< 401     > = KSA_DELETE                                  ;! ^[[3                     5046
+   OLD_KEYS< 402 > = '027091051059053126'       ; NEW_KEYS< 402     > = KC_DELETE                                   ;! ^[[3                     2046
+   OLD_KEYS< 403 > = '027091051059054126'       ; NEW_KEYS< 403     > = KSC_DELETE                                  ;! ^[[3                     3046
    OLD_KEYS< 404 > = '027091051126'             ; NEW_KEYS< 404     > = KS_DELETE     ; KEYBOARD< 404     > = 'LNX' ;! ^[[3~                    1046
-                                                  NEW_KEYS< 404,  2 > = K_PAGE_UP     ; KEYBOARD< 404,  2 > = 'PTY'
+                                                  NEW_KEYS< 404,  2 > = K_PAGE_UP     ; KEYBOARD< 404,  2 > = 'PTY' ;!                            33
                                                   NEW_KEYS< 404,  3 > = K_DELETE                                    ;!                            46 LVT NTC XTM
-   OLD_KEYS< 405 > = '027091052059050126'       ; NEW_KEYS< 405     > = KS_END                                      ;! ^[[4
-   OLD_KEYS< 406 > = '027091052059053126'       ; NEW_KEYS< 406     > = KC_END                                      ;! ^[[4
-   OLD_KEYS< 407 > = '027091052059054126'       ; NEW_KEYS< 407     > = KSC_END                                     ;! ^[[4
-   OLD_KEYS< 408 > = '027091052126'             ; NEW_KEYS< 408     > = KS_END        ; KEYBOARD< 408     > = 'LNX' ;! ^[[4~                    1035
-                                                  NEW_KEYS< 408,  2 > = K_DELETE      ; KEYBOARD< 408,  2 > = 'PTY'
-                                                  NEW_KEYS< 408,  3 > = KS_PAGE_DOWN  ; KEYBOARD< 408,  3 > = 'VTX'
-                                                  NEW_KEYS< 408,  4 > = K_END                                       ;!                            35 LVT NTC
-   OLD_KEYS< 409 > = '027091053059050126'       ; NEW_KEYS< 409     > = KS_PAGE_UP                                  ;! ^[[5
-   OLD_KEYS< 410 > = '027091053059051126'       ; NEW_KEYS< 410     > = KA_PAGE_UP                                  ;! ^[[5
-   OLD_KEYS< 411 > = '027091053059052126'       ; NEW_KEYS< 411     > = KSA_PAGE_UP                                 ;! ^[[5
-   OLD_KEYS< 412 > = '027091053059053126'       ; NEW_KEYS< 412     > = KC_PAGE_UP                                  ;! ^[[5
-   OLD_KEYS< 413 > = '027091053059054126'       ; NEW_KEYS< 413     > = KSC_PAGE_UP                                 ;! ^[[5
+   OLD_KEYS< 405 > = '027091052059050126'       ; NEW_KEYS< 405     > = KS_END                                      ;! ^[[4                     1035
+   OLD_KEYS< 406 > = '027091052059053126'       ; NEW_KEYS< 406     > = KC_END                                      ;! ^[[4                     2035
+   OLD_KEYS< 407 > = '027091052059054126'       ; NEW_KEYS< 407     > = KSC_END                                     ;! ^[[4                     3035
+   OLD_KEYS< 408 > = '027091052126'             ; NEW_KEYS< 408     > = KS_PAGE_DOWN  ; KEYBOARD< 408     > = 'CUQ' ;! ^[[4~                    1034
+                                                  NEW_KEYS< 408,  2 > = KS_END        ; KEYBOARD< 408,  2 > = 'LNX' ;!                          1035
+                                                  NEW_KEYS< 408,  3 > = K_END                                       ;!                            35 LVT NTC PTY
+   OLD_KEYS< 409 > = '027091053059050126'       ; NEW_KEYS< 409     > = KS_PAGE_UP                                  ;! ^[[5                     1033
+   OLD_KEYS< 410 > = '027091053059051126'       ; NEW_KEYS< 410     > = KA_PAGE_UP                                  ;! ^[[5                     4033
+   OLD_KEYS< 411 > = '027091053059052126'       ; NEW_KEYS< 411     > = KSA_PAGE_UP                                 ;! ^[[5                     5033
+   OLD_KEYS< 412 > = '027091053059053126'       ; NEW_KEYS< 412     > = KC_PAGE_UP                                  ;! ^[[5                     2033
+   OLD_KEYS< 413 > = '027091053059054126'       ; NEW_KEYS< 413     > = KSC_PAGE_UP                                 ;! ^[[5                     3033
    OLD_KEYS< 414 > = '027091053126'             ; NEW_KEYS< 414     > = K_END         ; KEYBOARD< 414     > = 'PTY' ;! ^[[5~                      35
                                                   NEW_KEYS< 414,  2 > = K_PAGE_UP                                   ;!                            33 ANS GTM LNX LVT MDS NTC PCK VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 415 > = '027091054059050126'       ; NEW_KEYS< 415     > = KS_PAGE_DOWN                                ;! ^[[6                     1034
-   OLD_KEYS< 416 > = '027091054059051126'       ; NEW_KEYS< 416     > = KA_PAGE_DOWN                                ;! ^[[6
-   OLD_KEYS< 417 > = '027091054059052126'       ; NEW_KEYS< 417     > = KSA_PAGE_DOWN                               ;! ^[[6
-   OLD_KEYS< 418 > = '027091054059053126'       ; NEW_KEYS< 418     > = KC_PAGE_DOWN                                ;! ^[[6
-   OLD_KEYS< 419 > = '027091054059054126'       ; NEW_KEYS< 419     > = KSC_PAGE_DOWN                               ;! ^[[6
+   OLD_KEYS< 416 > = '027091054059051126'       ; NEW_KEYS< 416     > = KA_PAGE_DOWN                                ;! ^[[6                     4034
+   OLD_KEYS< 417 > = '027091054059052126'       ; NEW_KEYS< 417     > = KSA_PAGE_DOWN                               ;! ^[[6                     5034
+   OLD_KEYS< 418 > = '027091054059053126'       ; NEW_KEYS< 418     > = KC_PAGE_DOWN                                ;! ^[[6                     2034
+   OLD_KEYS< 419 > = '027091054059054126'       ; NEW_KEYS< 419     > = KSC_PAGE_DOWN                               ;! ^[[6                     3034
    OLD_KEYS< 420 > = '027091054126'             ; NEW_KEYS< 420     > = K_PAGE_DOWN                                 ;! ^[[6~                      34 ANS GTM LNX LVT MDS NTC PCK PTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 421 > = '027091064'                ; NEW_KEYS< 421     > = K_INSERT      ; KEYBOARD< 421     > = 'NTC' ;! ^[[@                       45 NEW
                                                   NEW_KEYS< 421,  2 > = KSC_F05                                     ;!                          3116 ANS
    OLD_KEYS< 422 > = '027091065'                ; NEW_KEYS< 422     > = K_UP                                        ;! ^[[A                       38 ANS BBS GTM LNX LVT MDS NTC PCK PTY SCO VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 423 > = '027091066'                ; NEW_KEYS< 423     > = K_DOWN                                      ;! ^[[B                       40 ANS BBS GTM LNX LVT MDS NTC PCK PTY SCO VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 424 > = '027091067'                ; NEW_KEYS< 424     > = K_RIGHT                                     ;! ^[[C                       39 ANS BBS GTM LNX LVT MDS NTC PCK PTY SCO VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
-   OLD_KEYS< 425 > = '027091068'                ; NEW_KEYS< 425     > = KS_LEFT       ; KEYBOARD< 425     > = 'VT1' ;! ^[[D                     1037
-                                                  NEW_KEYS< 425,  2 > = KS_LEFT       ; KEYBOARD< 425,  2 > = 'VT2'
-                                                  NEW_KEYS< 425,  3 > = K_LEFT                                      ;!                            37 ANS BBS GTM LNX LVT NTC PCK PTY SCO VP6 VT3 VT4 XTM
+   OLD_KEYS< 425 > = '027091068'                ; NEW_KEYS< 425     > = KS_LEFT       ; KEYBOARD< 425     > = 'VT2' ;! ^[[D                     1037
+                                                  NEW_KEYS< 425,  2 > = K_LEFT                                      ;!                            37 ANS BBS GTM LNX LVT NTC PCK PTY SCO VP6 VT1 VT3 VT4 XTM
    OLD_KEYS< 426 > = '027091070'                ; NEW_KEYS< 426     > = KS_END        ; KEYBOARD< 426     > = 'ANS' ;! ^[[F                     1035
                                                   NEW_KEYS< 426,  2 > = K_END                                       ;!                            35 GTM SCO XTM
    OLD_KEYS< 427 > = '027091071'                ; NEW_KEYS< 427     > = K_PAGE_DOWN   ; KEYBOARD< 427     > = 'SCO' ;! ^[[G                       34
@@ -749,27 +798,29 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 428 > = '027091072'                ; NEW_KEYS< 428     > = K_HOME                                      ;! ^[[H                       36 ANS BBS GTM LNX MDS PCK PTY SCO VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 429 > = '027091073'                ; NEW_KEYS< 429     > = K_PAGE_UP     ; KEYBOARD< 429     > = 'SCO' ;! ^[[I                       33
                                                   NEW_KEYS< 429,  2 > = KS_PAGE_UP                                  ;!                          1033 ANS
-   OLD_KEYS< 430 > = '027091076'                ; NEW_KEYS< 430     > = K_INSERT      ; KEYBOARD< 430     > = 'SCO' ;! ^[[L                       45
-                                                  NEW_KEYS< 430,  2 > = K_INSERT      ; KEYBOARD< 430,  2 > = 'VTX'
+   OLD_KEYS< 430 > = '027091076'                ; NEW_KEYS< 430     > = K_INSERT      ; KEYBOARD< 430     > = 'CUO' ;! ^[[L                       45
+                                                  NEW_KEYS< 430,  2 > = K_INSERT      ; KEYBOARD< 430,  2 > = 'SCO' ;!                            45
                                                   NEW_KEYS< 430,  3 > = KS_INSERT                                   ;!                          1045 ANS
-   OLD_KEYS< 431 > = '027091077'                ; NEW_KEYS< 431     > = K_F05         ; KEYBOARD< 431     > = 'VT3' ;! ^[[M                      116
-                                                  NEW_KEYS< 431,  2 > = KS_DELETE     ; KEYBOARD< 431,  2 > = 'VTX'
-                                                  NEW_KEYS< 431,  3 > = K_F01                                       ;!                           112 SCO
+   OLD_KEYS< 431 > = '027091077'                ; NEW_KEYS< 431     > = KS_DELETE     ; KEYBOARD< 431     > = 'CUO' ;! ^[[M                     1046
+                                                  NEW_KEYS< 431,  2 > = KS_DELETE     ; KEYBOARD< 431,  2 > = 'CUQ' ;!                          1046
+                                                  NEW_KEYS< 431,  3 > = K_F05         ; KEYBOARD< 431,  3 > = 'VT1' ;!                           116
+                                                  NEW_KEYS< 431,  4 > = K_F05         ; KEYBOARD< 431,  4 > = 'VT3' ;!                           116
+                                                  NEW_KEYS< 431,  5 > = K_F01                                       ;!                           112 SCO
    OLD_KEYS< 432 > = '027091078'                ; NEW_KEYS< 432     > = K_F02                                       ;! ^[[N                      113 SCO
    OLD_KEYS< 433 > = '027091079'                ; NEW_KEYS< 433     > = K_F03                                       ;! ^[[O                      114 SCO
    OLD_KEYS< 434 > = '027091080'                ; NEW_KEYS< 434     > = K_DELETE      ; KEYBOARD< 434     > = 'NTC' ;! ^[[P                       46 NEW
                                                   NEW_KEYS< 434,  2 > = K_F04                                       ;!                           115 SCO
    OLD_KEYS< 435 > = '027091081'                ; NEW_KEYS< 435     > = K_F05                                       ;! ^[[Q                      116 SCO
    OLD_KEYS< 436 > = '027091082'                ; NEW_KEYS< 436     > = K_F06                                       ;! ^[[R                      117 SCO
-   OLD_KEYS< 437 > = '027091083'                ; NEW_KEYS< 437     > = K_PAGE_DOWN   ; KEYBOARD< 437     > = 'VTX' ;! ^[[S
+   OLD_KEYS< 437 > = '027091083'                ; NEW_KEYS< 437     > = K_PAGE_DOWN   ; KEYBOARD< 437     > = 'CUO' ;! ^[[S                       34
                                                   NEW_KEYS< 437,  2 > = K_F07                                       ;!                           118 SCO
-   OLD_KEYS< 438 > = '027091084'                ; NEW_KEYS< 438     > = K_PAGE_UP     ; KEYBOARD< 438     > = 'VTX' ;! ^[[T
+   OLD_KEYS< 438 > = '027091084'                ; NEW_KEYS< 438     > = K_PAGE_UP     ; KEYBOARD< 438     > = 'CUO' ;! ^[[T                       33
                                                   NEW_KEYS< 438,  2 > = K_F08                                       ;!                           119 SCO
    OLD_KEYS< 439 > = '027091085'                ; NEW_KEYS< 439     > = K_PAGE_DOWN   ; KEYBOARD< 439     > = 'BBS' ;! ^[[U                       34
-                                                  NEW_KEYS< 439,  2 > = K_PAGE_DOWN   ; KEYBOARD< 439,  2 > = 'NTC'
+                                                  NEW_KEYS< 439,  2 > = K_PAGE_DOWN   ; KEYBOARD< 439,  2 > = 'NTC' ;!                            34
                                                   NEW_KEYS< 439,  3 > = K_F09                                       ;!                           120 ANS SCO
    OLD_KEYS< 440 > = '027091086'                ; NEW_KEYS< 440     > = K_PAGE_UP     ; KEYBOARD< 440     > = 'BBS' ;! ^[[V                       33
-                                                  NEW_KEYS< 440,  2 > = K_PAGE_UP     ; KEYBOARD< 440,  2 > = 'NTC'
+                                                  NEW_KEYS< 440,  2 > = K_PAGE_UP     ; KEYBOARD< 440,  2 > = 'NTC' ;!                            33
                                                   NEW_KEYS< 440,  3 > = K_F10                                       ;!                           121 ANS SCO
    OLD_KEYS< 441 > = '027091087'                ; NEW_KEYS< 441     > = K_F11                                       ;! ^[[W                      122 SCO
    OLD_KEYS< 442 > = '027091088'                ; NEW_KEYS< 442     > = K_F12                                       ;! ^[[X                      123 ANS SCO
@@ -829,24 +880,24 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 495 > = '027105'                   ; NEW_KEYS< 495     > = KA_I                                        ;! ^[i                      4073 GTM LVT NTC
    OLD_KEYS< 496 > = '027106'                   ; NEW_KEYS< 496     > = KA_J                                        ;! ^[j                      4074 GTM LVT NTC
    OLD_KEYS< 497 > = '027107'                   ; NEW_KEYS< 497     > = KS_END        ; KEYBOARD< 497     > = 'PV6' ;! ^[k                      1035
-                                                  NEW_KEYS< 497,  2 > = KS_END        ; KEYBOARD< 497,  2 > = 'VP6'
-                                                  NEW_KEYS< 497,  3 > = KS_END        ; KEYBOARD< 497,  3 > = 'VPT'
+                                                  NEW_KEYS< 497,  2 > = KS_END        ; KEYBOARD< 497,  2 > = 'VP6' ;!                            35
+                                                  NEW_KEYS< 497,  3 > = KS_END        ; KEYBOARD< 497,  3 > = 'VPT' ;!                            35
                                                   NEW_KEYS< 497,  4 > = KA_K                                        ;!                          4075 GTM LVT NTC
    OLD_KEYS< 498 > = '027108'                   ; NEW_KEYS< 498     > = KS_DELETE     ; KEYBOARD< 498     > = 'PV6' ;! ^[l                      1046
-                                                  NEW_KEYS< 498,  2 > = KS_DELETE     ; KEYBOARD< 498,  2 > = 'VP6'
-                                                  NEW_KEYS< 498,  3 > = KS_DELETE     ; KEYBOARD< 498,  3 > = 'VPT'
+                                                  NEW_KEYS< 498,  2 > = KS_DELETE     ; KEYBOARD< 498,  2 > = 'VP6' ;!                          1046
+                                                  NEW_KEYS< 498,  3 > = KS_DELETE     ; KEYBOARD< 498,  3 > = 'VPT' ;!                          1046
                                                   NEW_KEYS< 498,  4 > = KA_L                                        ;!                          4076 GTM LVT NTC
    OLD_KEYS< 499 > = '027109'                   ; NEW_KEYS< 499     > = KA_M                                        ;! ^[m                      4077 GTM LVT NTC
    OLD_KEYS< 500 > = '027110'                   ; NEW_KEYS< 500     > = KA_N                                        ;! ^[n                      4078 GTM LVT NTC
    OLD_KEYS< 501 > = '027111'                   ; NEW_KEYS< 501     > = KA_O                                        ;! ^[o                      4079 GTM LVT NTC
    OLD_KEYS< 502 > = '027112'                   ; NEW_KEYS< 502     > = KA_P                                        ;! ^[p                      4080 GTM LVT NTC
    OLD_KEYS< 503 > = '027113'                   ; NEW_KEYS< 503     > = KA_Q          ; KEYBOARD< 503     > = 'GTM' ;! ^[q                      4081
-                                                  NEW_KEYS< 503,  2 > = KA_Q          ; KEYBOARD< 503,  2 > = 'LVT'
-                                                  NEW_KEYS< 503,  3 > = KA_Q          ; KEYBOARD< 503,  3 > = 'NTC'
+                                                  NEW_KEYS< 503,  2 > = KA_Q          ; KEYBOARD< 503,  2 > = 'LVT' ;!                          4081
+                                                  NEW_KEYS< 503,  3 > = KA_Q          ; KEYBOARD< 503,  3 > = 'NTC' ;!                          4081
                                                   NEW_KEYS< 503,  4 > = K_INSERT                                    ;!                            45 PV6 VP6 VPT WYS
    OLD_KEYS< 504 > = '027114'                   ; NEW_KEYS< 504     > = KA_R          ; KEYBOARD< 504     > = 'GTM' ;! ^[r                      4082
-                                                  NEW_KEYS< 504,  2 > = KA_R          ; KEYBOARD< 504,  2 > = 'LVT'
-                                                  NEW_KEYS< 504,  3 > = KA_R          ; KEYBOARD< 504,  3 > = 'NTC'
+                                                  NEW_KEYS< 504,  2 > = KA_R          ; KEYBOARD< 504,  2 > = 'LVT' ;!                          4082
+                                                  NEW_KEYS< 504,  3 > = KA_R          ; KEYBOARD< 504,  3 > = 'NTC' ;!                          4082
                                                   NEW_KEYS< 504,  4 > = KS_INSERT                                   ;!                          1045 PV6 VP6 VPT WYS
    OLD_KEYS< 505 > = '027115'                   ; NEW_KEYS< 505     > = KA_S                                        ;! ^[s                      4083 GTM LVT NTC
    OLD_KEYS< 506 > = '027116'                   ; NEW_KEYS< 506     > = KA_T                                        ;! ^[t                      4084 GTM LVT NTC
@@ -861,208 +912,225 @@ SUBROUTINE ANY_KEY_TBL
    OLD_KEYS< 514 > = '027124'                   ; NEW_KEYS< 514     > = K_PAGE_DOWN                                 ;! ^[|                        34 MDS PV6 VP6 VPT
    OLD_KEYS< 515 > = '027125'                   ; NEW_KEYS< 515     > = KA_RBRACE                                   ;! ^[}                      5221 GTM LVT NTC PTY
    OLD_KEYS< 516 > = '027126'                   ; NEW_KEYS< 516     > = KA_TILDE                                    ;! ^[~                      5192 LVT NTC PTY
-   OLD_KEYS< 517 > = '027127'                   ; NEW_KEYS< 517     > = KA_BACKSPACE                                ;! ^[{127}                  4008 LVT NTC
+   OLD_KEYS< 517 > = '027127'                   ; NEW_KEYS< 517     > = KSA_BACKSPACE ; KEYBOARD< 517     > = 'PTY' ;! ^[{127}                  4008 LVT NTC
+                                                  NEW_KEYS< 517,  2 > = KA_BACKSPACE                                ;!                          4008
    OLD_KEYS< 518 > = '028'                      ; NEW_KEYS< 518     > = KC_BACKSLASH                                ;! ^\                       2220 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 519 > = '029'                      ; NEW_KEYS< 519     > = KC_RBRACKET                                 ;! ^]                       2221 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VPT VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 520 > = '030'                      ; NEW_KEYS< 520     > = K_HOME        ; KEYBOARD< 520     > = 'VPT' ;! ^^                         36
                                                   NEW_KEYS< 520,  2 > = KC_CARET                                    ;!                          3054 ANS BBS GTM LNX LVT MDS NTC PCK PTY PV6 SCO TTY VP6 VT0 VT1 VT2 VT3 VT4 WYS XTM
    OLD_KEYS< 521 > = '031'                      ; NEW_KEYS< 521     > = K_DELETE      ; KEYBOARD< 521     > = 'BBS' ;! ^_                         46
-                                                  NEW_KEYS< 521,  2 > = K_DELETE      ; KEYBOARD< 521,  2 > = 'LNX'
-                                                  NEW_KEYS< 521,  3 > = K_DELETE      ; KEYBOARD< 521,  3 > = 'PCK'
-                                                  NEW_KEYS< 521,  4 > = K_DELETE      ; KEYBOARD< 521,  4 > = 'VT0'
-                                                  NEW_KEYS< 521,  5 > = K_DELETE      ; KEYBOARD< 521,  5 > = 'VT1'
-                                                  NEW_KEYS< 521,  6 > = K_DELETE      ; KEYBOARD< 521,  6 > = 'VT2'
-                                                  NEW_KEYS< 521,  7 > = K_DELETE      ; KEYBOARD< 521,  7 > = 'VT3'
-                                                  NEW_KEYS< 521,  8 > = K_DELETE      ; KEYBOARD< 521,  8 > = 'VT4'
-                                                  NEW_KEYS< 521,  9 > = K_DELETE      ; KEYBOARD< 521,  9 > = 'WYS'
+                                                  NEW_KEYS< 521,  2 > = K_DELETE      ; KEYBOARD< 521,  2 > = 'LNX' ;!                            46
+                                                  NEW_KEYS< 521,  3 > = K_DELETE      ; KEYBOARD< 521,  3 > = 'PCK' ;!                            46
+                                                  NEW_KEYS< 521,  4 > = K_DELETE      ; KEYBOARD< 521,  4 > = 'VT0' ;!                            46
+                                                  NEW_KEYS< 521,  5 > = K_DELETE      ; KEYBOARD< 521,  5 > = 'VT1' ;!                            46
+                                                  NEW_KEYS< 521,  6 > = K_DELETE      ; KEYBOARD< 521,  6 > = 'VT2' ;!                            46
+                                                  NEW_KEYS< 521,  7 > = K_DELETE      ; KEYBOARD< 521,  7 > = 'VT3' ;!                            46
+                                                  NEW_KEYS< 521,  8 > = K_DELETE      ; KEYBOARD< 521,  8 > = 'VT4' ;!                            46
+                                                  NEW_KEYS< 521,  9 > = K_DELETE      ; KEYBOARD< 521,  9 > = 'WYS' ;!                            46
                                                   NEW_KEYS< 521, 10 > = KC_UNDERSCORE                               ;!                          3189 ANS GTM LVT MDS NTC PTY PV6 SCO TTY VP6 VPT VT3 WYS XTM
-   OLD_KEYS< 522 > = '095049048049126095'       ; NEW_KEYS< 522     > = KM_L1         ; KEYBOARD< 522     > = 'VT3' ;!
-   OLD_KEYS< 523 > = '095049048050126095'       ; NEW_KEYS< 523     > = KM_R1         ; KEYBOARD< 523     > = 'VT3' ;!
-   OLD_KEYS< 524 > = '095049049049126095'       ; NEW_KEYS< 524     > = KM_L2         ; KEYBOARD< 524     > = 'VT3' ;!
-   OLD_KEYS< 525 > = '095049049050126095'       ; NEW_KEYS< 525     > = KM_R2         ; KEYBOARD< 525     > = 'VT3' ;!
-   OLD_KEYS< 526 > = '127'                      ; NEW_KEYS< 526     > = KS_DELETE     ; KEYBOARD< 526     > = 'BBS' ;! {127}                    1046
-                                                  NEW_KEYS< 526,  2 > = K_BACKSPACE   ; KEYBOARD< 526,  2 > = 'LVT'
-                                                  NEW_KEYS< 526,  3 > = K_BACKSPACE   ; KEYBOARD< 526,  3 > = 'NTC'
-                                                  NEW_KEYS< 526,  4 > = KC_BACKSPACE  ; KEYBOARD< 526,  4 > = 'PCK'
-                                                  NEW_KEYS< 526,  5 > = KS_BACKSPACE  ; KEYBOARD< 526,  5 > = 'PTY'
-                                                  NEW_KEYS< 526,  6 > = KC_DELETE     ; KEYBOARD< 526,  6 > = 'PV6'
-                                                  NEW_KEYS< 526,  7 > = KC_DELETE     ; KEYBOARD< 526,  7 > = 'VP6'
-                                                  NEW_KEYS< 526,  8 > = KC_DELETE     ; KEYBOARD< 526,  8 > = 'VPT'
-                                                  NEW_KEYS< 526,  9 > = KS_DELETE     ; KEYBOARD< 526,  9 > = 'VT0'
-                                                  NEW_KEYS< 526, 10 > = KS_DELETE     ; KEYBOARD< 526, 10 > = 'VT1'
-                                                  NEW_KEYS< 526, 11 > = KS_DELETE     ; KEYBOARD< 526, 11 > = 'VT2'
-                                                  NEW_KEYS< 526, 12 > = KS_DELETE     ; KEYBOARD< 526, 12 > = 'VT4'
-                                                  NEW_KEYS< 526, 13 > = K_BACKSPACE   ; KEYBOARD< 526, 13 > = 'XTM'
-                                                  NEW_KEYS< 526, 14 > = K_DELETE                                    ;!                            46 ANS GTM LNX MDS SCO TTY VT3 WYS
-   OLD_KEYS< 527 > = '128'                      ; NEW_KEYS< 527     > = KC_N                                        ;! {128}                    2078 VT3
-   OLD_KEYS< 528 > = '143'                      ; NEW_KEYS< 528     > = K_F01                                       ;! {143}                     112 VT3 on UV/AIX with NLS?
-   OLD_KEYS< 529 > = '143064'                   ; NEW_KEYS< 529     > = K_UP                                        ;! {143}A                     38 VT3 on UV/AIX with NLS?
-   OLD_KEYS< 530 > = '143065'                   ; NEW_KEYS< 530     > = K_DOWN                                      ;! {143}B                     40 VT3 on UV/AIX with NLS?
-   OLD_KEYS< 531 > = '143066'                   ; NEW_KEYS< 531     > = K_RIGHT                                     ;! {143}D                     39 VT3 on UV/AIX with NLS?
-   OLD_KEYS< 532 > = '143067'                   ; NEW_KEYS< 532     > = K_LEFT                                      ;! {143}C                     37 VT3 on UV/AIX with NLS?
-   OLD_KEYS< 533 > = '143081'                   ; NEW_KEYS< 533     > = K_F02                                       ;! {143}Q                    113 VT3
-   OLD_KEYS< 534 > = '143082'                   ; NEW_KEYS< 534     > = K_F03                                       ;! {143}R                    114 VT3
-   OLD_KEYS< 535 > = '143083'                   ; NEW_KEYS< 535     > = K_F04                                       ;! {143}S                    115 VT3
-   OLD_KEYS< 536 > = '155049049049126155'       ; NEW_KEYS< 536     > = KM_L2                                       ;! {155}111~{155}
-   OLD_KEYS< 537 > = '155049049050126155'       ; NEW_KEYS< 537     > = KM_R2                                       ;! {155}112~{155}
-   OLD_KEYS< 538 > = '155049055126'             ; NEW_KEYS< 538     > = K_F06                                       ;! {155}17~                  117 VT3
-   OLD_KEYS< 539 > = '155049056126'             ; NEW_KEYS< 539     > = K_F07                                       ;! {155}18~                  118 VT3
-   OLD_KEYS< 540 > = '155049057126'             ; NEW_KEYS< 540     > = K_F08                                       ;! {155}19~                  119 VT3
-   OLD_KEYS< 541 > = '155049126'                ; NEW_KEYS< 541     > = K_HOME        ; KEYBOARD< 541     > = 'VT2' ;! {155}1~                    36 VT2 CUEmulate
-                                                  NEW_KEYS< 541,  2 > = K_END                                       ;! {155}1~                    35 VT3
-   OLD_KEYS< 542 > = '155050048126'             ; NEW_KEYS< 542     > = K_F09                                       ;! {155}20~                  120 VT3
-   OLD_KEYS< 543 > = '155050049126'             ; NEW_KEYS< 543     > = K_F10                                       ;! {155}21~                  121 VT3
-   OLD_KEYS< 544 > = '155050051126'             ; NEW_KEYS< 544     > = K_F11                                       ;! {155}23~                  122 VT3
-   OLD_KEYS< 545 > = '155050052126'             ; NEW_KEYS< 545     > = K_F12                                       ;! {155}24~                  123 VT3
-   OLD_KEYS< 546 > = '155050053126'             ; NEW_KEYS< 546     > = KC_F03                                      ;! {155}25~                      VT3
-   OLD_KEYS< 547 > = '155050054126'             ; NEW_KEYS< 547     > = KC_F04                                      ;! {155}26~                      VT3
-   OLD_KEYS< 548 > = '155050056126'             ; NEW_KEYS< 548     > = KC_F05                                      ;! {155}28~                      VT3
-   OLD_KEYS< 549 > = '155050057126'             ; NEW_KEYS< 549     > = KC_F06                                      ;! {155}29~                      VT3
-   OLD_KEYS< 550 > = '155050126'                ; NEW_KEYS< 550     > = K_INSERT                                    ;! {155}2~                       VT3
-   OLD_KEYS< 551 > = '155051126'                ; NEW_KEYS< 551     > = K_DELETE                                    ;! {155}3~                       VT2 CUEmulate
-   OLD_KEYS< 552 > = '155051049126'             ; NEW_KEYS< 552     > = KC_F07                                      ;! {155}31~                      VT3
-   OLD_KEYS< 553 > = '155051050126'             ; NEW_KEYS< 553     > = KC_F08                                      ;! {155}32~                      VT3
-   OLD_KEYS< 554 > = '155051051126'             ; NEW_KEYS< 554     > = KC_F09                                      ;! {155}33~                      VT3
-   OLD_KEYS< 555 > = '155051052126'             ; NEW_KEYS< 555     > = KC_F10                                      ;! {155}34~                      VT3
-   OLD_KEYS< 556 > = '155052126'                ; NEW_KEYS< 556     > = K_END                                       ;! {155}4~                    35 VT2 CUEmulate
-   OLD_KEYS< 557 > = '155053126'                ; NEW_KEYS< 557     > = K_PAGE_UP                                   ;! {155}5~                       VT3
-   OLD_KEYS< 558 > = '155054126'                ; NEW_KEYS< 558     > = K_PAGE_DOWN                                 ;! {155}6~                       VT3
-   OLD_KEYS< 559 > = '155065'                   ; NEW_KEYS< 559     > = K_UP                                        ;! {155}A                        VT3
-   OLD_KEYS< 560 > = '155066'                   ; NEW_KEYS< 560     > = K_DOWN                                      ;! {155}B                     40 VT3
-   OLD_KEYS< 561 > = '155067'                   ; NEW_KEYS< 561     > = K_RIGHT                                     ;! {155}C                     39 VT3
-   OLD_KEYS< 562 > = '155068'                   ; NEW_KEYS< 562     > = K_LEFT                                      ;! {155}D                     37 VT3
-   OLD_KEYS< 563 > = '155072'                   ; NEW_KEYS< 563     > = K_HOME                                      ;! {155}H                        VT3
-   OLD_KEYS< 564 > = '155077'                   ; NEW_KEYS< 564     > = K_F05                                       ;! {155}M                        VT3
-   OLD_KEYS< 565 > = '155090'                   ; NEW_KEYS< 565     > = KS_TAB                                      ;! {155}Z                        VT3
-   OLD_KEYS< 566 > = '160'                      ; NEW_KEYS< 566     > = KSC_SPACE                                   ;! {160}                    3032 PTY
-   OLD_KEYS< 567 > = '194049048049126155'       ; NEW_KEYS< 567     > = KM_L1                                       ;! {194}101~{155}
-   OLD_KEYS< 568 > = '194049048050126155'       ; NEW_KEYS< 568     > = KM_R1                                       ;! {194}102~{155}
-   OLD_KEYS< 569 > = '194049049049126155'       ; NEW_KEYS< 569     > = KM_L2                                       ;! {194}111~{155}
-   OLD_KEYS< 570 > = '194049049050126155'       ; NEW_KEYS< 570     > = KM_R2                                       ;! {194}112~{155}
-   OLD_KEYS< 571 > = '194078'                   ; NEW_KEYS< 571     > = KA_1                                        ;! {194}N                   4049 XTM
-   OLD_KEYS< 572 > = '194155049048049126194155' ; NEW_KEYS< 572     > = KM_L1                                       ;! {194}{155}101~{194}{155}
-   OLD_KEYS< 573 > = '194155049048050126194155' ; NEW_KEYS< 573     > = KM_R1                                       ;! {194}{155}102~{194}{155}
-   OLD_KEYS< 574 > = '194155049049049126194155' ; NEW_KEYS< 574     > = KM_L2                                       ;! {194}{155}111~{194}{155}
-   OLD_KEYS< 575 > = '194155049049050126194155' ; NEW_KEYS< 575     > = KM_R2                                       ;! {194}{155}112~{194}{155}
-   OLD_KEYS< 576 > = '195078'                   ; NEW_KEYS< 576     > = KA_BACKSPACE                                ;! {195}N                   4008 XTM
-   OLD_KEYS< 577 > = '195083'                   ; NEW_KEYS< 577     > = KSA_BACKSPACE                               ;! {195}S                   5008 XTM
-   OLD_KEYS< 578 > = '239128'                   ; NEW_KEYS< 578     > = K_F01         ; KEYBOARD< 578     > = 'MDS' ;! {239}{128}                112
-                                                  NEW_KEYS< 578,  2 > = KC_F01                                      ;!                          2112 PV6 VP6 VPT WYS
-   OLD_KEYS< 579 > = '239129'                   ; NEW_KEYS< 579     > = K_F02         ; KEYBOARD< 579     > = 'MDS' ;! {239}{129}                113
-                                                  NEW_KEYS< 579,  2 > = KC_F02                                      ;!                          2113 PV6 VP6 VPT WYS
-   OLD_KEYS< 580 > = '239130'                   ; NEW_KEYS< 580     > = K_F03         ; KEYBOARD< 580     > = 'MDS' ;! {239}{130}                114
-                                                  NEW_KEYS< 580,  2 > = KC_F03                                      ;!                          2114 PV6 VP6 VPT WYS
-   OLD_KEYS< 581 > = '239131'                   ; NEW_KEYS< 581     > = K_F04         ; KEYBOARD< 581     > = 'MDS' ;! {239}{131}                115
-                                                  NEW_KEYS< 581,  2 > = KC_F04                                      ;!                          2115 PV6 VP6 VPT WYS
-   OLD_KEYS< 582 > = '239132'                   ; NEW_KEYS< 582     > = K_F05         ; KEYBOARD< 582     > = 'MDS' ;! {239}{132}                116
-                                                  NEW_KEYS< 582,  2 > = KC_F05                                      ;!                          2116 PV6 VP6 VPT WYS
-   OLD_KEYS< 583 > = '239133'                   ; NEW_KEYS< 583     > = K_F06         ; KEYBOARD< 583     > = 'MDS' ;! {239}{133}                117
-                                                  NEW_KEYS< 583,  2 > = KC_F06                                      ;!                          2117 PV6 VP6 VPT WYS
-   OLD_KEYS< 584 > = '239134'                   ; NEW_KEYS< 584     > = K_F07         ; KEYBOARD< 584     > = 'MDS' ;! {239}{134}                118
-                                                  NEW_KEYS< 584,  2 > = KC_F07                                      ;!                          2118 PV6 VP6 VPT WYS
-   OLD_KEYS< 585 > = '239135'                   ; NEW_KEYS< 585     > = K_F08         ; KEYBOARD< 585     > = 'MDS' ;! {239}{135}                119
-                                                  NEW_KEYS< 585,  2 > = KC_F08                                      ;!                          2119 PV6 VP6 VPT WYS
-   OLD_KEYS< 586 > = '239136'                   ; NEW_KEYS< 586     > = K_F09         ; KEYBOARD< 586     > = 'MDS' ;! {239}{136}                120
-                                                  NEW_KEYS< 586,  2 > = KC_F09                                      ;!                          2120 PV6 VP6 VPT WYS
-   OLD_KEYS< 587 > = '239137'                   ; NEW_KEYS< 587     > = K_F10         ; KEYBOARD< 587     > = 'MDS' ;! {239}{137}                121
-                                                  NEW_KEYS< 587,  2 > = KC_F10                                      ;!                          2121 PV6 VP6 VPT WYS
-   OLD_KEYS< 588 > = '239138'                   ; NEW_KEYS< 588     > = K_F11         ; KEYBOARD< 588     > = 'MDS' ;! {239}{138}                122
-                                                  NEW_KEYS< 588,  2 > = KC_F11                                      ;!                          2122 PV6 VP6 VPT WYS
-   OLD_KEYS< 589 > = '239139'                   ; NEW_KEYS< 589     > = K_F12         ; KEYBOARD< 589     > = 'MDS' ;! {239}{139}                123
-                                                  NEW_KEYS< 589,  2 > = KC_F12                                      ;!                          2123 PV6 VP6 VPT WYS
-   OLD_KEYS< 590 > = '239143080'                ; NEW_KEYS< 590     > = K_F01                                       ;! {239}{143}P               112 VT3
-   OLD_KEYS< 591 > = '239143081'                ; NEW_KEYS< 591     > = K_F02                                       ;! {239}{143}Q               113 VT3
-   OLD_KEYS< 592 > = '239143082'                ; NEW_KEYS< 592     > = K_F03                                       ;! {239}{143}R               114 VT3
-   OLD_KEYS< 593 > = '239143083'                ; NEW_KEYS< 593     > = K_F04                                       ;! {239}{143}S               115 VT3
-   OLD_KEYS< 594 > = '239144'                   ; NEW_KEYS< 594     > = KS_F01        ; KEYBOARD< 594     > = 'MDS' ;! {239}{144}               1112
-                                                  NEW_KEYS< 594,  2 > = KSC_F01                                     ;!                          3112 PV6 VP6 VPT WYS
-   OLD_KEYS< 595 > = '239145'                   ; NEW_KEYS< 595     > = KS_F02        ; KEYBOARD< 595     > = 'MDS' ;! {239}{145}               1113
-                                                  NEW_KEYS< 595,  2 > = KSC_F02                                     ;!                          3113 PV6 VP6 VPT WYS
-   OLD_KEYS< 596 > = '239146'                   ; NEW_KEYS< 596     > = KS_F03        ; KEYBOARD< 596     > = 'MDS' ;! {239}{146}               1114
-                                                  NEW_KEYS< 596,  2 > = KSC_F03                                     ;!                          3114 PV6 VP6 VPT WYS
-   OLD_KEYS< 597 > = '239147'                   ; NEW_KEYS< 597     > = KS_F04        ; KEYBOARD< 597     > = 'MDS' ;! {239}{147}               1115
-                                                  NEW_KEYS< 597,  2 > = KSC_F04                                     ;!                          3115 PV6 VP6 VPT WYS
-   OLD_KEYS< 598 > = '239148'                   ; NEW_KEYS< 598     > = KS_F05        ; KEYBOARD< 598     > = 'MDS' ;! {239}{148}               1116
-                                                  NEW_KEYS< 598,  2 > = KSC_F05                                     ;!                          3116 PV6 VP6 VPT WYS
-   OLD_KEYS< 599 > = '239149'                   ; NEW_KEYS< 599     > = KS_F06        ; KEYBOARD< 599     > = 'MDS' ;! {239}{149}               1117
-                                                  NEW_KEYS< 599,  2 > = KSC_F06                                     ;!                          3117 PV6 VP6 VPT WYS
-   OLD_KEYS< 600 > = '239150'                   ; NEW_KEYS< 600     > = KS_F07        ; KEYBOARD< 600     > = 'MDS' ;! {239}{150}               1118
-                                                  NEW_KEYS< 600,  2 > = KSC_F07                                     ;!                          3118 PV6 VP6 VPT WYS
-   OLD_KEYS< 601 > = '239151'                   ; NEW_KEYS< 601     > = KS_F08        ; KEYBOARD< 601     > = 'MDS' ;! {239}{151}               1119
-                                                  NEW_KEYS< 601,  2 > = KSC_F08                                     ;!                          3119 PV6 VP6 VPT WYS
-   OLD_KEYS< 602 > = '239152'                   ; NEW_KEYS< 602     > = KS_F09        ; KEYBOARD< 602     > = 'MDS' ;! {239}{152}               1120
-                                                  NEW_KEYS< 602,  2 > = KSC_F09                                     ;!                          3120 PV6 VP6 VPT WYS
-   OLD_KEYS< 603 > = '239153'                   ; NEW_KEYS< 603     > = KS_F10        ; KEYBOARD< 603     > = 'MDS' ;! {239}{153}               1121
-                                                  NEW_KEYS< 603,  2 > = KSC_F10                                     ;!                          3121 PV6 VP6 VPT WYS
-   OLD_KEYS< 604 > = '239154'                   ; NEW_KEYS< 604     > = KS_F11        ; KEYBOARD< 604     > = 'MDS' ;! {239}{154}               1122
-                                                  NEW_KEYS< 604,  2 > = KSC_F11                                     ;!                          3122 PV6 VP6 VPT WYS
-   OLD_KEYS< 605 > = '239155'                   ; NEW_KEYS< 605     > = KS_F12        ; KEYBOARD< 605     > = 'MDS' ;! {239}{155}               1123
-                                                  NEW_KEYS< 605,  2 > = KSC_F12                                     ;!                          3123 PV6 VP6 VPT WYS
-   OLD_KEYS< 606 > = '239155049055126'          ; NEW_KEYS< 606     > = K_F06                                       ;! {239}{155}17~             117 VT3
-   OLD_KEYS< 607 > = '239155049056126'          ; NEW_KEYS< 607     > = K_F07                                       ;! {239}{155}18~             118 VT3
-   OLD_KEYS< 608 > = '239155049057126'          ; NEW_KEYS< 608     > = K_F08                                       ;! {239}{155}19~             119 VT3
-   OLD_KEYS< 609 > = '239155049126'             ; NEW_KEYS< 609     > = K_END         ; KEYBOARD< 609     > = 'VT3' ;! {239}{155}1~               35
-                                                  NEW_KEYS< 609,  2 > = KS_END                                      ;!                          1035 VT2 VT4
-   OLD_KEYS< 610 > = '239155050048126'          ; NEW_KEYS< 610     > = K_F09                                       ;! {239}{155}20~             120 VT2 VT3 VT4
-   OLD_KEYS< 611 > = '239155050049126'          ; NEW_KEYS< 611     > = K_F10                                       ;! {239}{155}21~             121 VT2 VT3 VT4
-   OLD_KEYS< 612 > = '239155050051126'          ; NEW_KEYS< 612     > = K_F11         ; KEYBOARD< 612     > = 'VT3' ;! {239}{155}23~             122
-                                                  NEW_KEYS< 612,  2 > = KC_F01                                      ;!                          2112 VT2 VT4
-   OLD_KEYS< 613 > = '239155050052126'          ; NEW_KEYS< 613     > = K_F12                                       ;! {239}{155}24~             123 VT2 VT3 VT4
-   OLD_KEYS< 614 > = '239155050053126'          ; NEW_KEYS< 614     > = KC_F03                                      ;! {239}{155}25~            2114 VT2 VT3 VT4
-   OLD_KEYS< 615 > = '239155050054126'          ; NEW_KEYS< 615     > = KC_F04                                      ;! {239}{155}26~            2115 VT2 VT3 VT4
-   OLD_KEYS< 616 > = '239155050056126'          ; NEW_KEYS< 616     > = KC_F05                                      ;! {239}{155}28~            2116 VT2 VT3 VT4
-   OLD_KEYS< 617 > = '239155050057126'          ; NEW_KEYS< 617     > = KC_F06                                      ;! {239}{155}29~            2117 VT2 VT3 VT4
-   OLD_KEYS< 618 > = '239155050126'             ; NEW_KEYS< 618     > = K_INSERT      ; KEYBOARD< 618     > = 'VT3' ;! {239}{155}2~               45
-                                                  NEW_KEYS< 618,  2 > = KS_INSERT                                   ;!                          1045 VT2 VT4
-   OLD_KEYS< 619 > = '239155051049126'          ; NEW_KEYS< 619     > = KC_F07                                      ;! {239}{155}31~            2118 VT2 VT3 VT4
-   OLD_KEYS< 620 > = '239155051050126'          ; NEW_KEYS< 620     > = KC_F08                                      ;! {239}{155}32~            2119 VT2 VT3 VT4
-   OLD_KEYS< 621 > = '239155051051126'          ; NEW_KEYS< 621     > = KC_F09                                      ;! {239}{155}33~            2120 VT2 VT3 VT4
-   OLD_KEYS< 622 > = '239155051052126'          ; NEW_KEYS< 622     > = KC_F10                                      ;! {239}{155}34~            2121 VT2 VT3 VT4
-   OLD_KEYS< 623 > = '239155053126'             ; NEW_KEYS< 623     > = K_PAGE_UP     ; KEYBOARD< 623     > = 'VT3' ;! {239}{155}5~               33
-                                                  NEW_KEYS< 623,  2 > = KS_PAGE_UP                                  ;!                          1033 VT2 VT4
-   OLD_KEYS< 624 > = '239155054126'             ; NEW_KEYS< 624     > = KS_PAGE_DOWN                                ;! {239}{155}6~             1034 VT2 VT3 VT4
-   OLD_KEYS< 625 > = '239155065'                ; NEW_KEYS< 625     > = K_UP          ; KEYBOARD< 625     > = 'VT3' ;! {239}{155}A                38
-                                                  NEW_KEYS< 625,  2 > = KS_UP                                       ;!                          1038 VT2 VT4
-   OLD_KEYS< 626 > = '239155066'                ; NEW_KEYS< 626     > = K_DOWN        ; KEYBOARD< 626     > = 'VT3' ;! {239}{155}B                40
-                                                  NEW_KEYS< 626,  2 > = KS_DOWN                                     ;!                          1040 VT2 VT4
-   OLD_KEYS< 627 > = '239155067'                ; NEW_KEYS< 627     > = K_RIGHT       ; KEYBOARD< 627     > = 'VT3' ;! {239}{155}C                39
-                                                  NEW_KEYS< 627,  2 > = KS_RIGHT                                    ;!                          1039 VT2 VT4
-   OLD_KEYS< 628 > = '239155068'                ; NEW_KEYS< 628     > = K_LEFT        ; KEYBOARD< 628     > = 'VT3' ;! {239}{155}D                37
-                                                  NEW_KEYS< 628,  2 > = KS_LEFT                                     ;!                          1037 VT2 VT4
-   OLD_KEYS< 629 > = '239155072'                ; NEW_KEYS< 629     > = K_HOME        ; KEYBOARD< 629     > = 'VT3' ;! {239}{155}H                36
-                                                  NEW_KEYS< 629,  2 > = KS_HOME                                     ;!                          1036 VT2 VT4
-   OLD_KEYS< 630 > = '239155077'                ; NEW_KEYS< 630     > = K_F05                                       ;! {239}{155}M               116 VT3
-   OLD_KEYS< 631 > = '239155085'                ; NEW_KEYS< 631     > = K_PAGE_DOWN                                 ;! {239}{155}U                34 VT3
-   OLD_KEYS< 632 > = '239155090'                ; NEW_KEYS< 632     > = KS_TAB                                      ;! {239}{155}Z              1009 VT2 VT3 VT4
-   OLD_KEYS< 633 > = '239160'                   ; NEW_KEYS< 633     > = KC_F01                                      ;! {239}{160}               2112 MDS
-   OLD_KEYS< 634 > = '239161'                   ; NEW_KEYS< 634     > = KC_F02                                      ;! {239}{161}               2113 MDS
-   OLD_KEYS< 635 > = '239162'                   ; NEW_KEYS< 635     > = KC_F03                                      ;! {239}{162}               2114 MDS
-   OLD_KEYS< 636 > = '239163'                   ; NEW_KEYS< 636     > = KC_F04                                      ;! {239}{163}               2115 MDS
-   OLD_KEYS< 637 > = '239164'                   ; NEW_KEYS< 637     > = KC_F05                                      ;! {239}{164}               2116 MDS
-   OLD_KEYS< 638 > = '239165'                   ; NEW_KEYS< 638     > = KC_F06                                      ;! {239}{165}               2117 MDS
-   OLD_KEYS< 639 > = '239166'                   ; NEW_KEYS< 639     > = KC_F07                                      ;! {239}{166}               2118 MDS
-   OLD_KEYS< 640 > = '239167'                   ; NEW_KEYS< 640     > = KC_F08                                      ;! {239}{167}               2119 MDS
-   OLD_KEYS< 641 > = '239168'                   ; NEW_KEYS< 641     > = KC_F09                                      ;! {239}{168}               2120 MDS
-   OLD_KEYS< 642 > = '239169'                   ; NEW_KEYS< 642     > = KC_F10                                      ;! {239}{169}               2121 MDS
-   OLD_KEYS< 643 > = '239170'                   ; NEW_KEYS< 643     > = KC_F11                                      ;! {239}{170}               2122 MDS
-   OLD_KEYS< 644 > = '239171'                   ; NEW_KEYS< 644     > = KC_F12                                      ;! {239}{171}               2123 MDS
-   OLD_KEYS< 645 > = '239176'                   ; NEW_KEYS< 645     > = KC_PAGE_DOWN                                ;! {239}{176}               2034 MDS
-   OLD_KEYS< 646 > = '239177'                   ; NEW_KEYS< 646     > = KC_PAGE_UP                                  ;! {239}{177}               2033 MDS
-   OLD_KEYS< 647 > = '239181'                   ; NEW_KEYS< 647     > = K_PAGE_UP                                   ;! {239}{181}                 33 MDS
-   OLD_KEYS< 648 > = '239182'                   ; NEW_KEYS< 648     > = K_PAGE_DOWN                                 ;! {239}{182}                 34 MDS
-   OLD_KEYS< 649 > = '239183'                   ; NEW_KEYS< 649     > = KS_PAGE_UP                                  ;! {239}{183}               1033 MDS
-   OLD_KEYS< 650 > = '239184'                   ; NEW_KEYS< 650     > = KS_UP                                       ;! {239}{184}               1038 MDS
-   OLD_KEYS< 651 > = '239185'                   ; NEW_KEYS< 651     > = KS_DOWN                                     ;! {239}{185}               1040 MDS
-   OLD_KEYS< 652 > = '239186'                   ; NEW_KEYS< 652     > = KS_RIGHT                                    ;! {239}{186}               1039 MDS
-   OLD_KEYS< 653 > = '239187'                   ; NEW_KEYS< 653     > = KS_LEFT                                     ;! {239}{187}               1037 MDS
-   OLD_KEYS< 654 > = '239188'                   ; NEW_KEYS< 654     > = KC_UP                                       ;! {239}{188}               2038 MDS
-   OLD_KEYS< 655 > = '239189'                   ; NEW_KEYS< 655     > = KC_DOWN                                     ;! {239}{189}               2040 MDS
-   OLD_KEYS< 656 > = '239190'                   ; NEW_KEYS< 656     > = KC_RIGHT                                    ;! {239}{190}               2039 MDS
-   OLD_KEYS< 657 > = '239191'                   ; NEW_KEYS< 657     > = KC_LEFT                                     ;! {239}{191}               2037 MDS
-   OLD_KEYS< 658 > = '251'                      ; NEW_KEYS< 658     > = KC_T                                        ;! {251}                    2084 VT3
-   OLD_KEYS< 659 > = '252'                      ; NEW_KEYS< 659     > = KC_BACKSLASH                                ;! {251}                    2220 VT3
-   OLD_KEYS< 660 > = '253'                      ; NEW_KEYS< 660     > = KC_RBRACKET                                 ;! {253}                    2221 VT3
-!  OLD_KEYS< 651 > = '254'                      ; NEW_KEYS< 651     > = KC_CARET                                    ;! {254}                    3054 VT3
+   OLD_KEYS< 522 > = '052048048056'             ; NEW_KEYS< 522     > = KS_INSERT                                   ;!                          1045
+   OLD_KEYS< 523 > = '095049048049126095'       ; NEW_KEYS< 523     > = KM_L1                                       ;!                          
+   OLD_KEYS< 524 > = '095049048050126095'       ; NEW_KEYS< 524     > = KM_R1                                       ;! 
+   OLD_KEYS< 525 > = '095049049049126095'       ; NEW_KEYS< 525     > = KM_L2                                       ;! 
+   OLD_KEYS< 526 > = '095049049050126095'       ; NEW_KEYS< 526     > = KM_R2                                       ;! 
+   OLD_KEYS< 527 > = '127'                      ; NEW_KEYS< 527     > = KS_DELETE     ; KEYBOARD< 527     > = 'BBS' ;! {127}                    1046
+                                                  NEW_KEYS< 527,  2 > = KC_BACKSPACE  ; KEYBOARD< 527,  2 > = 'CUQ' ;!                          2008
+                                                  NEW_KEYS< 527,  3 > = K_BACKSPACE   ; KEYBOARD< 527,  3 > = 'LVT' ;!                             8
+                                                  NEW_KEYS< 527,  4 > = K_BACKSPACE   ; KEYBOARD< 527,  4 > = 'NTC' ;!                             8
+                                                  NEW_KEYS< 527,  5 > = KC_BACKSPACE  ; KEYBOARD< 527,  5 > = 'PCK' ;!                          2008
+                                                  NEW_KEYS< 527,  6 > = KS_BACKSPACE  ; KEYBOARD< 527,  6 > = 'PTY' ;!                          1008
+                                                  NEW_KEYS< 527,  7 > = KC_DELETE     ; KEYBOARD< 527,  7 > = 'PV6' ;!                          2046
+                                                  NEW_KEYS< 527,  8 > = KC_DELETE     ; KEYBOARD< 527,  8 > = 'VP6' ;!                          2046
+                                                  NEW_KEYS< 527,  9 > = KC_DELETE     ; KEYBOARD< 527,  9 > = 'VPT' ;!                          2046
+                                                  NEW_KEYS< 527, 10 > = KS_DELETE     ; KEYBOARD< 527, 10 > = 'VT0' ;!                          1046
+                                                  NEW_KEYS< 527, 11 > = KS_DELETE     ; KEYBOARD< 527, 11 > = 'VT2' ;!                          1046
+                                                  NEW_KEYS< 527, 12 > = KS_DELETE     ; KEYBOARD< 527, 12 > = 'VT4' ;!                          1046
+                                                  NEW_KEYS< 527, 13 > = K_BACKSPACE   ; KEYBOARD< 527, 13 > = 'XTM' ;!                             8
+                                                  NEW_KEYS< 527, 14 > = K_DELETE                                    ;!                            46 ANS GTM LNX MDS SCO TTY VT3 WYS
+   OLD_KEYS< 528 > = '128'                      ; NEW_KEYS< 528     > = KC_N                                        ;! {128}                    2078 VT3
+   OLD_KEYS< 529 > = '143'                      ; NEW_KEYS< 529     > = K_F01                                       ;! {143}                     112 VT2 on UV/AIX with NLS?
+   OLD_KEYS< 530 > = '143064'                   ; NEW_KEYS< 530     > = K_UP                                        ;! {143}@                     38 VT2 on UV/AIX with NLS?
+   OLD_KEYS< 531 > = '143065'                   ; NEW_KEYS< 531     > = KC_UP                                       ;! {143}A                   2038 VT2 on UV/AIX with NLS?
+   OLD_KEYS< 532 > = '143066'                   ; NEW_KEYS< 532     > = KC_DOWN                                     ;! {143}B                     40 VT2 on UV/AIX with NLS?
+   OLD_KEYS< 533 > = '143067'                   ; NEW_KEYS< 533     > = KC_RIGHT                                    ;! {143}C                   2039 VT2 on UV/AIX with NLS?
+   OLD_KEYS< 534 > = '143081'                   ; NEW_KEYS< 534     > = K_F02                                       ;! {143}Q                    113 VT3
+   OLD_KEYS< 535 > = '143082'                   ; NEW_KEYS< 535     > = K_F03                                       ;! {143}R                    114 VT3
+   OLD_KEYS< 536 > = '143083'                   ; NEW_KEYS< 536     > = K_F04                                       ;! {143}S                    115 VT3
+   OLD_KEYS< 537 > = '155049049049126155'       ; NEW_KEYS< 537     > = KM_L2                                       ;! {155}111~{155}
+   OLD_KEYS< 538 > = '155049049050126155'       ; NEW_KEYS< 538     > = KM_R2                                       ;! {155}112~{155}
+   OLD_KEYS< 539 > = '155049055126'             ; NEW_KEYS< 539     > = K_F06                                       ;! {155}17~                  117 VT3
+   OLD_KEYS< 540 > = '155049056126'             ; NEW_KEYS< 540     > = K_F07                                       ;! {155}18~                  118 VT3
+   OLD_KEYS< 541 > = '155049057126'             ; NEW_KEYS< 541     > = K_F08                                       ;! {155}19~                  119 VT3
+   OLD_KEYS< 542 > = '155049126'                ; NEW_KEYS< 542     > = K_HOME        ; KEYBOARD< 542     > = 'CUQ' ;! {155}1~                    36
+                                                  NEW_KEYS< 542,  2 > = K_END                                       ;!                            35 VT3
+   OLD_KEYS< 543 > = '155050048126'             ; NEW_KEYS< 543     > = K_F09                                       ;! {155}20~                  120 VT3
+   OLD_KEYS< 544 > = '155050049126'             ; NEW_KEYS< 544     > = K_F10                                       ;! {155}21~                  121 VT3
+   OLD_KEYS< 545 > = '155050051126'             ; NEW_KEYS< 545     > = K_F11                                       ;! {155}23~                  122 VT3
+   OLD_KEYS< 546 > = '155050052126'             ; NEW_KEYS< 546     > = K_F12         ; KEYBOARD< 546     > = 'CUQ' ;! {155}24~                  123
+                                                  NEW_KEYS< 546,  2 > = K_F12         ; KEYBOARD< 546,  2 > = 'VT3' ;!                           123
+                                                  NEW_KEYS< 546,  3 > = K_END                                       ;!                            36
+   OLD_KEYS< 547 > = '155050053126'             ; NEW_KEYS< 547     > = KS_F03        ; KEYBOARD< 547     > = 'CUQ' ;! {155}25~                 1114 VT3
+                                                  NEW_KEYS< 547,  2 > = KC_F03                                      ;!                          2114 VT3
+   OLD_KEYS< 548 > = '155050054126'             ; NEW_KEYS< 548     > = KS_F04        ; KEYBOARD< 548     > = 'CUQ' ;! {155}26~                 1115
+                                                  NEW_KEYS< 548,  2 > = KC_F04                                      ;!                          2115 VT3
+   OLD_KEYS< 549 > = '155050056126'             ; NEW_KEYS< 549     > = KS_F05        ; KEYBOARD< 549     > = 'CUQ' ;! {155}28~                 1116
+                                                  NEW_KEYS< 549,  2 > = KC_F05                                      ;!                          2116 VT3
+   OLD_KEYS< 550 > = '155050057126'             ; NEW_KEYS< 550     > = KS_F06        ; KEYBOARD< 550     > = 'CUQ' ;! {155}28~                 1117
+                                                  NEW_KEYS< 550,  2 > = KC_F06                                      ;!                          2117 VT3
+   OLD_KEYS< 551 > = '155050126'                ; NEW_KEYS< 551     > = K_INSERT                                    ;! {155}2~                    45 VT3
+   OLD_KEYS< 552 > = '155051049126'             ; NEW_KEYS< 552     > = KS_F07        ; KEYBOARD< 552     > = 'CUQ' ;! {155}31~                 1118
+                                                  NEW_KEYS< 552,  2 > = KC_F07                                      ;!                          2118 VT3
+   OLD_KEYS< 553 > = '155051050126'             ; NEW_KEYS< 553     > = KS_F08        ; KEYBOARD< 553     > = 'CUQ' ;! {155}32~                 1119
+                                                  NEW_KEYS< 553,  2 > = KC_F08                                      ;!                          2119 VT3
+   OLD_KEYS< 554 > = '155051051126'             ; NEW_KEYS< 554     > = KS_F09        ; KEYBOARD< 554     > = 'CUQ' ;! {155}33~                 1120
+                                                  NEW_KEYS< 554,  2 > = KC_F09                                      ;!                          2120 VT3
+   OLD_KEYS< 555 > = '155051052126'             ; NEW_KEYS< 555     > = KS_F10        ; KEYBOARD< 555     > = 'CUQ' ;! {155}34~                 1121
+                                                  NEW_KEYS< 555,  2 > = KC_F10                                      ;!                          2121 VT3
+   OLD_KEYS< 556 > = '155051126'                ; NEW_KEYS< 556     > = K_DELETE                                    ;! {155}3~                    46 VT2 CUEmulate
+   OLD_KEYS< 557 > = '155052126'                ; NEW_KEYS< 557     > = K_END         ; KEYBOARD< 557     > = 'CUQ' ;! {155}4~                    35
+                                                  NEW_KEYS< 557,  2 > = KS_PAGE_DOWN                                ;!                          1034 VT2 VT3
+   OLD_KEYS< 558 > = '155053126'                ; NEW_KEYS< 558     > = K_PAGE_UP                                   ;! {155}5~                    33 VT3
+   OLD_KEYS< 559 > = '155054126'                ; NEW_KEYS< 559     > = K_PAGE_DOWN                                 ;! {155}6~                    34 VT2 VT3
+   OLD_KEYS< 560 > = '155065'                   ; NEW_KEYS< 560     > = K_UP                                        ;! {155}A                     38 VT3
+   OLD_KEYS< 561 > = '155066'                   ; NEW_KEYS< 561     > = K_DOWN                                      ;! {155}B                     40 VT3
+   OLD_KEYS< 562 > = '155067'                   ; NEW_KEYS< 562     > = K_RIGHT                                     ;! {155}C                     39 VT3
+   OLD_KEYS< 563 > = '155068'                   ; NEW_KEYS< 563     > = K_LEFT                                      ;! {155}D                     37 VT3
+   OLD_KEYS< 564 > = '155072'                   ; NEW_KEYS< 564     > = KS_HOME       ; KEYBOARD< 564     > = 'CUQ' ;! {155}H                   1036
+                                                  NEW_KEYS< 564,  2 > = K_HOME                                      ;!                            36 VT3
+   OLD_KEYS< 565 > = '155075'                   ; NEW_KEYS< 565     > = KS_END                                      ;! {155}K                   1035 VT2 CUQ
+   OLD_KEYS< 566 > = '155076'                   ; NEW_KEYS< 566     > = KS_INSERT                                   ;! {155}L                   1045 VT2 CUQ
+   OLD_KEYS< 567 > = '155077'                   ; NEW_KEYS< 567     > = KS_DELETE     ; KEYBOARD< 567     > = 'CUQ' ;! {155}M                   1046
+                                                  NEW_KEYS< 567,  2 > = K_F05                                       ;!                           116 VT3
+   OLD_KEYS< 568 > = '155090'                   ; NEW_KEYS< 568     > = KS_TAB                                      ;! {155}Z                   1009 VT3
+   OLD_KEYS< 569 > = '160'                      ; NEW_KEYS< 569     > = KSC_SPACE                                   ;! {160}                    3032 VT3
+   OLD_KEYS< 570 > = '194049048049126155'       ; NEW_KEYS< 570     > = KM_L1                                       ;! {194}101~{155}                VT3
+   OLD_KEYS< 571 > = '194049048050126155'       ; NEW_KEYS< 571     > = KM_R1                                       ;! {194}102~{155}                VT3
+   OLD_KEYS< 572 > = '194049049049126155'       ; NEW_KEYS< 572     > = KM_L2                                       ;! {194}111~{155}                VT3
+   OLD_KEYS< 573 > = '194049049050126155'       ; NEW_KEYS< 573     > = KM_R2                                       ;! {194}112~{155}                VT3
+   OLD_KEYS< 574 > = '194078'                   ; NEW_KEYS< 574     > = KA_1                                        ;! {194}N                   4049 VT3
+   OLD_KEYS< 575 > = '194155049048049126194155' ; NEW_KEYS< 575     > = KM_L1                                       ;! {194}{155}101~{194}{155}      VT3
+   OLD_KEYS< 576 > = '194155049048050126194155' ; NEW_KEYS< 576     > = KM_R1                                       ;! {194}{155}102~{194}{155}      VT3
+   OLD_KEYS< 577 > = '194155049049049126194155' ; NEW_KEYS< 577     > = KM_L2                                       ;! {194}{155}111~{194}{155}      VT3
+   OLD_KEYS< 578 > = '194155049049050126194155' ; NEW_KEYS< 578     > = KM_R2                                       ;! {194}{155}112~{194}{155}      VT3
+   OLD_KEYS< 579 > = '195078'                   ; NEW_KEYS< 579     > = KA_BACKSPACE                                ;! {195}N                   4008 VT3
+   OLD_KEYS< 580 > = '195083'                   ; NEW_KEYS< 580     > = KSA_BACKSPACE                               ;! {195}S                   5008 VT3
+   OLD_KEYS< 581 > = '239128'                   ; NEW_KEYS< 581     > = K_F01         ; KEYBOARD< 581     > = 'MDS' ;! {239}{128}                112
+                                                  NEW_KEYS< 581,  2 > = KC_F01                                      ;!                          2112 PV6 VP6 VPT WYS
+   OLD_KEYS< 582 > = '239129'                   ; NEW_KEYS< 582     > = K_F02         ; KEYBOARD< 582     > = 'MDS' ;! {239}{129}                113
+                                                  NEW_KEYS< 582,  2 > = KC_F02                                      ;!                          2113 PV6 VP6 VPT WYS
+   OLD_KEYS< 583 > = '239130'                   ; NEW_KEYS< 583     > = K_F03         ; KEYBOARD< 583     > = 'MDS' ;! {239}{130}                114
+                                                  NEW_KEYS< 583,  2 > = KC_F03                                      ;!                          2114 PV6 VP6 VPT WYS
+   OLD_KEYS< 584 > = '239131'                   ; NEW_KEYS< 584     > = K_F04         ; KEYBOARD< 584     > = 'MDS' ;! {239}{131}                115
+                                                  NEW_KEYS< 584,  2 > = KC_F04                                      ;!                          2115 PV6 VP6 VPT WYS
+   OLD_KEYS< 585 > = '239132'                   ; NEW_KEYS< 585     > = K_F05         ; KEYBOARD< 585     > = 'MDS' ;! {239}{132}                116
+                                                  NEW_KEYS< 585,  2 > = KC_F05                                      ;!                          2116 PV6 VP6 VPT WYS
+   OLD_KEYS< 586 > = '239133'                   ; NEW_KEYS< 586     > = K_F06         ; KEYBOARD< 586     > = 'MDS' ;! {239}{133}                117
+                                                  NEW_KEYS< 586,  2 > = KC_F06                                      ;!                          2117 PV6 VP6 VPT WYS
+   OLD_KEYS< 587 > = '239134'                   ; NEW_KEYS< 587     > = K_F07         ; KEYBOARD< 587     > = 'MDS' ;! {239}{134}                118
+                                                  NEW_KEYS< 587,  2 > = KC_F07                                      ;!                          2118 PV6 VP6 VPT WYS
+   OLD_KEYS< 588 > = '239135'                   ; NEW_KEYS< 588     > = K_F08         ; KEYBOARD< 588     > = 'MDS' ;! {239}{135}                119
+                                                  NEW_KEYS< 588,  2 > = KC_F08                                      ;!                          2119 PV6 VP6 VPT WYS
+   OLD_KEYS< 589 > = '239136'                   ; NEW_KEYS< 589     > = K_F09         ; KEYBOARD< 589     > = 'MDS' ;! {239}{136}                120
+                                                  NEW_KEYS< 589,  2 > = KC_F09                                      ;!                          2120 PV6 VP6 VPT WYS
+   OLD_KEYS< 590 > = '239137'                   ; NEW_KEYS< 590     > = K_F10         ; KEYBOARD< 590     > = 'MDS' ;! {239}{137}                121
+                                                  NEW_KEYS< 590,  2 > = KC_F10                                      ;!                          2121 PV6 VP6 VPT WYS
+   OLD_KEYS< 591 > = '239138'                   ; NEW_KEYS< 591     > = K_F11         ; KEYBOARD< 591     > = 'MDS' ;! {239}{138}                122
+                                                  NEW_KEYS< 591,  2 > = KC_F11                                      ;!                          2122 PV6 VP6 VPT WYS
+   OLD_KEYS< 592 > = '239139'                   ; NEW_KEYS< 592     > = K_F12         ; KEYBOARD< 592     > = 'MDS' ;! {239}{139}                123
+                                                  NEW_KEYS< 592,  2 > = KC_F12                                      ;!                          2123 PV6 VP6 VPT WYS
+   OLD_KEYS< 593 > = '239143080'                ; NEW_KEYS< 593     > = K_F01                                       ;! {239}{143}P               112 VT3
+   OLD_KEYS< 594 > = '239143081'                ; NEW_KEYS< 594     > = K_F02                                       ;! {239}{143}Q               113 VT3
+   OLD_KEYS< 595 > = '239143082'                ; NEW_KEYS< 595     > = K_F03                                       ;! {239}{143}R               114 VT3
+   OLD_KEYS< 596 > = '239143083'                ; NEW_KEYS< 596     > = K_F04                                       ;! {239}{143}S               115 VT3
+   OLD_KEYS< 597 > = '239144'                   ; NEW_KEYS< 597     > = KS_F01        ; KEYBOARD< 597     > = 'MDS' ;! {239}{144}               1112
+                                                  NEW_KEYS< 597,  2 > = KSC_F01                                     ;!                          3112 PV6 VP6 VPT WYS
+   OLD_KEYS< 598 > = '239145'                   ; NEW_KEYS< 598     > = KS_F02        ; KEYBOARD< 598     > = 'MDS' ;! {239}{145}               1113
+                                                  NEW_KEYS< 598,  2 > = KSC_F02                                     ;!                          3113 PV6 VP6 VPT WYS
+   OLD_KEYS< 599 > = '239146'                   ; NEW_KEYS< 599     > = KS_F03        ; KEYBOARD< 599     > = 'MDS' ;! {239}{146}               1114
+                                                  NEW_KEYS< 599,  2 > = KSC_F03                                     ;!                          3114 PV6 VP6 VPT WYS
+   OLD_KEYS< 600 > = '239147'                   ; NEW_KEYS< 600     > = KS_F04        ; KEYBOARD< 600     > = 'MDS' ;! {239}{147}               1115
+                                                  NEW_KEYS< 600,  2 > = KSC_F04                                     ;!                          3115 PV6 VP6 VPT WYS
+   OLD_KEYS< 601 > = '239148'                   ; NEW_KEYS< 601     > = KS_F05        ; KEYBOARD< 601     > = 'MDS' ;! {239}{148}               1116
+                                                  NEW_KEYS< 601,  2 > = KSC_F05                                     ;!                          3116 PV6 VP6 VPT WYS
+   OLD_KEYS< 602 > = '239149'                   ; NEW_KEYS< 602     > = KS_F06        ; KEYBOARD< 602     > = 'MDS' ;! {239}{149}               1117
+                                                  NEW_KEYS< 602,  2 > = KSC_F06                                     ;!                          3117 PV6 VP6 VPT WYS
+   OLD_KEYS< 603 > = '239150'                   ; NEW_KEYS< 603     > = KS_F07        ; KEYBOARD< 603     > = 'MDS' ;! {239}{150}               1118
+                                                  NEW_KEYS< 603,  2 > = KSC_F07                                     ;!                          3118 PV6 VP6 VPT WYS
+   OLD_KEYS< 604 > = '239151'                   ; NEW_KEYS< 604     > = KS_F08        ; KEYBOARD< 604     > = 'MDS' ;! {239}{151}               1119
+                                                  NEW_KEYS< 604,  2 > = KSC_F08                                     ;!                          3119 PV6 VP6 VPT WYS
+   OLD_KEYS< 605 > = '239152'                   ; NEW_KEYS< 605     > = KS_F09        ; KEYBOARD< 605     > = 'MDS' ;! {239}{152}               1120
+                                                  NEW_KEYS< 605,  2 > = KSC_F09                                     ;!                          3120 PV6 VP6 VPT WYS
+   OLD_KEYS< 606 > = '239153'                   ; NEW_KEYS< 606     > = KS_F10        ; KEYBOARD< 606     > = 'MDS' ;! {239}{153}               1121
+                                                  NEW_KEYS< 606,  2 > = KSC_F10                                     ;!                          3121 PV6 VP6 VPT WYS
+   OLD_KEYS< 607 > = '239154'                   ; NEW_KEYS< 607     > = KS_F11        ; KEYBOARD< 607     > = 'MDS' ;! {239}{154}               1122
+                                                  NEW_KEYS< 607,  2 > = KSC_F11                                     ;!                          3122 PV6 VP6 VPT WYS
+   OLD_KEYS< 608 > = '239155'                   ; NEW_KEYS< 608     > = KS_F12        ; KEYBOARD< 608     > = 'MDS' ;! {239}{155}               1123
+                                                  NEW_KEYS< 608,  2 > = KSC_F12                                     ;!                          3123 PV6 VP6 VPT WYS
+   OLD_KEYS< 609 > = '239155049055126'          ; NEW_KEYS< 609     > = K_F06                                       ;! {239}{155}17~             117 VT3
+   OLD_KEYS< 610 > = '239155049056126'          ; NEW_KEYS< 610     > = K_F07                                       ;! {239}{155}18~             118 VT3
+   OLD_KEYS< 611 > = '239155049057126'          ; NEW_KEYS< 611     > = K_F08                                       ;! {239}{155}19~             119 VT3
+   OLD_KEYS< 612 > = '239155049126'             ; NEW_KEYS< 612     > = K_END         ; KEYBOARD< 612     > = 'VT3' ;! {239}{155}1~               35
+                                                  NEW_KEYS< 612,  2 > = KS_END                                      ;!                          1035 VT2 VT4
+   OLD_KEYS< 613 > = '239155050048126'          ; NEW_KEYS< 613     > = K_F09                                       ;! {239}{155}20~             120 VT2 VT3 VT4
+   OLD_KEYS< 614 > = '239155050049126'          ; NEW_KEYS< 614     > = K_F10                                       ;! {239}{155}21~             121 VT2 VT3 VT4
+   OLD_KEYS< 615 > = '239155050051126'          ; NEW_KEYS< 615     > = K_F11         ; KEYBOARD< 615     > = 'VT3' ;! {239}{155}23~             122
+                                                  NEW_KEYS< 615,  2 > = KC_F01                                      ;!                          2112 VT2 VT4
+   OLD_KEYS< 616 > = '239155050052126'          ; NEW_KEYS< 616     > = K_F12                                       ;! {239}{155}24~             123 VT2 VT3 VT4
+   OLD_KEYS< 617 > = '239155050053126'          ; NEW_KEYS< 617     > = KC_F03                                      ;! {239}{155}25~            2114 VT2 VT3 VT4
+   OLD_KEYS< 618 > = '239155050054126'          ; NEW_KEYS< 618     > = KC_F04                                      ;! {239}{155}26~            2115 VT2 VT3 VT4
+   OLD_KEYS< 619 > = '239155050056126'          ; NEW_KEYS< 619     > = KC_F05                                      ;! {239}{155}28~            2116 VT2 VT3 VT4
+   OLD_KEYS< 620 > = '239155050057126'          ; NEW_KEYS< 620     > = KC_F06                                      ;! {239}{155}29~            2117 VT2 VT3 VT4
+   OLD_KEYS< 621 > = '239155050126'             ; NEW_KEYS< 621     > = K_INSERT      ; KEYBOARD< 621     > = 'VT3' ;! {239}{155}2~               45
+                                                  NEW_KEYS< 621,  2 > = KS_INSERT                                   ;!                          1045 VT2 VT4
+   OLD_KEYS< 622 > = '239155051049126'          ; NEW_KEYS< 622     > = KC_F07                                      ;! {239}{155}31~            2118 VT2 VT3 VT4
+   OLD_KEYS< 623 > = '239155051050126'          ; NEW_KEYS< 623     > = KC_F08                                      ;! {239}{155}32~            2119 VT2 VT3 VT4
+   OLD_KEYS< 624 > = '239155051051126'          ; NEW_KEYS< 624     > = KC_F09                                      ;! {239}{155}33~            2120 VT2 VT3 VT4
+   OLD_KEYS< 625 > = '239155051052126'          ; NEW_KEYS< 625     > = KC_F10                                      ;! {239}{155}34~            2121 VT2 VT3 VT4
+   OLD_KEYS< 626 > = '239155053126'             ; NEW_KEYS< 626     > = K_PAGE_UP     ; KEYBOARD< 626     > = 'VT3' ;! {239}{155}5~               33
+                                                  NEW_KEYS< 626,  2 > = KS_PAGE_UP                                  ;!                          1033 VT2 VT4
+   OLD_KEYS< 627 > = '239155054126'             ; NEW_KEYS< 627     > = KS_PAGE_DOWN                                ;! {239}{155}6~             1034 VT2 VT3 VT4
+   OLD_KEYS< 628 > = '239155065'                ; NEW_KEYS< 628     > = K_UP          ; KEYBOARD< 628     > = 'VT3' ;! {239}{155}A                38
+                                                  NEW_KEYS< 628,  2 > = KS_UP                                       ;!                          1038 VT2 VT4
+   OLD_KEYS< 629 > = '239155066'                ; NEW_KEYS< 629     > = K_DOWN        ; KEYBOARD< 629     > = 'VT3' ;! {239}{155}B                40
+                                                  NEW_KEYS< 629,  2 > = KS_DOWN                                     ;!                          1040 VT2 VT4
+   OLD_KEYS< 630 > = '239155067'                ; NEW_KEYS< 630     > = K_RIGHT       ; KEYBOARD< 630     > = 'VT3' ;! {239}{155}C                39
+                                                  NEW_KEYS< 630,  2 > = KS_RIGHT                                    ;!                          1039 VT2 VT4
+   OLD_KEYS< 631 > = '239155068'                ; NEW_KEYS< 631     > = K_LEFT        ; KEYBOARD< 631     > = 'VT3' ;! {239}{155}D                37
+                                                  NEW_KEYS< 631,  2 > = KS_LEFT                                     ;!                          1037 VT2 VT4
+   OLD_KEYS< 632 > = '239155072'                ; NEW_KEYS< 632     > = K_HOME        ; KEYBOARD< 632     > = 'VT3' ;! {239}{155}H                36
+                                                  NEW_KEYS< 632,  2 > = KS_HOME                                     ;!                          1036 VT2 VT4
+   OLD_KEYS< 633 > = '239155077'                ; NEW_KEYS< 633     > = K_F05                                       ;! {239}{155}M               116 VT3
+   OLD_KEYS< 634 > = '239155085'                ; NEW_KEYS< 634     > = K_PAGE_DOWN                                 ;! {239}{155}U                34 VT3
+   OLD_KEYS< 635 > = '239155090'                ; NEW_KEYS< 635     > = KS_TAB                                      ;! {239}{155}Z              1009 VT2 VT3 VT4
+   OLD_KEYS< 636 > = '239160'                   ; NEW_KEYS< 636     > = KC_F01                                      ;! {239}{160}               2112 MDS
+   OLD_KEYS< 637 > = '239161'                   ; NEW_KEYS< 637     > = KC_F02                                      ;! {239}{161}               2113 MDS
+   OLD_KEYS< 638 > = '239162'                   ; NEW_KEYS< 638     > = KC_F03                                      ;! {239}{162}               2114 MDS
+   OLD_KEYS< 639 > = '239163'                   ; NEW_KEYS< 639     > = KC_F04                                      ;! {239}{163}               2115 MDS
+   OLD_KEYS< 640 > = '239164'                   ; NEW_KEYS< 640     > = KC_F05                                      ;! {239}{164}               2116 MDS
+   OLD_KEYS< 641 > = '239165'                   ; NEW_KEYS< 641     > = KC_F06                                      ;! {239}{165}               2117 MDS
+   OLD_KEYS< 642 > = '239166'                   ; NEW_KEYS< 642     > = KC_F07                                      ;! {239}{166}               2118 MDS
+   OLD_KEYS< 643 > = '239167'                   ; NEW_KEYS< 643     > = KC_F08                                      ;! {239}{167}               2119 MDS
+   OLD_KEYS< 644 > = '239168'                   ; NEW_KEYS< 644     > = KC_F09                                      ;! {239}{168}               2120 MDS
+   OLD_KEYS< 645 > = '239169'                   ; NEW_KEYS< 645     > = KC_F10                                      ;! {239}{169}               2121 MDS
+   OLD_KEYS< 646 > = '239170'                   ; NEW_KEYS< 646     > = KC_F11                                      ;! {239}{170}               2122 MDS
+   OLD_KEYS< 647 > = '239171'                   ; NEW_KEYS< 647     > = KC_F12                                      ;! {239}{171}               2123 MDS
+   OLD_KEYS< 648 > = '239176'                   ; NEW_KEYS< 648     > = KC_PAGE_DOWN                                ;! {239}{176}               2034 MDS
+   OLD_KEYS< 649 > = '239177'                   ; NEW_KEYS< 649     > = KC_PAGE_UP                                  ;! {239}{177}               2033 MDS
+   OLD_KEYS< 650 > = '239181'                   ; NEW_KEYS< 650     > = K_PAGE_UP                                   ;! {239}{181}                 33 MDS
+   OLD_KEYS< 651 > = '239182'                   ; NEW_KEYS< 651     > = K_PAGE_DOWN                                 ;! {239}{182}                 34 MDS
+   OLD_KEYS< 652 > = '239183'                   ; NEW_KEYS< 652     > = KS_PAGE_UP                                  ;! {239}{183}               1033 MDS
+   OLD_KEYS< 653 > = '239184'                   ; NEW_KEYS< 653     > = KS_UP                                       ;! {239}{184}               1038 MDS
+   OLD_KEYS< 654 > = '239185'                   ; NEW_KEYS< 654     > = KS_DOWN                                     ;! {239}{185}               1040 MDS
+   OLD_KEYS< 655 > = '239186'                   ; NEW_KEYS< 655     > = KS_RIGHT                                    ;! {239}{186}               1039 MDS
+   OLD_KEYS< 656 > = '239187'                   ; NEW_KEYS< 656     > = KS_LEFT                                     ;! {239}{187}               1037 MDS
+   OLD_KEYS< 657 > = '239188'                   ; NEW_KEYS< 657     > = KC_UP                                       ;! {239}{188}               2038 MDS
+   OLD_KEYS< 658 > = '239189'                   ; NEW_KEYS< 658     > = KC_DOWN                                     ;! {239}{189}               2040 MDS
+   OLD_KEYS< 659 > = '239190'                   ; NEW_KEYS< 659     > = KC_RIGHT                                    ;! {239}{190}               2039 MDS
+   OLD_KEYS< 660 > = '239191'                   ; NEW_KEYS< 660     > = KC_LEFT                                     ;! {239}{191}               2037 MDS
+   OLD_KEYS< 661 > = '251'                      ; NEW_KEYS< 661     > = KC_T                                        ;! {251}                    2084 VT3
+   OLD_KEYS< 662 > = '252'                      ; NEW_KEYS< 662     > = KC_BACKSLASH                                ;! {251}                    2220 VT3
+   OLD_KEYS< 663 > = '253'                      ; NEW_KEYS< 663     > = KC_RBRACKET                                 ;! {253}                    2221 VT3
+   OLD_KEYS< 664 > = '254'                      ; NEW_KEYS< 664     > = KC_CARET                                    ;! {254}                    3054 VT3
 
    KEYS_MAX  = DCOUNT( OLD_KEYS, @AM )
 

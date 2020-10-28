@@ -1,0 +1,153 @@
+PROGRAM ANY_KEY_RPT
+
+! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+
+!           This program is free software; You can redistribute it and/or
+!           modify it under the terms of the GNU general  public  license
+!           version 3 as published by the Free Software Foundation.
+
+! Modified: 05/30/2020 13:36:40 by Marcus
+
+! Platform: Any Pick; Any OS; Any emulator; Any emulation
+
+! Function: Reports a terminal's key sequences from ANY_KEYS.
+
+! (Options: N/A
+
+! Syntax  : ANY_KEY_RPT[ TRM]
+
+! Examples: ANY_KEY_RPT WYS
+!           ANY_KEY_RPT VT3
+
+! Upcoming: Change is the only constant. -- Heraclitus
+
+! Old name: N/A
+
+! Catalog : ANY_KEY_RPT
+
+! New name: N/A
+
+   EQU IDENTITY TO 'ANY_KEY_RPT'
+
+   FILENAME  = 'ANY_KEYS'
+   TERM_TYP  = CHANGE( TRIM( @SENTENCE ), ' ', @AM )
+   KEYS_RPT  = ''
+   KEYS_MAX  = 0
+
+   PROMPT ''
+
+   LOCATE IDENTITY IN TERM_TYP SETTING POSITION THEN
+
+      TERM_TYP  = TERM_TYP< POSITION + 1 >
+
+      IF TERM_TYP EQ '' THEN
+
+         HELP_TXT  = '~You must specify one of AnyKey`s terminal codes: '
+         HELP_TXT := 'ANS, BBS, GTM, LNX, LVT, MDS,~NTC, PCK, PCK, PTY, '
+         HELP_TXT := 'PV6, SCO, TTY, VP6, VPT, VT0, VT1, VT2, VT3, VT4, '
+         HELP_TXT := 'WYS, or~XTM.~~E.g.: ' : IDENTITY : ' WYS~~Press an'
+         HELP_TXT := 'y key to continue: '
+
+         CRT CHANGE( HELP_TXT, '~', CHAR( 13 ) : CHAR( 10 ) ) :
+
+         INPUT WHATEVER, 1 :
+
+         CRT @( 0 ) : ( -4 ) :
+
+      END ELSE
+
+         OPEN FILENAME TO THE_FILE THEN
+
+            SORT_KEY  = ' '
+            KEY_CODE  = 'Code_sequence___________'
+            ALT_CODE  = 'EC'
+            TRM_CODE  = 'Trm'
+            KEY_NAME  = 'Key_name______'
+            ATW_NAME  = 'ATW#'
+            ATW_CODE  = 'ATW_sequence'
+            SORT_IDX  = 1
+
+            GOSUB BUILD.RPT.LINE
+
+            SELECT THE_FILE
+
+            LOOP
+
+               READNEXT KEY_CODE THEN
+
+                  READ THE_ITEM FROM THE_FILE, KEY_CODE THEN
+
+                     LOCATE TERM_TYP IN THE_ITEM< 2 > BY 'AL' SETTING TERM_POS THEN
+
+                        ALT_CODE  = THE_ITEM< 1, TERM_POS >
+                        TRM_CODE  = THE_ITEM< 2, TERM_POS >
+                        KEY_NAME  = THE_ITEM< 3, TERM_POS >
+                        ATW_NAME  = THE_ITEM< 4, TERM_POS >
+                        ATW_CODE  = THE_ITEM< 5 >
+
+                        SORT_KEY  = KEY_NAME : KEY_CODE
+
+                        LOCATE SORT_KEY IN KEYS_RPT< 1 > BY 'AL' SETTING SORT_IDX THEN
+
+                           CRT 'DOUBLE?!'
+
+                        END ELSE
+
+                           GOSUB BUILD.RPT.LINE
+
+                        END
+
+                     END
+
+                  END
+
+               END ELSE
+
+                  EXIT
+
+               END
+
+            REPEAT
+
+            FOR KEYS_IDX = 1 TO KEYS_MAX
+
+               KEY_CODE  = KEYS_RPT< 2, KEYS_IDX >
+               ALT_CODE  = KEYS_RPT< 3, KEYS_IDX >
+               TRM_CODE  = KEYS_RPT< 4, KEYS_IDX >
+               KEY_NAME  = KEYS_RPT< 5, KEYS_IDX >
+               ATW_NAME  = KEYS_RPT< 6, KEYS_IDX >
+               ATW_CODE  = KEYS_RPT< 7, KEYS_IDX >
+
+               CRT KEY_CODE 'L#24 ' : ALT_CODE 'L#2 ' : TRM_CODE 'L#3 ' : KEY_NAME 'L#14 ' : ATW_NAME 'L#4 ' : ATW_CODE
+
+            NEXT KEYS_IDX
+
+         END ELSE
+
+            CRT 'Couldn`t open ' : FILENAME : '!'
+
+         END
+
+      END
+
+   END ELSE
+
+      CRT 'This is ' : IDENTITY : ', not ' : CHANGE( TERM_TYP, @AM, ' ' ) : '!'
+
+   END
+
+STOP
+
+BUILD.RPT.LINE:
+
+   KEYS_RPT  = INSERT( KEYS_RPT, 1, SORT_IDX; SORT_KEY )
+   KEYS_RPT  = INSERT( KEYS_RPT, 2, SORT_IDX; KEY_CODE )
+   KEYS_RPT  = INSERT( KEYS_RPT, 3, SORT_IDX; ALT_CODE )
+   KEYS_RPT  = INSERT( KEYS_RPT, 4, SORT_IDX; TRM_CODE )
+   KEYS_RPT  = INSERT( KEYS_RPT, 5, SORT_IDX; KEY_NAME )
+   KEYS_RPT  = INSERT( KEYS_RPT, 6, SORT_IDX; ATW_NAME )
+   KEYS_RPT  = INSERT( KEYS_RPT, 7, SORT_IDX; ATW_CODE )
+
+   KEYS_MAX += 1
+
+RETURN
