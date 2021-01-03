@@ -1,15 +1,15 @@
 PROGRAM ANY_KEY_INI
 
-! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+! Copyright 1994-2021 Marcus Rhodes <marcus1@thinqware.com>
 !           This program is free software; You can redistribute it and/or
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 05/13/2020 12:41:00 by Marcus
+! Modified: 11/27/2020 17:48:01 by Marcus
 
 ! Platform: Any Pick; Any OS; Any emulator; Any emulation
 
-! Function: Calls EMV_TRM_GET just to initialize it for later use.
+! Function: Calls ANY_KEY_TRM just to initialize it for later use.
 
 ! Syntax  : ANY_KEY_INI
 
@@ -17,7 +17,13 @@ PROGRAM ANY_KEY_INI
 
 ! Examples: ANY_KEY_INI
 
+! Upcoming: Ask the user to be patient while we're starting up.
+
+!           Done!  11/27/2020 17:48:01 by Marcus
+
 ! Upcoming: Change is the only constant. -- Heraclitus
+
+! Project : https://github.com/MarcusAureliusRhodes/AnyKey
 
 ! Old name: EMV_TRM_GET_INI
 
@@ -26,6 +32,8 @@ PROGRAM ANY_KEY_INI
 ! Catalog : ANY_KEY_INI
 
    EQU IDENTITY TO 'ANY_KEY_INI'
+
+   CRT @( 0 ) : 'AnyKey is initializing.  Please stand by.'
 
    CALL ANY_KEY_TRM
 

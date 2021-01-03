@@ -1,6 +1,6 @@
 PROGRAM ANY_KEY_CFG
 
-! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+! Copyright 1994-2021 Marcus Rhodes <marcus1@thinqware.com>
 
 !           This program is free software; You can redistribute it and/or
 !           modify it under the terms of the GNU general  public  license
@@ -22,6 +22,8 @@ PROGRAM ANY_KEY_CFG
 ! Examples: ANY_KEY_CFG
 
 ! Upcoming: Change is the only constant. -- Heraclitus
+
+! Project : https://github.com/MarcusAureliusRhodes/AnyKey
 
 ! Old name: N/A
 

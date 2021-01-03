@@ -1,6 +1,6 @@
 ! INCLUDE ANY_KEY_EQU
 
-! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+! Copyright 1994-2021 Marcus Rhodes <marcus1@thinqware.com>
 
 !           This program is free software; You can redistribute it and/or
 !           modify it under the terms of the GNU general  public  license
@@ -103,6 +103,19 @@
 !           keys so that it  can  send  code  sequences  for  every  key,
 !           including the alt+A-Z,0-9 keys.
 
+!           Update: I tried installing AccuTerm 7.x on Linux under  Wine,
+!           and it works beautifully. Â There are occasional snags (that's
+!           what I'll call them).  For example,  when  switching  between
+!           applications with Alt+Tab,  AccuTerm  occasionally  fails  to
+!           receive the focus, and won't respond to keyboard input.  But,
+!           repeating the switch process always solves the problem.  Even
+!           my GUI  utilities,  Vignettes,  work  perfectly.  Great  job,
+!           Wine!
+
+!           Update: A recent change  in  ssh  required  Phil  to  upgrade
+!           AccuTerm from 7.3c to 7.4a, so be  sure  to  get  the  latest
+!           version before trying it under Wine.
+
 !           If, however, AccuTerm, or anything else with  a  programmable
 !           keyboard, is not an option, and the only  emulator  available
 !           to you, like CMD.EXE, lacks some key you really want/need (on
@@ -138,7 +151,7 @@
 !                 CASE META_KEY EQ K_BACKSPACE ; GOSUB DELETE.LFT
 !                 CASE META_KEY EQ K_DELETE    ; GOSUB DELETE.RGT
 !                 CASE META_KEY EQ K_INSERT    ; GOSUB TOGGLE.INSERT
-!                 CASE META_KEY EQ K_ESC       ; EXIT
+!                 CASE META_KEY EQ K_ESCAPE    ; EXIT
 !                 CASE TEXT_KEY NE ''          ; GOSUB ADD.TO.TEXT
 
 !              END CASE
@@ -146,6 +159,14 @@
 !           REPEAT
 
 ! Upcoming: Program AccuTerm's dead keys.
+
+!           Done 06/30/2020 20:57 by Marcus  (See: ANY_KEY_ATW)
+
+! Upcoming: Add codes for ISO-8859-1 character set.
+
+!           Change is the only constant. -- Heraclitus
+
+! Project : https://github.com/MarcusAureliusRhodes/AnyKey
 
 ! Old name: EMV_KEY_EQU
 
@@ -519,4 +540,3 @@
       CALL ANY_KEY_TBL
 
    END
-

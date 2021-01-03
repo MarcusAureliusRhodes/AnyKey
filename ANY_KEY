@@ -1,12 +1,12 @@
 SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
-! Copyright 1994-2020 Marcus Rhodes <marcus1@thinqware.com>
+! Copyright 1994-2021 Marcus Rhodes <marcus1@thinqware.com>
 
 !           This program is free software; You can redistribute it and/or
 !           modify it under the terms of the GNU general  public  license
 !           version 3 as published by the Free Software Foundation.
 
-! Modified: 09/09/2020 20:53:06 by Marcus
+! Modified: 11/02/2020 09:10:07 by Marcus
 
 ! Platform: Any Pick; Any OS; Any Emulator; Any Emulation
 
@@ -19,9 +19,9 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 ! TEXT_KEY  < Str If a regular key is pressed, its character is  returned
 !                 in this variable.
 ! META_KEY  < Str If a special key (Page Up, Home, Tab, etc.)  or  mouse-
-!                 button is pressed, ANY_KEY's standard, replacement key-
-!                 code, as defined in ANY_KEY_EQU, is  returned  in  this
-!                 variable.
+!                 button (AccuTerm only) is pressed, ANY_KEY's  standard,
+!                 replacement key-code, as  defined  in  ANY_KEY_EQU,  is
+!                 returned in this variable.
 
 ! Syntax  : CALL ANY_KEY( TEXT_KEY, META_KEY )
 
@@ -80,7 +80,11 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 !           stopping everything, waiting for a 2nd click that  may  never
 !           come, frustrating the user.
 
+! Upcoming: Code to accommodate ISO-8859-1 character set.
+
 !           Change is the only constant. -- Heraclitus
+
+! Project : https://github.com/MarcusAureliusRhodes/AnyKey
 
 ! Old name: ANY_KEY_GET
 
@@ -238,9 +242,14 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
    ! systems, and worry about speed, then uncomment the  next  line,  and
    ! comment-out the line after it.
 
-!  IF CHAR_NUM GT 31 AND CHAR_NUM LT 127 THEN
+   ! And, now, it turns out that there's a terminal that used  4  as  the
+   ! first character of its Shift+Insert string.
 
-   IF ( CHAR_NUM GT 31 AND CHAR_NUM LT 95 ) OR ( CHAR_NUM GT 95 AND CHAR_NUM LT 127 ) THEN
+   RGLR_KEY  = 31 LT CHAR_NUM AND CHAR_NUM LT  52
+   RGLR_KEY += 52 LT CHAR_NUM AND CHAR_NUM LT  95
+   RGLR_KEY += 95 LT CHAR_NUM AND CHAR_NUM LT 127
+
+   IF RGLR_KEY THEN
 
       TEXT_KEY  = CHAR( CHAR_NUM )
       META_KEY  = ''
@@ -275,6 +284,19 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
       ! End Pick JB ================== Zumasys' jBase ===================
       ! Beg Pick QM ================== Zumasys' OpenQM ==================
+
+      IF CHAR_NUM EQ 194 THEN
+
+         ! Either a character follows Shift+Space on Gnome/Mate  terminal
+         ! that OpenQM is unable to pull from the type-ahead  buffer,  or
+         ! it leaves a flag set even after IN/FOR  causing  INPUT var,-1:
+         ! to think there's still a character in the  buffer  when  there
+         ! isn't.  Either way, this is a bug,  and  it  requires  working
+         ! around.
+
+         INPUT KEY_IN_Q, -1 :
+
+      END
 
       LOOP
 
@@ -313,7 +335,7 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
       ! End Pick UD ============= Rocket Software's UniData =============
       ! Beg Pick UV ============ Rocket Software's UniVerse =============
 
-      LOOP WHILE BFFR_LEN LT 32 DO
+      LOOP WHILE BFFR_LEN LT 16 DO
 
          INPUTIF THE_CHAR, 1 THEN
 
@@ -345,13 +367,16 @@ SUBROUTINE ANY_KEY( TEXT_KEY, META_KEY )
 
       ! End Pick UV ============ Rocket Software's UniVerse =============
 
-      ! Search the array for this key,  starting  with  a  maximum  of  8
+      ! Search the array for this key, starting  with  a  maximum  of  16
       ! chars, working our way down to a single char, until  a  match  is
       ! found.
 
       CODE_MAX  = LEN( ANY_BFFR[ 1, 16 ] )
 
       IF CODE_MAX EQ 1 AND ANY_BFFR EQ '_' THEN
+
+         ! This is where we take care of any 'normal' chars that may also
+         ! prefix special keys, but not this time.  (Normal = 31<key<127)
 
          TEXT_KEY  = '_'
          META_KEY  = ''
